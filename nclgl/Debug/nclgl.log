@@ -1,0 +1,39 @@
+﻿Build started 07/11/2014 15:37:48.
+     1>Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" on node 2 (Build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\nclgl.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Window.cpp
+         Window.cpp
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\Lib.exe /OUT:"D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\Graphics Coursework\Debug\nclgl.lib" /NOLOGO Debug\Camera.obj
+         Debug\Frustum.obj
+         Debug\GameTimer.obj
+         Debug\HeightMap.obj
+         Debug\Keyboard.obj
+         Debug\Light.obj
+         Debug\Matrix4.obj
+         Debug\MD5Anim.obj
+         Debug\MD5FileData.obj
+         Debug\MD5Mesh.obj
+         Debug\MD5Node.obj
+         Debug\Mesh.obj
+         Debug\Mouse.obj
+         Debug\OBJMesh.obj
+         Debug\OGLRenderer.obj
+         Debug\Plane.obj
+         Debug\Quaternion.obj
+         Debug\Renderer.obj
+         Debug\SceneNode.obj
+         Debug\Shader.obj
+         Debug\Window.obj
+     1>Light.obj : warning LNK4221: This object file does not define any previously undefined public symbols, so it will not be used by any link operation that consumes this library
+         nclgl.vcxproj -> D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\Graphics Coursework\Debug\nclgl.lib
+       FinalizeBuildStatus:
+         Deleting file "Debug\nclgl.unsuccessfulbuild".
+         Touching "Debug\nclgl.lastbuildstate".
+     1>Done Building Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.98
