@@ -3,16 +3,22 @@
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
-	timePassed = 0;
+	wglSwapIntervalEXT(0);
+	movementVar = 0;
 	anim = 0;
+	frames = 0;
+	fps = 0;
+	timeAcc = 0;
+	drawBounds = true;
+	pause = false;
 
 	camera = new Camera(-8.0f, -25.0f, Vector3(-200.0f, 50.0f, 250.0f));
 
 	light = new Light(Vector3(-450.0f, 200.0f, 280.0f),
-		Vector4(1,1,1,1), 5500.0f);
+		Vector4(1,1,1,1), 55000.0f);
 
 	/*light->SetPosition(Vector3(-200.0f, 700.0f, 250.0f));*/
-	
+
 
 	hellData = new MD5FileData(MESHDIR"hellknight.md5mesh");
 	hellNode = new MD5Node(*hellData);
@@ -67,27 +73,74 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	//Unbind the frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	//Generate a floor quad, passing a texture and bump map
-	floor = Mesh::GenerateQuad(); //TODO: not index buffered?
-	floor->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"brick.tga",
+	//Generate a quad quad, passing a texture and bump map
+	quad = Mesh::GenerateQuad(); //TODO: not index buffered?
+	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"brick.tga",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	floor->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"brickDOT3.tga",
+	quad->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"brickDOT3.tga",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	
+	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
+
+	heightMap->SetTexture(SOIL_load_OGL_texture(
+		TEXTUREDIR"Barren reds.jpg", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	heightMap->SetBumpMap(SOIL_load_OGL_texture(
+		TEXTUREDIR"Barren redsDOT3.jpg", SOIL_LOAD_AUTO, 
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	SetTextureRepeating(heightMap->GetTexture(), true);
+	SetTextureRepeating(heightMap->GetBumpMap(), true);
+
+	//SKYBOX STUFF
+	skyboxShader = new Shader(SHADERDIR"skyboxVertex.glsl",
+		SHADERDIR"skyboxFragment.glsl");
+
+	if (!skyboxShader->LinkProgram())
+		return;
+
+	cubeMap = SOIL_load_OGL_cubemap(
+		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
+		TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
+		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
+		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
+
+	if (!cubeMap)
+		return;
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
 	root = new SceneNode();
 
-	/*SceneNode**/ floorNode = new SceneNode(floor);
-	floorNode->SetTransform(Matrix4::Rotation(90, Vector3(1,0,0)) *
+	/*SceneNode**/ quadNode = new SceneNode(quad);
+	quadNode->SetTransform(Matrix4::Rotation(90, Vector3(1,0,0)) *
 		Matrix4::Scale(Vector3(450, 450, 1)));
-	floorNode->SetBoundingRadius(620.0f);
+	quadNode->SetBoundingRadius(620.0f);
 
-	hellNode->SetTransform(Matrix4::GetIdentitiy());
+	hellNode->SetTransform(Matrix4::Translation(Vector3(0,200,0)));
 	hellNode->SetBoundingRadius(100);
 
-	root->AddChild(floorNode);
+	heightMapNode = new SceneNode(heightMap);
+	//heightMapNode->SetTransform(Matrix4::Translation(Vector3(-(RAW_WIDTH * HEIGHTMAP_X * 0.5f), 0, -(RAW_HEIGHT * HEIGHTMAP_Z * 0.5f))));
+	heightMapNode->SetBoundingRadius( sqrt( pow(RAW_WIDTH * HEIGHTMAP_X * 0.5, 2) + pow(RAW_HEIGHT * HEIGHTMAP_Z * 0.5, 2)));
+
+	//root->AddChild(quadNode);
 	root->AddChild(hellNode);
+	root->AddChild(heightMapNode);
+
+	//TEXT STUFF
+	basicFont = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
+
+	passThrough = new Shader(SHADERDIR"TexturedVertex.glsl", SHADERDIR"TexturedFragment.glsl");
+
+	if (!passThrough->LinkProgram())
+		return;
+
+	//BOUNDING BOX STUFF
+	sphere = new OBJMesh(MESHDIR"sphere.obj");
 
 	//Turn on depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -109,7 +162,7 @@ Renderer::~Renderer(void)
 	delete light;
 	delete hellData;
 	delete hellNode;
-	delete floor;
+	delete quad;
 
 	delete sceneShader;
 	delete shadowShader;
@@ -117,23 +170,54 @@ Renderer::~Renderer(void)
 }
 
 void Renderer::UpdateScene(float msec){
-	timePassed += msec*0.001;
-	camera->UpdateCamera(msec);
-	hellNode->Update(msec);
-	light->SetPosition(Vector3(-450.0f * sin(timePassed), 200.0f + 200.0f * sin(timePassed*0.1), 280.0f * cos(timePassed)));
 
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)){
-		++anim %= 6;
-		switch(anim){
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P))
+		pause = !pause;
+
+	camera->UpdateCamera(msec);
+	timeAcc += msec;
+
+	if (!pause){
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
+			movementVar += msec*0.0001;
+
+		} else {
+			movementVar += msec*0.001;
+		}
+		
+		root->Update(msec);
+		//light->SetPosition(Vector3(-1500.0f * sin(movementVar), 4000.0f , 1500.0f * cos(movementVar)));
+		light->SetPosition(Vector3(0, 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
+		//light->SetPosition(Vector3(-HEIGHTMAP_X * RAW_WIDTH * sin(movementVar), 1000.0f, HEIGHTMAP_Z * RAW_HEIGHT * cos(movementVar)));
+
+
+
+
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)){
+			++anim %= 6;
+			switch(anim){
 			case 0: hellNode->PlayAnim(MESHDIR"idle2.md5anim"); break;
 			case 1: hellNode->PlayAnim(MESHDIR"roar1.md5anim"); break;
 			case 2: hellNode->PlayAnim(MESHDIR"attack2.md5anim"); break;
 			case 3: hellNode->PlayAnim(MESHDIR"pain1.md5anim"); break;
 			case 4: hellNode->PlayAnim(MESHDIR"walk7.md5anim"); break;
 			case 5: hellNode->PlayAnim(MESHDIR"stand.md5anim"); break;
+			}
 		}
+		//light->SetPosition(camera->GetPosition());
 	}
-	//light->SetPosition(camera->GetPosition());
+
+	//TEXT
+	frames++;
+	objectsDrawn = 0;
+	objectsShadowed = 0;
+
+	//After every second update the fps variable
+	if (timeAcc > 1000){
+		timeAcc -= 1000;
+		fps = frames;
+		frames = 0;
+	}
 
 }
 
@@ -143,9 +227,10 @@ void Renderer::RenderScene(){
 	//Build node lists in order of distance from the light
 	DrawShadowScene(); //First Render pass
 
+	DrawSkybox();
+
 	//Build node lists in order of distance from the camera
 	DrawCombinedScene(); //Second render pass
-
 
 	SwapBuffers();
 }
@@ -170,6 +255,9 @@ void Renderer::DrawShadowScene(){
 	viewMatrix = Matrix4::BuildViewMatrix(
 		light->GetPosition(), Vector3(0,0,0));
 
+	projMatrix = Matrix4::Perspective(2900.0f + 2000 * abs(cos(movementVar)), 7100.0f - 2000 * abs(cos(movementVar)),
+		(float) width / (float) height, 45.0f);
+
 	//Stores the shadows vp matrix multiplied by the bias matrix
 	//to keep coordinates in clip space range
 	textureMatrix = biasMatrix*(projMatrix*viewMatrix);
@@ -177,12 +265,18 @@ void Renderer::DrawShadowScene(){
 	//Update our shaders matrices
 	//UpdateShaderMatrices();
 
-	//Draw the floor and the hellknight
+	//Draw the quad and the hellknight
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 	BuildNodeLists(root, light->GetPosition());
 	SortNodeLists();
 	DrawNodes();
+	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr)
+		if ((*itr)->GetMesh()) objectsShadowed++;
 	ClearNodeLists();
+
+	/*DrawNode(root);
+	DrawNode(heightMapNode);
+	DrawNode(hellNode);*/
 
 	//Disable our shader, turn colour writes back on and set our view port back to
 	//our window size
@@ -195,7 +289,7 @@ void Renderer::DrawShadowScene(){
 }
 
 void Renderer::DrawCombinedScene(){
-	
+
 	SetCurrentShader(sceneShader);
 
 	//Upload our textures to units 0-2
@@ -219,50 +313,27 @@ void Renderer::DrawCombinedScene(){
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
 
 	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
+		(float) width / (float) height, 45.0f);
 	//UpdateShaderMatrices();
 
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
-	BuildNodeLists(root, light->GetPosition());
+	BuildNodeLists(root, camera->GetPosition());
 	SortNodeLists();
 	DrawNodes();
+	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr)
+		if ((*itr)->GetMesh()) objectsDrawn++;
 	ClearNodeLists();
 
+	SetCurrentShader(passThrough);
+	std::ostringstream buff;
+	buff << "FPS: " << fps <<std::endl;
+	buff << "Drawn: " << objectsDrawn << std::endl;
+	buff << "Shadowed: " << objectsShadowed << std::endl;
+
+	DrawString(buff.str(), Vector3(0,0,0), 16.0f);
+
 	glUseProgram(0);
-}
-
-
-void Renderer::DrawMesh(){
-	modelMatrix.ToIdentity();
-
-	Matrix4 tempMatrix = textureMatrix * modelMatrix;
-
-	//Use texture Matrix as the model * shadow view projection matrix
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"textureMatrix"), 1, false, tempMatrix.values);
-
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"modelMatrix"), 1, false, modelMatrix.values);
-
-	hellNode->Draw(*this);
-}
-
-void Renderer::DrawFloor(){
-
-	modelMatrix = Matrix4::Rotation(90, Vector3(1,0,0)) *
-		Matrix4::Scale(Vector3(450, 450, 1));
-
-	//Use the texture matrix as the model * shadow view projection matrix
-	Matrix4 tempMatrix = textureMatrix * modelMatrix;
-
-	/*tempMatrix = Matrix4::Scale(Vector3(10,10,10));*/
-
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"textureMatrix"),1,false, tempMatrix.values);
-
-	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"modelMatrix"), 1, false, modelMatrix.values);
-
-	floor->Draw();
 }
 
 void Renderer::BuildNodeLists(SceneNode* from, const Vector3& viewPos){
@@ -317,11 +388,11 @@ void Renderer::ClearNodeLists(){
 void Renderer::DrawNode(SceneNode* n){
 	if (n->GetMesh()){
 		/*glUniformMatrix4fv(
-			glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"),
-			1, false, (float*) &(n->GetWorldTransform() * Matrix4::Scale(n->GetModelScale())));*/
+		glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"),
+		1, false, (float*) &(n->GetWorldTransform() * Matrix4::Scale(n->GetModelScale())));*/
 		/*glUniformMatrix4fv(
-			glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"),
-			1, false, (float*) &(n->GetWorldTransform()));*/
+		glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"),
+		1, false, (float*) &(n->GetWorldTransform()));*/
 
 		modelMatrix = n->GetTransform();
 
@@ -336,10 +407,64 @@ void Renderer::DrawNode(SceneNode* n){
 		Matrix4 tempMatrix = textureMatrix * modelMatrix;
 
 		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"textureMatrix"),1,false, tempMatrix.values);
-
-		
+			"textureMatrix"),1,false, tempMatrix.values);
 
 		n->Draw(*this);
+
+		if (drawBounds){
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
+				"modelMatrix"),	1,false, (float*) &(modelMatrix *
+				Matrix4::Scale(
+				Vector3(n->GetBoundingRadius(),
+				n->GetBoundingRadius(),
+				n->GetBoundingRadius()))));
+			sphere->Draw();
+		}
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
+}
+
+void Renderer::DrawString(const std::string& text, const Vector3& pos, const float size, const bool perspective){
+
+	//TODO: Creation of a text mesh every time!?
+	TextMesh* mesh = new TextMesh(text, *basicFont);
+
+	if (perspective){
+		modelMatrix = Matrix4::Translation(pos) * Matrix4::Scale(Vector3(size,size,1));
+
+	} else {
+		modelMatrix = Matrix4::Translation(Vector3(pos.x, height-pos.y, pos.z))
+			*Matrix4::Scale(Vector3(size,size,1));
+		viewMatrix.ToIdentity();
+		projMatrix = Matrix4::Orthographic(-1.0f,1.0f,(float)width, 0.0f,(float)height, 0.0f);
+	}
+
+	////Either way, we update the matrices, and draw the mesh
+	UpdateShaderMatrices();
+	mesh->Draw();
+
+	delete mesh; //Once it's drawn, we don't need it anymore!
+
+}
+
+void Renderer::DrawSkybox(){
+
+	//TODO: Reduce overdraw of skybox.
+	glDepthMask(GL_FALSE);
+
+	SetCurrentShader(skyboxShader);
+
+	//No need to change model matrix
+	//TODO: This is being called twice!
+	modelMatrix = Matrix4::GetIdentitiy();
+	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
+		(float) width / (float) height, 45.0f);
+	UpdateShaderMatrices();
+
+	quad->Draw();
+
+	glUseProgram(0);
+	glDepthMask(GL_TRUE);
 }

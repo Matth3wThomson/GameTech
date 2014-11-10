@@ -27,8 +27,8 @@ HeightMap::HeightMap(const std::string& name)
 
 			//Scaled by a pre determined factor (modifying the terrain loaded 
 			//from file)
-			vertices[offset] = Vector3(x * HEIGHTMAP_X, 
-				data[offset] * HEIGHTMAP_Y, z * HEIGHTMAP_Z);
+			vertices[offset] = Vector3(x * HEIGHTMAP_X - (HEIGHTMAP_X * RAW_WIDTH * 0.5f), 
+				data[offset] * HEIGHTMAP_Y, z * HEIGHTMAP_Z - (HEIGHTMAP_Z * RAW_HEIGHT * 0.5f));
 
 			/*if (vertices[offset].y < 100.0f)
 				colours[offset] = Vector4(0.2f, 0.2f, 0.2f, 0.2f);

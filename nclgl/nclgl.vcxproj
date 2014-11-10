@@ -31,6 +31,7 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SceneNode.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="TextMesh.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -56,6 +57,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SceneNode.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="TextMesh.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Vector4.h" />
@@ -95,8 +97,8 @@
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\GLEW\include;..\SOIL;$(IncludePath)</IncludePath>
-    <LibraryPath>..\GLEW\lib;..\SOIL;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\GLEW\include;..\..\SOIL\;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\GLEW\lib;..\..\SOIL;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

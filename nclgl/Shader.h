@@ -13,7 +13,7 @@ public:
 	Shader(string vertex, string fragment , string geometry = "");
 	~Shader(void);
 
-	GLuint  GetProgram() { return program;}
+	GLuint  GetProgram() const { return program;}
 	bool	LinkProgram();
 
 protected:
