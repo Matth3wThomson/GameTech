@@ -15,6 +15,7 @@
 //TODO: Make shaders multiplied pre-draw function
 //TODO: Sort lighting depth issues out for midday
 //TODO: Bounding boxes http://fgiesen.wordpress.com/2010/10/17/view-frustum-culling/
+//TODO: Store a "camera view and proj" and "light view and proj" to save reinstantiation
 
 #define SHADOWSIZE 2048 * 8
 
@@ -61,7 +62,14 @@ protected:
 	void DrawNode(SceneNode* n);
 	void ClearNodeLists();
 
+	void InitSceneObjects();
+
+	//TODO: Finish this!
+	void DrawFrustum();
+
 	SceneNode* quadNode;
+
+	
 	//End additions
 
 	//TODO: Post Proccess additions
@@ -106,6 +114,11 @@ protected:
 	//end bounding
 
 	Camera* camera;
+
+	//Lighting
 	Light* light;
+
+	void DrawLight(const Light* light);
+	//End lighting
 };
 

@@ -1,4 +1,4 @@
-﻿Build started 10/11/2014 17:09:52.
+﻿Build started 11/11/2014 11:02:08.
      1>Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" on node 2 (Build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\nclgl.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -37,4 +37,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.78
+Time Elapsed 00:00:02.38

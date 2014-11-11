@@ -14,6 +14,8 @@ public:
 
 	void FromMatrix(const Matrix4& mvp);
 	bool InsideFrustum(SceneNode& n);
+	
+	Plane* Get6Planes(){ return planes; }
 
 protected:
 	Plane planes[6];

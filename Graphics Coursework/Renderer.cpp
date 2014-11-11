@@ -3,7 +3,7 @@
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
-	wglSwapIntervalEXT(0);
+	//wglSwapIntervalEXT(0);
 	movementVar = 0;
 	anim = 0;
 	frames = 0;
@@ -15,7 +15,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	camera = new Camera(-8.0f, -25.0f, Vector3(-200.0f, 50.0f, 250.0f));
 
 	light = new Light(Vector3(-450.0f, 200.0f, 280.0f),
-		Vector4(1,1,1,1), 55000.0f);
+		Vector4(1,1,0.7,1), 55000.0f);
 
 	/*light->SetPosition(Vector3(-200.0f, 700.0f, 250.0f));*/
 
@@ -144,6 +144,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 	//Turn on depth testing
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 
 	//Initialize a projection matrix 
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
@@ -290,6 +293,10 @@ void Renderer::DrawShadowScene(){
 
 void Renderer::DrawCombinedScene(){
 
+	//TODO: Sort out drawing the frustum!
+	////Draw the light frustum
+	//DrawFrustum();
+
 	SetCurrentShader(sceneShader);
 
 	//Upload our textures to units 0-2
@@ -324,6 +331,7 @@ void Renderer::DrawCombinedScene(){
 	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr)
 		if ((*itr)->GetMesh()) objectsDrawn++;
 	ClearNodeLists();
+	DrawLight(light);
 
 	SetCurrentShader(passThrough);
 	std::ostringstream buff;
@@ -332,97 +340,9 @@ void Renderer::DrawCombinedScene(){
 	buff << "Shadowed: " << objectsShadowed << std::endl;
 
 	DrawString(buff.str(), Vector3(0,0,0), 16.0f);
+	
 
 	glUseProgram(0);
-}
-
-void Renderer::BuildNodeLists(SceneNode* from, const Vector3& viewPos){
-	if (frameFrustum.InsideFrustum(*from)){
-		Vector3 dir = from->GetWorldTransform().GetPositionVector() -
-			viewPos;
-
-		from->SetCameraDistance(Vector3::Dot(dir, dir));
-
-		if (from->GetColour().w < 1.0f)
-			transparentNodes.push_back(from);
-		else nodeList.push_back(from);
-
-	}
-
-	for (vector<SceneNode*>::const_iterator i = from->GetChildIteratorStart();
-		i != from->GetChildIteratorEnd(); ++i){
-			BuildNodeLists((*i), viewPos);
-	}
-}
-
-void Renderer::SortNodeLists(){
-	std::sort(transparentNodes.begin(),
-		transparentNodes.end(),
-		SceneNode::CompareByCameraDistance);
-
-	std::sort(nodeList.begin(),
-		nodeList.end(),
-		SceneNode::CompareByCameraDistance);
-}
-
-void Renderer::DrawNodes(){
-
-	//Draw the nodes from closest to furthest away
-	for (vector<SceneNode*>::const_iterator i = nodeList.begin();
-		i!= nodeList.end(); ++i){
-			DrawNode((*i));
-	}
-
-	//Draw the transparent nodes from furthest away to closest
-	for (vector<SceneNode*>::const_reverse_iterator i = transparentNodes.rbegin();
-		i != transparentNodes.rend(); ++i){
-			DrawNode((*i));
-	}
-}
-
-void Renderer::ClearNodeLists(){
-	transparentNodes.clear();
-	nodeList.clear();
-}
-
-void Renderer::DrawNode(SceneNode* n){
-	if (n->GetMesh()){
-		/*glUniformMatrix4fv(
-		glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"),
-		1, false, (float*) &(n->GetWorldTransform() * Matrix4::Scale(n->GetModelScale())));*/
-		/*glUniformMatrix4fv(
-		glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"),
-		1, false, (float*) &(n->GetWorldTransform()));*/
-
-		modelMatrix = n->GetTransform();
-
-		glUniform4fv ( glGetUniformLocation ( currentShader->GetProgram(),
-			"nodeColour") ,1 ,( float *)& n->GetColour ());
-
-		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-			"useTexture"), (int)n->GetMesh()->GetTexture());
-
-		UpdateShaderMatrices();
-
-		Matrix4 tempMatrix = textureMatrix * modelMatrix;
-
-		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-			"textureMatrix"),1,false, tempMatrix.values);
-
-		n->Draw(*this);
-
-		if (drawBounds){
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-				"modelMatrix"),	1,false, (float*) &(modelMatrix *
-				Matrix4::Scale(
-				Vector3(n->GetBoundingRadius(),
-				n->GetBoundingRadius(),
-				n->GetBoundingRadius()))));
-			sphere->Draw();
-		}
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
 }
 
 void Renderer::DrawString(const std::string& text, const Vector3& pos, const float size, const bool perspective){
@@ -452,7 +372,7 @@ void Renderer::DrawSkybox(){
 
 	//TODO: Reduce overdraw of skybox.
 	glDepthMask(GL_FALSE);
-
+	glDisable(GL_CULL_FACE);
 	SetCurrentShader(skyboxShader);
 
 	//No need to change model matrix
@@ -467,4 +387,50 @@ void Renderer::DrawSkybox(){
 
 	glUseProgram(0);
 	glDepthMask(GL_TRUE);
+	glEnable(GL_CULL_FACE);
+}
+
+//TODO: Drawing light source no matter what!?
+void Renderer::DrawLight(const Light* light){
+	SetCurrentShader(passThrough);
+
+	modelMatrix = Matrix4::Translation(light->GetPosition()) *
+		Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f));
+	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
+		(float) width / (float) height, 45.0f);
+	UpdateShaderMatrices();
+
+	sphere->Draw();
+
+	glUseProgram(0);
+}
+
+//TODO: Lots of reinstantiation of view and proj matrix!
+void Renderer::DrawFrustum(){
+	Plane* planes = frameFrustum.Get6Planes();
+
+	SetCurrentShader(passThrough);
+
+	for (int i=0; i<6; ++i){
+		modelMatrix = Matrix4::Translation(planes[i].GetNormal()
+			* planes[i].GetDistance())
+			* Matrix4::Translation(light->GetPosition())
+			* Matrix4::Scale(Vector3(1000,1000,1))
+			* Matrix4::Rotation(90, -planes[i].GetNormal());
+			
+		viewMatrix = camera->BuildViewMatrix();
+		projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
+		(float) width / (float) height, 45.0f);
+
+		UpdateShaderMatrices();
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		quad->SetTexture(0);
+		quad->Draw();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	}
+
+	glUseProgram(0);
 }
