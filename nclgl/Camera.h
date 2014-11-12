@@ -37,7 +37,7 @@ protected:
 	float yaw;	//Camera's heading
 	float pitch; //Degrees up or down camera is facing
 
-	static const float timeScaleFactor;
+	static float timeScaleFactor;
 
 	Vector3 position;
 };

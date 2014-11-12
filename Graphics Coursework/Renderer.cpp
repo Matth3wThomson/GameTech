@@ -5,10 +5,11 @@ bool Renderer::debug = true;
 Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	//Generic Renderer + functionaility properties
-	wglSwapIntervalEXT(0);
+	//wglSwapIntervalEXT(0);
 	movementVar = 0;
 	anim = 0;
 	pause = false;
+	rotation = 0.0f;
 
 	camera = new Camera(-8.0f, -25.0f, Vector3(-200.0f, 50.0f, 250.0f));
 
@@ -21,16 +22,23 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 
 	//Initialise parts of the scene!
-	InitSceneObjects();
-	InitSkybox();
-	InitShadowBuffers();
-	InitPostProcess();
-	InitDebug();
+	if (!InitSceneObjects())
+		return;
+	if (!InitSkybox())
+		return;
+	if (!InitWater())
+		return;
+	if (!InitShadowBuffers())
+		return;
+	if (!InitPostProcess())
+		return;
+	if (!InitDebug())
+		return;
 
 	//TEMPORARY	
-	quadPos = Vector3(-1115.9f,141,-1501.6f);
+	/*quadPos = Vector3(-1115.9f,141,-1501.6f);
 	scale = Vector3(939.3f,554.9f,1);
-	rotation = 90;
+	rotation = 90;*/
 
 	//Turn on depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -50,6 +58,7 @@ Renderer::~Renderer(void)
 	DeleteDebug();
 	DeletePostProcess();
 	DeleteShadowBuffers();
+	DeleteWater();
 	DeleteSkybox();
 	DeleteSceneObjects();
 }
@@ -62,14 +71,13 @@ void Renderer::UpdateScene(float msec){
 	camera->UpdateCamera(msec);
 
 	
-
 	if (!pause){
-		//if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
 			movementVar += msec*0.0001f;
 
-		//} else {
-		//	movementVar += msec*0.001f;
-		//}
+		} else {
+			movementVar += msec*0.001f;
+		}
 
 		//TEMPORARY
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_UP))
@@ -188,8 +196,8 @@ void Renderer::DrawCombinedScene(){
 	
 	//TEMPORARY
 	/*glDisable(GL_CULL_FACE);*/
-
-	SetCurrentShader(passThrough);
+	DrawWater();
+	/*SetCurrentShader(passThrough);
 	modelMatrix = Matrix4::Translation(quadPos) *
 		Matrix4::Rotation(rotation, Vector3(1,0,0)) *
 		Matrix4::Scale(scale);
@@ -198,7 +206,7 @@ void Renderer::DrawCombinedScene(){
 	GLuint temptex = quad->GetTexture();
 	quad->SetTexture(0);
 	quad->Draw();
-	quad->SetTexture(temptex);
+	quad->SetTexture(temptex);*/
 
 	/*glEnable(GL_CULL_FACE);*/
 

@@ -75,6 +75,7 @@
     <ClCompile Include="RendererSceneObjects.cpp" />
     <ClCompile Include="RendererShadow.cpp" />
     <ClCompile Include="RendererSkybox.cpp" />
+    <ClCompile Include="RendererWater.cpp" />
     <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -116,15 +116,15 @@ void Renderer::ClearNodeLists(){
 void Renderer::UpdateSceneObjects(float msec){
 	root->Update(msec);
 		//light->SetPosition(Vector3(-1500.0f * sin(movementVar), 4000.0f , 1500.0f * cos(movementVar)));
-		//light->SetPosition(Vector3(2000.0f * cos(movementVar), 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
+		light->SetPosition(Vector3(2000.0f * cos(movementVar), 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
 		/*if (light->GetPosition().y < -500) light->SetRadius(sin(movementVar) * 8000.0f);
 		else light->SetRadius(55000.0f);*/
 		/*if (light->GetPosition().y > -500) light->SetRadius(9000.0f + 500000.0f * cos(movementVar));
 		else light->SetRadius(1000.0f);*/
 		//light->SetPosition(Vector3(-HEIGHTMAP_X * RAW_WIDTH * sin(movementVar), 1000.0f, HEIGHTMAP_Z * RAW_HEIGHT * cos(movementVar)));
 
-		//lightSource->SetTransform(Matrix4::Translation(light->GetPosition()) *
-			//Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));
+		lightSource->SetTransform(Matrix4::Translation(light->GetPosition()) *
+			Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));
 
 		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)){
 			++anim %= 6;

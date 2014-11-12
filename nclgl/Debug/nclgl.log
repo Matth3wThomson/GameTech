@@ -1,38 +1,10 @@
-﻿Build started 11/11/2014 16:59:41.
-     1>Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" on node 2 (Rebuild target(s)).
-     1>_PrepareForClean:
-         Deleting file "Debug\nclgl.lastbuildstate".
-       InitializeBuildStatus:
+﻿Build started 12/11/2014 14:57:57.
+     1>Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" on node 2 (Build target(s)).
+     1>InitializeBuildStatus:
          Creating "Debug\nclgl.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Camera.cpp Frustum.cpp GameTimer.cpp HeightMap.cpp Keyboard.cpp Light.cpp Matrix4.cpp MD5Anim.cpp MD5FileData.cpp MD5Mesh.cpp MD5Node.cpp Mesh.cpp Mouse.cpp OBJMesh.cpp OGLRenderer.cpp Plane.cpp Quaternion.cpp Renderer.cpp SceneNode.cpp Shader.cpp TextMesh.cpp Window.cpp
-         Window.cpp
-         TextMesh.cpp
-         Shader.cpp
-         SceneNode.cpp
-         Renderer.cpp
-     1>d:\dropbox\dropbox\university work\year 4\csc8502 adv graphics for games\graphics coursework\matthew thomson coursework\nclgl\renderer.cpp(90): warning C4244: 'argument' : conversion from 'float' to 'GLsizei', possible loss of data
-     1>d:\dropbox\dropbox\university work\year 4\csc8502 adv graphics for games\graphics coursework\matthew thomson coursework\nclgl\renderer.cpp(90): warning C4244: 'argument' : conversion from 'float' to 'GLint', possible loss of data
-         Quaternion.cpp
-         Plane.cpp
-         OGLRenderer.cpp
-         OBJMesh.cpp
-         Mouse.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Mesh.cpp
          Mesh.cpp
-         MD5Node.cpp
-         MD5Mesh.cpp
-         MD5FileData.cpp
-         MD5Anim.cpp
-         Matrix4.cpp
-         Light.cpp
-         Keyboard.cpp
-         HeightMap.cpp
-         GameTimer.cpp
-         Generating Code...
-         Compiling...
-         Frustum.cpp
-         Camera.cpp
-         Generating Code...
        Lib:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\Lib.exe /OUT:"D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\Graphics Coursework\Debug\nclgl.lib" /NOLOGO Debug\Camera.obj
          Debug\Frustum.obj
@@ -61,8 +33,8 @@
        FinalizeBuildStatus:
          Deleting file "Debug\nclgl.unsuccessfulbuild".
          Touching "Debug\nclgl.lastbuildstate".
-     1>Done Building Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" (Rebuild target(s)).
+     1>Done Building Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:11.69
+Time Elapsed 00:00:00.75

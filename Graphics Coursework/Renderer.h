@@ -20,6 +20,7 @@
 //TODO: Uninit methods!
 //TODO: Create better error intializing methods (return doesnt work within methods!)
 //TODO: Sort out how scene nodes draw their bounds, and scale themselves!
+//TODO: Sort our shadowing so that it doesn't use the texture matrix!
 
 #define SHADOWSIZE 2048 * 8
 #define POST_PASSES 0
@@ -79,6 +80,16 @@ protected:
 
 	Shader* skyboxShader;
 	GLuint cubeMap;
+
+	//Water additions!
+	bool InitWater();
+	void DeleteWater();
+
+	void DrawWater();
+
+	Shader* reflectShader;
+	GLuint waterTex;
+	GLuint waterBump;
 
 	//Scene Objects
 	//TODO: Compress objects we no longer need access too!

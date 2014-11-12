@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-const float Camera::timeScaleFactor = 1.0f;
+float Camera::timeScaleFactor = 1.0f;
 
 void Camera::UpdateCamera(float msec){
 	//Pitch is set to the up and down movement of the y axis
@@ -17,6 +17,11 @@ void Camera::UpdateCamera(float msec){
 	//Similarly with yaw for 360 deg and 0
 	if (yaw < 0) yaw += 360.0f;
 	if (yaw > 360.0f) yaw -= 360.0f;
+
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_CONTROL))
+		timeScaleFactor = 3.0f;
+	else
+		timeScaleFactor = 1.0f;
 
 	//FOR FORWARDS/BACKWARDS MOVEMENT
 	//We create a rotational matrix that points down the axis of yaw
