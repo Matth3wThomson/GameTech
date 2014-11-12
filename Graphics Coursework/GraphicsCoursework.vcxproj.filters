@@ -22,10 +22,19 @@
     <ClCompile Include="Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DebugOverlay.cpp">
+    <ClCompile Include="RendererSceneObjects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RendererSceneObjects.cpp">
+    <ClCompile Include="RendererSkybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererDebug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererPostProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererShadow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -34,9 +43,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugOverlay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

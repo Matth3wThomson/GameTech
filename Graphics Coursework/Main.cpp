@@ -21,6 +21,12 @@ int main() {
 	while(w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)){
 		renderer.UpdateScene(w.GetTimer()->GetTimedMS());
 		renderer.RenderScene();
+
+		////Test "resetting the simulation"
+		//if (Window::GetKeyboard()->KeyDown(KEYBOARD_CONTROL)
+		//	&& Window::GetKeyboard()->KeyDown(KEYBOARD_F1)){
+		//		renderer = Renderer(w);
+		//}
 	}
 
 	return 0;

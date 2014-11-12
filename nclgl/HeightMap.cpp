@@ -1,6 +1,5 @@
 #include "HeightMap.h"
 
-
 HeightMap::HeightMap(const std::string& name)
 {
 	std::ifstream file(name.c_str(), ios::binary);

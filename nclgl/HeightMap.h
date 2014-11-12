@@ -16,6 +16,12 @@
 #define HEIGHTMAP_TEX_X 1.0f / 16.0f
 #define HEIGHTMAP_TEX_Z 1.0f / 16.0f
 
+/*
+Notes:
+	-Changed constructor to maintain the origin as the center of the
+	 heightmap
+*/
+
 class HeightMap :
 	public Mesh
 {

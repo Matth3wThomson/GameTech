@@ -1,6 +1,6 @@
 #include "Renderer.h"
 
-void Renderer::InitSceneObjects(){
+bool Renderer::InitSceneObjects(){
 	hellData = new MD5FileData(MESHDIR"hellknight.md5mesh");
 	hellNode = new MD5Node(*hellData);
 
@@ -13,6 +13,9 @@ void Renderer::InitSceneObjects(){
 
 	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
 
+	quad = Mesh::GenerateQuad(); //TODO: not index buffered?
+	sphere = new OBJMesh(MESHDIR"sphere.obj");
+
 	heightMap->SetTexture(SOIL_load_OGL_texture(
 		TEXTUREDIR"Barren reds.jpg", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
@@ -21,28 +24,45 @@ void Renderer::InitSceneObjects(){
 		TEXTUREDIR"Barren redsDOT3.jpg", SOIL_LOAD_AUTO, 
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
+	if (!heightMap->GetTexture() || !heightMap->GetBumpMap())
+		return false;
+
 	SetTextureRepeating(heightMap->GetTexture(), true);
 	SetTextureRepeating(heightMap->GetBumpMap(), true);
 
 	root = new SceneNode();
 
-	/*SceneNode**/ quadNode = new SceneNode(quad);
+	quadNode = new SceneNode(quad);
 	quadNode->SetTransform(Matrix4::Rotation(90, Vector3(1,0,0)) *
 		Matrix4::Scale(Vector3(450, 450, 1)));
 	quadNode->SetBoundingRadius(620.0f);
 
-	hellNode->SetTransform(Matrix4::Translation(Vector3(0,200,0)));
+	hellNode->SetTransform(Matrix4::Translation(Vector3(0,500,0)));
 	hellNode->SetBoundingRadius(100);
 
 	heightMapNode = new SceneNode(heightMap);
-	//heightMapNode->SetTransform(Matrix4::Translation(Vector3(-(RAW_WIDTH * HEIGHTMAP_X * 0.5f), 0, -(RAW_HEIGHT * HEIGHTMAP_Z * 0.5f))));
-	heightMapNode->SetBoundingRadius( sqrt( pow(RAW_WIDTH * HEIGHTMAP_X * 0.5, 2) + pow(RAW_HEIGHT * HEIGHTMAP_Z * 0.5, 2)));
+	heightMapNode->SetBoundingRadius( sqrt( pow(RAW_WIDTH * HEIGHTMAP_X * 0.5f, 2) + pow(RAW_HEIGHT * HEIGHTMAP_Z * 0.5f, 2)));
 
-	//root->AddChild(quadNode);
+	lightSource = new SceneNode(sphere);
+	lightSource->SetTransform(Matrix4::Translation(light->GetPosition()) *
+		Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));
+	lightSource->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	lightSource->SetBoundingRadius(100.0f);
+
 	root->AddChild(hellNode);
 	root->AddChild(heightMapNode);
+	root->AddChild(lightSource);
 
+	return true;
 };
+
+void Renderer::DeleteSceneObjects(){
+	delete hellData;
+	delete root;
+
+	delete quad;
+	delete sphere;
+}
 
 void Renderer::BuildNodeLists(SceneNode* from, const Vector3& viewPos){
 	if (frameFrustum.InsideFrustum(*from)){
@@ -93,6 +113,33 @@ void Renderer::ClearNodeLists(){
 	nodeList.clear();
 }
 
+void Renderer::UpdateSceneObjects(float msec){
+	root->Update(msec);
+		//light->SetPosition(Vector3(-1500.0f * sin(movementVar), 4000.0f , 1500.0f * cos(movementVar)));
+		//light->SetPosition(Vector3(2000.0f * cos(movementVar), 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
+		/*if (light->GetPosition().y < -500) light->SetRadius(sin(movementVar) * 8000.0f);
+		else light->SetRadius(55000.0f);*/
+		/*if (light->GetPosition().y > -500) light->SetRadius(9000.0f + 500000.0f * cos(movementVar));
+		else light->SetRadius(1000.0f);*/
+		//light->SetPosition(Vector3(-HEIGHTMAP_X * RAW_WIDTH * sin(movementVar), 1000.0f, HEIGHTMAP_Z * RAW_HEIGHT * cos(movementVar)));
+
+		//lightSource->SetTransform(Matrix4::Translation(light->GetPosition()) *
+			//Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));
+
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)){
+			++anim %= 6;
+			switch(anim){
+			case 0: hellNode->PlayAnim(MESHDIR"idle2.md5anim"); break;
+			case 1: hellNode->PlayAnim(MESHDIR"roar1.md5anim"); break;
+			case 2: hellNode->PlayAnim(MESHDIR"attack2.md5anim"); break;
+			case 3: hellNode->PlayAnim(MESHDIR"pain1.md5anim"); break;
+			case 4: hellNode->PlayAnim(MESHDIR"walk7.md5anim"); break;
+			case 5: hellNode->PlayAnim(MESHDIR"stand.md5anim"); break;
+			}
+		}
+}
+
+//TODO: Possibly a drawing counter passed to this function?
 void Renderer::DrawNode(SceneNode* n){
 	if (n->GetMesh()){
 		/*glUniformMatrix4fv(
@@ -119,16 +166,10 @@ void Renderer::DrawNode(SceneNode* n){
 
 		n->Draw(*this);
 
-		if (drawBounds){
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-				"modelMatrix"),	1,false, (float*) &(modelMatrix *
-				Matrix4::Scale(
-				Vector3(n->GetBoundingRadius(),
-				n->GetBoundingRadius(),
-				n->GetBoundingRadius()))));
-			sphere->Draw();
-		}
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		if (debug)
+			if (drawBound){
+				DrawBounds(n);
+			}
+
 	}
 }
