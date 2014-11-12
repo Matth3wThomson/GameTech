@@ -72,6 +72,8 @@ protected:
 	GLuint shadowTex;
 	GLuint shadowFBO;
 
+	Matrix4 shadowVPMatrix;
+
 	//SKYBOX STUFF
 	bool InitSkybox();
 	void DeleteSkybox();
@@ -85,7 +87,7 @@ protected:
 	bool InitWater();
 	void DeleteWater();
 
-	void DrawWater();
+	void DrawWater(bool shadowMap = false);
 
 	Shader* reflectShader;
 	GLuint waterTex;

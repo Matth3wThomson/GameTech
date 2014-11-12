@@ -143,8 +143,9 @@ void Renderer::RenderScene(){
 
 void Renderer::DrawCombinedScene(){
 
+	//Bind the FBO we will draw to
 	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
-	//Clear the stencil colour and depth buffer bits on our framebuffer
+	
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	//TODO: Sort out drawing the frustum!
@@ -171,8 +172,8 @@ void Renderer::DrawCombinedScene(){
 
 	SetShaderLight(*light);
 
-	SetCurrentShader(shadowShader);
-	SetCurrentShader(sceneShader);
+	//SetCurrentShader(shadowShader);
+	//SetCurrentShader(sceneShader);
 
 	//Bind our depth texture from our shadow FBO to texture unit 2
 	glActiveTexture(GL_TEXTURE2);
@@ -181,7 +182,9 @@ void Renderer::DrawCombinedScene(){
 	viewMatrix = camera->BuildViewMatrix();
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
 		(float) width / (float) height, 45.0f);
-	//UpdateShaderMatrices();
+	textureMatrix.ToIdentity();
+
+	/*shadowVPMatrix = biasMatrix*(projMatrix*viewMatrix);*/
 
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 	BuildNodeLists(root, camera->GetPosition());
@@ -194,21 +197,8 @@ void Renderer::DrawCombinedScene(){
 
 	ClearNodeLists();
 	
-	//TEMPORARY
-	/*glDisable(GL_CULL_FACE);*/
-	DrawWater();
-	/*SetCurrentShader(passThrough);
-	modelMatrix = Matrix4::Translation(quadPos) *
-		Matrix4::Rotation(rotation, Vector3(1,0,0)) *
-		Matrix4::Scale(scale);
-
-	UpdateShaderMatrices();
-	GLuint temptex = quad->GetTexture();
-	quad->SetTexture(0);
-	quad->Draw();
-	quad->SetTexture(temptex);*/
-
-	/*glEnable(GL_CULL_FACE);*/
+	DrawWater(false);
+	
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);

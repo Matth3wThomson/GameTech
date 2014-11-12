@@ -159,10 +159,10 @@ void Renderer::DrawNode(SceneNode* n){
 
 		UpdateShaderMatrices();
 
-		Matrix4 tempMatrix = textureMatrix * modelMatrix;
+		Matrix4 tempMatrix = shadowVPMatrix * modelMatrix;
 
 		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-			"textureMatrix"),1,false, tempMatrix.values);
+			"shadowVPMatrix"),1,false, tempMatrix.values);
 
 		n->Draw(*this);
 
