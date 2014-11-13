@@ -34,8 +34,7 @@ void Renderer::DrawSkybox(){
 	//TODO: This is being called twice!
 	modelMatrix = Matrix4::GetIdentitiy();
 	viewMatrix = camera->BuildViewMatrix();
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
-		(float) width / (float) height, 45.0f);
+	projMatrix = cameraProjMat;
 	UpdateShaderMatrices();
 
 	quad->Draw();

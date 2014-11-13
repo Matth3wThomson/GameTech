@@ -14,7 +14,7 @@ bool Renderer::InitWater(){
 	if (!reflectShader->LinkProgram())
 		return false;
 
-	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"blue.jpg",
+	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"blue2.jpg",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	waterBump = SOIL_load_OGL_texture(TEXTUREDIR"waves.jpg",

@@ -13,7 +13,7 @@ bool Renderer::InitDebug(){
 
 	objectsDrawn = 0;
 	objectsShadowed = 0;
-	drawBound = true;
+	drawBound = false;
 
 	return true;
 }
@@ -89,8 +89,7 @@ void Renderer::DrawFrustum(){
 			* Matrix4::Rotation(90, -planes[i].GetNormal());
 
 		viewMatrix = camera->BuildViewMatrix();
-		projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
-			(float) width / (float) height, 45.0f);
+		projMatrix = cameraProjMat;
 
 		UpdateShaderMatrices();
 

@@ -3,8 +3,10 @@
 bool Renderer::InitPostProcess(){
 	toDrawTo = 0;
 	sobel = false;
+	sobelDepth = false;
 	dubVis = false;
 	blur = false;
+	bloom  = false;
 
 	blurShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"blurFrag.glsl");
@@ -15,7 +17,17 @@ bool Renderer::InitPostProcess(){
 	sobelShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"sobelFrag.glsl");
 
-	if (!blurShader->LinkProgram() || !sobelShader->LinkProgram() || !doubVisShader->LinkProgram())
+	sobelDepthShader = new Shader(SHADERDIR"TexturedVertex.glsl",
+		SHADERDIR"sobelDepthFrag.glsl");
+
+	bloomShader = new Shader(SHADERDIR"TexturedVertex.glsl",
+		SHADERDIR"bloomFrag.glsl");
+
+	if (!blurShader->LinkProgram() ||
+		!sobelDepthShader->LinkProgram() ||
+		!sobelShader->LinkProgram() ||
+		!doubVisShader->LinkProgram() ||
+		!bloomShader->LinkProgram())
 		return false;
 
 	glGenTextures(1, &bufferDepthTex);
@@ -71,6 +83,10 @@ bool Renderer::InitPostProcess(){
 }
 
 void Renderer::UpdatePostProcess(float msec){
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_6))
+		sobelDepth = !sobelDepth;
+
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_7))
 		sobel = !sobel;
 
@@ -79,6 +95,9 @@ void Renderer::UpdatePostProcess(float msec){
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_9))
 		blur = !blur;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_0))
+		bloom = !bloom;
 }
 
 void Renderer::DrawPostProcess(){
@@ -87,6 +106,8 @@ void Renderer::DrawPostProcess(){
 	glBindFramebuffer(GL_FRAMEBUFFER, processFBO);
 
 	if (sobel) Sobel();
+	if (sobelDepth) SobelDepth();
+	if (bloom) Bloom();
 	if (dubVis) DoubleVision();
 	if (blur) Blur();
 
@@ -160,7 +181,44 @@ void Renderer::Sobel(){
 
 	//TODO: Make configurable!
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"threshold"), 0.8);
+
+	quad->SetTexture(GetLastDrawn());
+
+	//Draw the scene and blur horizontally
+	quad->Draw();
+	PPDrawn();
+}
+
+void Renderer::SobelDepth(){
+	//Bind our processing FBO and attach bufferColourTex[1] to it
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+	//Clear it
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(sobelDepthShader);
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
+		1.0f / width, 1.0f / height);
+	UpdateShaderMatrices();
+
+	//TODO: Make configurable!
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
 		"threshold"), 0.2);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"depthTex"), 2);
+
+	//TODO: Need to upload near and far plane values
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"nearPlane"), 1.0);
+
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"farPlane"), 15000.0f);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
 
 	quad->SetTexture(GetLastDrawn());
 
@@ -195,6 +253,28 @@ void Renderer::DoubleVision(){
 
 }
 
+void Renderer::Bloom(){
+	//Bind our processing FBO and attach bufferColourTex[1] to it
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+	//Clear it
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(bloomShader);
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
+		1.0f / width, 1.0f / height);
+	UpdateShaderMatrices();
+
+	//NEW
+	quad->SetTexture(GetLastDrawn());
+
+	//Draw the scene and blur horizontally
+	quad->Draw();
+	PPDrawn();
+
+}
+
 //TODO: Should this assume that it is ready to be renderered orthographically!?
 void Renderer::PresentScene(){
 	//We draw the final result to the default framebuffer (the back buffer)
@@ -214,11 +294,13 @@ void Renderer::PresentScene(){
 
 	glUseProgram(0);
 
-
 }
 
 void Renderer::DeletePostProcess(){
 	delete blurShader;
+	delete bloomShader;
+	delete sobelShader;
+	delete doubVisShader;
 
 	glDeleteTextures(1, &bufferDepthTex);
 	glDeleteTextures(2, bufferColourTex);

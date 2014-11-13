@@ -36,14 +36,19 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	if (!InitDebug())
 		return;
 
+	//BLOOM TESTING!
+	/*glGenTextures(1, &bloomTex);
+	glBindTexture(GL_TEXTURE_2D, bloomTex);*/
+
 	//Turn on depth testing
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
 	//Initialize a projection matrix 
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
+	cameraProjMat = projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
 		(float) width / (float) height, 45.0f);
+	ortho = Matrix4::Orthographic(-1.0f,1.0f,(float)width, 0.0f,(float)height, 0.0f);
 
 	init = true;
 }
@@ -176,19 +181,21 @@ void Renderer::DrawCombinedScene(){
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
 
 	viewMatrix = camera->BuildViewMatrix();
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
-		(float) width / (float) height, 45.0f);
+	projMatrix = cameraProjMat;
 	textureMatrix.ToIdentity();
 
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 
 	//Now we have a frame frustum, attempt to create our light bloom texture if the
 	//light is in the scene?
-	/*if (frameFrustum.InsideFrustum(*lightSource)){
-		SetCurrentShader(bloom);
+	//if (frameFrustum.InsideFrustum(*lightSource)){
+	//	SetCurrentShader(renderColour);
 
-		
-	}*/
+	//	//Set a frame buffer and upload some matrices;
+
+
+	//	
+	//}
 
 	BuildNodeLists(root, camera->GetPosition());
 	SortNodeLists();
@@ -221,7 +228,7 @@ void Renderer::DrawString(const std::string& text, const Vector3& pos, const flo
 		modelMatrix = Matrix4::Translation(Vector3(pos.x, height-pos.y, pos.z))
 			*Matrix4::Scale(Vector3(size,size,1));
 		viewMatrix.ToIdentity();
-		projMatrix = Matrix4::Orthographic(-1.0f,1.0f,(float)width, 0.0f,(float)height, 0.0f);
+		projMatrix = ortho;
 	}
 
 	////Either way, we update the matrices, and draw the mesh
@@ -239,8 +246,7 @@ void Renderer::DrawLight(const Light* light){
 	modelMatrix = Matrix4::Translation(light->GetPosition()) *
 		Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f));
 	viewMatrix = camera->BuildViewMatrix();
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
-		(float) width / (float) height, 45.0f);
+	projMatrix = cameraProjMat;
 	UpdateShaderMatrices();
 
 	sphere->Draw();

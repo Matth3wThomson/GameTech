@@ -17,6 +17,7 @@
 //TODO: Store a "camera view and proj" and "light view and proj" to save reinstantiation
 //TODO: Make post process only be used if the passes > 0
 //TODO: GL CULL FACE NEEDS TO BE CALLED ONLY IN DRAW FUNCTIONS!
+//TODO: Combine light node and source to become one!?
 
 
 #define SHADOWSIZE 2048 * 8
@@ -35,6 +36,8 @@ protected:
 
 	//Generic renderer attributes
 	Camera* camera;
+	Matrix4 cameraProjMat;
+	Matrix4 ortho;
 
 	//Generic Shaders
 	Shader* passThrough;
@@ -141,23 +144,34 @@ protected:
 
 	Shader* blurShader;
 	Shader* sobelShader;
+	Shader* sobelDepthShader;
 	Shader* doubVisShader;
+	Shader* bloomShader;
 
 	bool sobel;
+	bool sobelDepth;
 	bool blur;
 	bool dubVis;
+	bool bloom;
 
 	void UpdatePostProcess(float msec);
 	void DrawPostProcess();
 	void SetupPPMatrices();
-	void Blur();
+
+	void Bloom();
 	void Sobel();
+	void SobelDepth();
 	void DoubleVision();
+	void Blur();
+
 	void PresentScene();
 	//End of post process additions
 
 	//Attempt custom bloom!
-	Shader* bloom;
+	/*Shader* renderColour;
+	Shader* bloomShader;
+
+	GLuint bloomTex;*/
 
 	//End attempts of custom bloom!
 
