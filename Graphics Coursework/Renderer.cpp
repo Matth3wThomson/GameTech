@@ -11,6 +11,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	pause = false;
 	rotation = 0.0f;
 
+
 	camera = new Camera(-8.0f, -25.0f, Vector3(-200.0f, 50.0f, 250.0f));
 
 	light = new Light(Vector3(0.0f, 5000.0f, 0.0f),
@@ -34,11 +35,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 	if (!InitDebug())
 		return;
-
-	//TEMPORARY	
-	/*quadPos = Vector3(-1115.9f,141,-1501.6f);
-	scale = Vector3(939.3f,554.9f,1);
-	rotation = 90;*/
 
 	//Turn on depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -115,6 +111,7 @@ void Renderer::UpdateScene(float msec){
 	}
 
 	//TEXT
+	UpdatePostProcess(msec);
 	UpdateDebug(msec);
 
 }
@@ -145,6 +142,8 @@ void Renderer::DrawCombinedScene(){
 
 	//Bind the FBO we will draw to
 	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, GetDrawTarget(), 0);
 	
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -172,9 +171,6 @@ void Renderer::DrawCombinedScene(){
 
 	SetShaderLight(*light);
 
-	//SetCurrentShader(shadowShader);
-	//SetCurrentShader(sceneShader);
-
 	//Bind our depth texture from our shadow FBO to texture unit 2
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
@@ -184,22 +180,31 @@ void Renderer::DrawCombinedScene(){
 		(float) width / (float) height, 45.0f);
 	textureMatrix.ToIdentity();
 
-	/*shadowVPMatrix = biasMatrix*(projMatrix*viewMatrix);*/
-
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
+
+	//Now we have a frame frustum, attempt to create our light bloom texture if the
+	//light is in the scene?
+	/*if (frameFrustum.InsideFrustum(*lightSource)){
+		SetCurrentShader(bloom);
+
+		
+	}*/
+
 	BuildNodeLists(root, camera->GetPosition());
 	SortNodeLists();
 	DrawNodes();
 
 	if (debug)
-		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr)
+		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
 			if ((*itr)->GetMesh()) objectsDrawn++;
+			if (drawBound) DrawBounds(*itr);
+		}
 
 	ClearNodeLists();
 	
 	DrawWater(false);
 	
-
+	PPDrawn();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
 }

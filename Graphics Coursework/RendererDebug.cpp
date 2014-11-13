@@ -52,21 +52,25 @@ void Renderer::DrawDebugOverlay(){
 
 //TODO: This method assumes that the model matrix is already set accordingly... correct?
 void Renderer::DrawBounds(SceneNode* n){
-
+	
 	glDisable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	SetCurrentShader(passThrough); //NEW
+
+	UpdateShaderMatrices(); //NEW
 
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-		"modelMatrix"),	1,false, (float*) &(Matrix4::Translation(modelMatrix.GetPositionVector()) 
+		"modelMatrix"),	1,false, 
+		(float*) &(Matrix4::Translation(n->GetWorldTransform().GetPositionVector()) 
 		* Matrix4::Scale(
 		Vector3(n->GetBoundingRadius(),
 		n->GetBoundingRadius(),
 		n->GetBoundingRadius()))));
 
-
 	sphere->Draw();
+
+	glUseProgram(0); //NEW
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glEnable(GL_CULL_FACE);
 }
 
 

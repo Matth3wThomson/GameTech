@@ -1,10 +1,21 @@
 #include "Renderer.h"
 
 bool Renderer::InitPostProcess(){
-	processShader = new Shader(SHADERDIR"TexturedVertex.glsl",
-		SHADERDIR"processFrag.glsl");
+	toDrawTo = 0;
+	sobel = false;
+	dubVis = false;
+	blur = false;
 
-	if (!processShader->LinkProgram())
+	blurShader = new Shader(SHADERDIR"TexturedVertex.glsl",
+		SHADERDIR"blurFrag.glsl");
+
+	doubVisShader = new Shader(SHADERDIR"TexturedVertex.glsl",
+		SHADERDIR"doubleVisionFrag.glsl");
+
+	sobelShader = new Shader(SHADERDIR"TexturedVertex.glsl",
+		SHADERDIR"sobelFrag.glsl");
+
+	if (!blurShader->LinkProgram() || !sobelShader->LinkProgram() || !doubVisShader->LinkProgram())
 		return false;
 
 	glGenTextures(1, &bufferDepthTex);
@@ -51,7 +62,7 @@ bool Renderer::InitPostProcess(){
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ||
 		!bufferDepthTex || !bufferColourTex[0]){
-		return false;
+			return false;
 	}
 	//Unbind and enable depth testing
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -59,63 +70,132 @@ bool Renderer::InitPostProcess(){
 	return true;
 }
 
+void Renderer::UpdatePostProcess(float msec){
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_7))
+		sobel = !sobel;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_8))
+		dubVis = !dubVis;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_9))
+		blur = !blur;
+}
+
 void Renderer::DrawPostProcess(){
-
-	//Bind our processing FBO and attach bufferColourTex[1] to it
-	glBindFramebuffer(GL_FRAMEBUFFER, processFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D, bufferColourTex[1], 0);
-
-	//Clear it
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-	//Set up orthographic rendering using our process shader
-	SetCurrentShader(processShader);
-	projMatrix = Matrix4::Orthographic(-1,1,1,-1,-1,1);
-	viewMatrix.ToIdentity();
-	modelMatrix.ToIdentity();
-	UpdateShaderMatrices();
-
-	//Disable our depth test
 	glDisable(GL_DEPTH_TEST);
+	SetupPPMatrices();
+	glBindFramebuffer(GL_FRAMEBUFFER, processFBO);
 
-	//upload the pixel size uniform
-	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
-		1.0f / width, 1.0f / height);
+	if (sobel) Sobel();
+	if (dubVis) DoubleVision();
+	if (blur) Blur();
 
-	for (int i=0; i < POST_PASSES; ++i){
-		//Bind our buffer colortex[1] to it as a colour attachment
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_2D, bufferColourTex[1], 0);
-
-		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-			"isVertical"), 0);
-
-		//Bind colourTex[0] as a texture
-		quad->SetTexture(bufferColourTex[0]);
-
-		//Draw the scene and blur horizontally
-		quad->Draw();
-
-		//Swap the buffers round between being textures and colour buffer
-		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-			"isVertical"), 1);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_2D, bufferColourTex[0], 0);
-
-		quad->SetTexture(bufferColourTex[1]);
-
-		//Draw the scene and blur vertically
-		quad->Draw();
-	}
-
-	//Post processing complete, unbind FBO and shader and re-enable depth testing
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
 
 	glEnable(GL_DEPTH_TEST);
 }
 
+void Renderer::SetupPPMatrices(){
+	projMatrix = Matrix4::Orthographic(-1,1,1,-1,-1,1);
+	viewMatrix.ToIdentity();
+	modelMatrix.ToIdentity();
+}
+
+void Renderer::Blur(){
+	//Bind our processing FBO and attach bufferColourTex[1] to it
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+	//Clear it
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(blurShader);
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
+		1.0f / width, 1.0f / height);
+	UpdateShaderMatrices();
+
+	//One pass is actually 2!
+	for (int i=0; i < BLUR_PASSES*2; ++i){
+		//Bind our buffer colortex[1] to it as a colour attachment
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"isVertical"), 0);
+
+		quad->SetTexture(GetLastDrawn());
+
+		//Draw the scene and blur horizontally
+		quad->Draw();
+		PPDrawn();
+
+		//Swap the buffers round between being textures and colour buffer
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"isVertical"), 1);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+		quad->SetTexture(GetLastDrawn());
+
+		//Draw the scene and blur vertically
+		quad->Draw();
+		PPDrawn();
+	}
+}
+
+//TODO: Do we need to clear the textures!?
+void Renderer::Sobel(){
+	//Bind our processing FBO and attach bufferColourTex[1] to it
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+	//Clear it
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(sobelShader);
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
+		1.0f / width, 1.0f / height);
+	UpdateShaderMatrices();
+
+	//TODO: Make configurable!
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"threshold"), 0.2);
+
+	quad->SetTexture(GetLastDrawn());
+
+	//Draw the scene and blur horizontally
+	quad->Draw();
+	PPDrawn();
+}
+
+void Renderer::DoubleVision(){
+	//Bind our processing FBO and attach bufferColourTex[1] to it
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+	//Clear it
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(doubVisShader);
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
+		1.0f / width, 1.0f / height);
+
+	//TODO: Make configurable!
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"pixelOffset"), 40);
+
+	UpdateShaderMatrices();
+
+	quad->SetTexture(GetLastDrawn());
+
+	//Draw the scene and blur horizontally
+	quad->Draw();
+	PPDrawn();
+
+}
+
+//TODO: Should this assume that it is ready to be renderered orthographically!?
 void Renderer::PresentScene(){
 	//We draw the final result to the default framebuffer (the back buffer)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -129,7 +209,7 @@ void Renderer::PresentScene(){
 	UpdateShaderMatrices();
 
 	//The results of post processing is held in bufferColourTex[0]
-	quad->SetTexture(bufferColourTex[0]);
+	quad->SetTexture(GetLastDrawn());
 	quad->Draw();
 
 	glUseProgram(0);
@@ -138,7 +218,7 @@ void Renderer::PresentScene(){
 }
 
 void Renderer::DeletePostProcess(){
-	delete processShader;
+	delete blurShader;
 
 	glDeleteTextures(1, &bufferDepthTex);
 	glDeleteTextures(2, bufferColourTex);

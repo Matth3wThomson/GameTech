@@ -13,17 +13,14 @@
 
 //TODO: Make sure the far plane is far enough for light frustum culling!
 //TODO: Make shaders matrices multiplied pre-draw function
-//TODO: Sort lighting depth issues out for midday
 //TODO: Bounding boxes http://fgiesen.wordpress.com/2010/10/17/view-frustum-culling/
 //TODO: Store a "camera view and proj" and "light view and proj" to save reinstantiation
 //TODO: Make post process only be used if the passes > 0
-//TODO: Uninit methods!
-//TODO: Create better error intializing methods (return doesnt work within methods!)
-//TODO: Sort out how scene nodes draw their bounds, and scale themselves!
-//TODO: Sort our shadowing so that it doesn't use the texture matrix!
+//TODO: GL CULL FACE NEEDS TO BE CALLED ONLY IN DRAW FUNCTIONS!
+
 
 #define SHADOWSIZE 2048 * 8
-#define POST_PASSES 0
+#define BLUR_PASSES 10
 
 class Renderer : public OGLRenderer
 {
@@ -129,16 +126,40 @@ protected:
 	GLuint bufferFBO;
 	GLuint processFBO;
 
+	//We have multiple buffers for ping/pong!
+	unsigned int toDrawTo; //Use this to keep track of the texture to be used next
+	const static unsigned int PPtextures = 2; //The number of Post process textures
+	inline unsigned int GetDrawTarget(){ return bufferColourTex[toDrawTo]; }; //Gets the array location of the next texture to draw to
+	inline unsigned int GetLastDrawn(){
+		return ((((int) toDrawTo)-1) < 0)? bufferColourTex[PPtextures-1] : bufferColourTex[toDrawTo-1];	}; //Gets the array location of the last texture drawn to
+	inline void PPDrawn(){ ++toDrawTo %= PPtextures; }; //Signifies that a Post pass has been done.
+
 	GLuint bufferColourTex[2];
 	GLuint bufferDepthTex;
 
 	GLuint bufferTex;
 
-	Shader* processShader;
+	Shader* blurShader;
+	Shader* sobelShader;
+	Shader* doubVisShader;
 
+	bool sobel;
+	bool blur;
+	bool dubVis;
+
+	void UpdatePostProcess(float msec);
 	void DrawPostProcess();
+	void SetupPPMatrices();
+	void Blur();
+	void Sobel();
+	void DoubleVision();
 	void PresentScene();
 	//End of post process additions
+
+	//Attempt custom bloom!
+	Shader* bloom;
+
+	//End attempts of custom bloom!
 
 	//Text additions
 	Font* basicFont;

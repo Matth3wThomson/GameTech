@@ -68,6 +68,7 @@ void Renderer::DrawShadowScene(){
 	viewMatrix = Matrix4::BuildViewMatrix(
 		light->GetPosition(), Vector3(0,0,0));
 
+	//TODO: Reevaluate this!
 	projMatrix = Matrix4::Perspective(2900.0f + 2000 * abs(cos(movementVar)), 7100.0f - 2000 * abs(cos(movementVar)),
 		(float) width / (float) height, 45.0f);
 
