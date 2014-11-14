@@ -10,6 +10,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	anim = 0;
 	pause = false;
 	rotation = 0.0f;
+	
 
 
 	camera = new Camera(-8.0f, -25.0f, Vector3(-200.0f, 50.0f, 250.0f));
@@ -39,6 +40,20 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	//BLOOM TESTING!
 	/*glGenTextures(1, &bloomTex);
 	glBindTexture(GL_TEXTURE_2D, bloomTex);*/
+
+	//PARTICLE STUFF
+	particleShader = new Shader(SHADERDIR"basicVertex.glsl", 
+		SHADERDIR"colourFragment.glsl", SHADERDIR"particleEmitGeom.glsl");
+
+	if (!particleShader->LinkProgram()) return;
+
+	emitter = new ParticleEmitter();
+
+	emitter->SetParticleSize(8.0f);
+	emitter->SetParticleVariance(1.0f);
+	emitter->SetLaunchParticles(16.0f);
+	emitter->SetParticleLifetime(2000.0f);
+	emitter->SetParticleSpeed(0.1f);
 
 	//Turn on depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -70,7 +85,7 @@ void Renderer::UpdateScene(float msec){
 		pause = !pause;
 
 	camera->UpdateCamera(msec);
-
+	emitter->Update(msec);
 	
 	if (!pause){
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
@@ -79,37 +94,6 @@ void Renderer::UpdateScene(float msec){
 		} else {
 			movementVar += msec*0.001f;
 		}
-
-		//TEMPORARY
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_UP))
-			quadPos.z += msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_DOWN))
-			quadPos.z -= msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_RIGHT))
-			quadPos.x += msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_LEFT))
-			quadPos.x -= msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_PLUS))
-			quadPos.y += msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_MINUS))
-			quadPos.y -= msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_INSERT))
-			scale.x += msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_HOME))
-			scale.y += msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_DELETE))
-			scale.x -= msec*0.1f;
-
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_END))
-			scale.y -= msec*0.1f;
 		
 
 		UpdateSceneObjects(msec);
@@ -210,6 +194,7 @@ void Renderer::DrawCombinedScene(){
 	ClearNodeLists();
 	
 	DrawWater(false);
+	DrawParticleEmitter(emitter);
 	
 	PPDrawn();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -255,4 +240,25 @@ void Renderer::DrawLight(const Light* light){
 	glUseProgram(0);
 }
 
+void Renderer::DrawParticleEmitter(ParticleEmitter* pe){
+	SetCurrentShader(particleShader);
 
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "particleSize"), pe->GetParticleSize());
+	/*modelMatrix.ToIdentity();*/
+	//modelMatrix = Matrix4::Translation(light->GetPosition());
+	modelMatrix = Matrix4::Translation(Vector3(0,200,0));
+
+	UpdateShaderMatrices();
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
+	glDepthMask(GL_FALSE);
+
+	pe->Draw();
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+
+	glUseProgram(0);
+}

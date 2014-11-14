@@ -7,6 +7,7 @@ bool Renderer::InitPostProcess(){
 	dubVis = false;
 	blur = false;
 	bloom  = false;
+	antiAlias = false;
 
 	blurShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"blurFrag.glsl");
@@ -20,12 +21,16 @@ bool Renderer::InitPostProcess(){
 	sobelDepthShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"sobelDepthFrag.glsl");
 
+	antiAliasShader = new Shader(SHADERDIR"TexturedVertex.glsl",
+		SHADERDIR"sobelAlias.glsl");
+
 	bloomShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"bloomFrag.glsl");
 
 	if (!blurShader->LinkProgram() ||
 		!sobelDepthShader->LinkProgram() ||
 		!sobelShader->LinkProgram() ||
+		!antiAliasShader->LinkProgram() ||
 		!doubVisShader->LinkProgram() ||
 		!bloomShader->LinkProgram())
 		return false;
@@ -98,6 +103,9 @@ void Renderer::UpdatePostProcess(float msec){
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_0))
 		bloom = !bloom;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_5))
+		antiAlias = !antiAlias;
 }
 
 void Renderer::DrawPostProcess(){
@@ -107,6 +115,7 @@ void Renderer::DrawPostProcess(){
 
 	if (sobel) Sobel();
 	if (sobelDepth) SobelDepth();
+	if (antiAlias) SobelAlias();
 	if (bloom) Bloom();
 	if (dubVis) DoubleVision();
 	if (blur) Blur();
@@ -223,6 +232,43 @@ void Renderer::SobelDepth(){
 	quad->SetTexture(GetLastDrawn());
 
 	//Draw the scene and blur horizontally
+	quad->Draw();
+	PPDrawn();
+}
+
+void Renderer::SobelAlias(){
+	//Bind our processing FBO and attach bufferColourTex[1] to it
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+	//Clear it
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(antiAliasShader);
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
+		1.0f / width, 1.0f / height);
+	UpdateShaderMatrices();
+
+	//TODO: Make configurable!
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"threshold"), 0.2);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"depthTex"), 2);
+
+	//TODO: Need to upload near and far plane values based on the proj Matrix
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"nearPlane"), 1.0);
+
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"farPlane"), 15000.0f);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
+
+	quad->SetTexture(GetLastDrawn());
+
+	//Draw the scene and perform anti aliasing
 	quad->Draw();
 	PPDrawn();
 }

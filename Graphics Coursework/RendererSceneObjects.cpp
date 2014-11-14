@@ -134,6 +134,7 @@ void Renderer::DrawNodes(){
 			DrawNode((*i));
 	}
 
+	//TODO: Might need to disable depth writing here!
 	//Draw the transparent nodes from furthest away to closest
 	for (vector<SceneNode*>::const_reverse_iterator i = transparentNodes.rbegin();
 		i != transparentNodes.rend(); ++i){

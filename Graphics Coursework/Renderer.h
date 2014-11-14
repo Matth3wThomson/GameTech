@@ -8,6 +8,7 @@
 #include "../nclgl/TextMesh.h"
 #include "../nclgl/HeightMap.h"
 #include "../nclgl/OBJMesh.h"
+#include "../nclgl/ParticleEmitter.h"
 #include <algorithm>
 #include <sstream>
 
@@ -18,6 +19,8 @@
 //TODO: Make post process only be used if the passes > 0
 //TODO: GL CULL FACE NEEDS TO BE CALLED ONLY IN DRAW FUNCTIONS!
 //TODO: Combine light node and source to become one!?
+//TODO: Get textures and bump maps back onto hell knight
+//TODO: Make everything possible scene nodes so frustum culling makes sense!?
 
 
 #define SHADOWSIZE 2048 * 8
@@ -147,9 +150,11 @@ protected:
 	Shader* sobelDepthShader;
 	Shader* doubVisShader;
 	Shader* bloomShader;
+	Shader* antiAliasShader;
 
 	bool sobel;
 	bool sobelDepth;
+	bool antiAlias;
 	bool blur;
 	bool dubVis;
 	bool bloom;
@@ -161,6 +166,7 @@ protected:
 	void Bloom();
 	void Sobel();
 	void SobelDepth();
+	void SobelAlias();
 	void DoubleVision();
 	void Blur();
 
@@ -174,6 +180,14 @@ protected:
 	GLuint bloomTex;*/
 
 	//End attempts of custom bloom!
+
+	//Attempt particle emission
+	Shader* particleShader;
+	ParticleEmitter* emitter;
+
+	void DrawParticleEmitter(ParticleEmitter* pe);
+
+	//End attempt particle emission
 
 	//Text additions
 	Font* basicFont;

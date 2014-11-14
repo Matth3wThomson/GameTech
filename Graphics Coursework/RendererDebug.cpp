@@ -45,7 +45,18 @@ void Renderer::DrawDebugOverlay(){
 	buff << "Drawn: " << objectsDrawn << std::endl;
 	buff << "Shadowed: " << objectsShadowed << std::endl;
 
-	DrawString(buff.str(), Vector3(0,0,0.5), 16.0f);
+	DrawString(buff.str(), Vector3(0,0,0.5f), 16.0f);
+
+	buff = std::ostringstream();
+	if (sobel) buff << "Sobel colour ";
+	if (sobelDepth) buff << "Sobel depth ";
+	if (antiAlias) buff << "Sobel AA ";
+	if (bloom) buff << "Bloom ";
+	if (dubVis) buff << "Double Vision ";
+	if (blur) buff << "Blur ";
+
+	DrawString(buff.str(), Vector3(0,16.0f,0.5f), 16.0f);
+	
 
 	glUseProgram(0);
 }
