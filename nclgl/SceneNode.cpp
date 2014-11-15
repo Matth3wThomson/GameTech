@@ -3,6 +3,7 @@
 SceneNode::SceneNode(Mesh* mesh, Vector4 colour){
 	this->mesh = mesh;
 	this->colour = colour;
+	this->shader = NULL;
 
 	boundingRadius = 1.0f;
 	distanceFromCamera = 0.0f;
@@ -27,11 +28,22 @@ void SceneNode::AddChild(SceneNode* s){
 void SceneNode::RemoveChild(SceneNode* s){
 	for (auto itr = children.begin(); itr != children.end(); ++itr)
 		if (*itr = s) children.erase(itr);
-	
+
 }
 
-void SceneNode::Draw(const OGLRenderer& r){
-	if (mesh) mesh->Draw();
+void SceneNode::Draw(OGLRenderer& r, const bool useShader){
+	//if (mesh) mesh->Draw();
+	if (mesh && shader){
+		if (useShader) r.SetCurrentShader(shader);
+
+		//TODO: Change this to world transform!
+		r.modelMatrix = GetTransform();
+		r.UpdateShaderMatrices();
+
+		mesh->Draw();
+
+		glUseProgram(0);
+	}
 }
 
 void SceneNode::Update(float msec){

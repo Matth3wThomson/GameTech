@@ -47,6 +47,40 @@ bool Renderer::InitShadowBuffers(){
 	return true;
 }
 
+void Renderer::DeleteShadowBuffers(){
+	glDeleteTextures(1, &shadowTex);
+	glDeleteFramebuffers(1, &shadowFBO);
+
+	delete sceneShader;
+	delete shadowShader;
+}
+
+void Renderer::UpdateShadowShaderMatrices(){
+	//Here I need to update the matrices for the shaders used in shadowing
+	//Shadow shader doesnt need any extra matrices updating as its almost a pass through
+	
+	SetCurrentShader(sceneShader);
+
+	//Half of these dont change per frame...
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"diffuseTex"), 0);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"bumpTex"), 1);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"shadowTex"), 2);
+
+	//upload our cameras position
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+		"cameraPos"), 1, (float*)&camera->GetPosition());
+
+	SetShaderLight(*light);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+}
+
 void Renderer::DrawShadowScene(){
 
 	//Draw to our shadow framebuffer (with shadow texture)
@@ -74,7 +108,6 @@ void Renderer::DrawShadowScene(){
 
 	//Stores the shadows vp matrix multiplied by the bias matrix
 	//to keep coordinates in clip space range
-	/*textureMatrix = biasMatrix*(projMatrix*viewMatrix);*/
 	shadowVPMatrix = biasMatrix*(projMatrix*viewMatrix);
 
 	//Draw the quad and the hellknight
@@ -86,6 +119,13 @@ void Renderer::DrawShadowScene(){
 	if (debug)
 		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr)
 			if ((*itr)->GetMesh()) objectsShadowed++;
+
+	//CHANGES
+	//ONLY OPAQUE NODES
+	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
+		SetCurrentShader(shadowShader);
+		(*itr)->Draw(*this, false);
+	}
 
 	ClearNodeLists();
 
@@ -100,12 +140,4 @@ void Renderer::DrawShadowScene(){
 
 	//Unbind our shadow frame buffer too
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void Renderer::DeleteShadowBuffers(){
-	glDeleteTextures(1, &shadowTex);
-	glDeleteFramebuffers(1, &shadowFBO);
-
-	delete sceneShader;
-	delete shadowShader;
 }

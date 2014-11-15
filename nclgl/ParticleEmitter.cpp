@@ -11,7 +11,7 @@
 /*
 Constructor, which sets everything to some 'sensible' defaults.
 */
-ParticleEmitter::ParticleEmitter(void)	{
+ParticleEmitter::ParticleEmitter(const std::string& filename)	{
 	particleRate		= 100.0f;
 	particleLifetime	= 500.0f;
 	particleSize		= 24.0f;
@@ -21,6 +21,7 @@ ParticleEmitter::ParticleEmitter(void)	{
 	numLaunchParticles	= 10;
 	largestSize			= 0;
 
+
 	/*
 	Each particle is a white dot, which has an alpha fade on it,
 	so the edges fade to 0.0 alpha.
@@ -29,7 +30,7 @@ ParticleEmitter::ParticleEmitter(void)	{
 	//texture = SOIL_load_OGL_texture("../Textures/particle.tga",
 	//SOIL_LOAD_AUTO,SOIL_CREATE_NEW_ID,SOIL_FLAG_COMPRESS_TO_DXT);
 
-	texture = SOIL_load_OGL_texture(TEXTUREDIR"particle.tga",
+	texture = SOIL_load_OGL_texture(filename.c_str(),
 		SOIL_LOAD_AUTO,SOIL_CREATE_NEW_ID,SOIL_FLAG_COMPRESS_TO_DXT);
 }
 
@@ -72,9 +73,8 @@ void ParticleEmitter::Update(float msec)	{
 
 	//Now for the particle 'think' function. Particles are so 'lightweight' there's not
 	//much point putting this as a member variable of the Particle struct...
-
-
 	for(std::vector<Particle *>::iterator i = particles.begin(); i != particles.end();/*No I++ here!!! */) {
+
 		Particle *p = (*i);
 
 		//We're keeping the particles 'life' in the alpha channel of its colour. 
@@ -86,8 +86,7 @@ void ParticleEmitter::Update(float msec)	{
 		if(p->colour.w <= 0.0f) {
 			freeList.push_back(p);
 			i = particles.erase(i);
-		}
-		else{
+		} else {
 			//Otherwise, this particle must be still 'alive'. Update its
 			//position by multiplying its normalised direction by the
 			//particle speed, and adding the result to the position. Easy!
@@ -154,9 +153,6 @@ void	ParticleEmitter::ResizeArrays() {
 	glDeleteBuffers(1, &bufferObject[VERTEX_BUFFER]);
 	glDeleteBuffers(1, &bufferObject[COLOUR_BUFFER]);
 
-
-
-
 	//Make some new system memory
 	vertices = new Vector3[particles.size()];
 	colours  = new Vector4[particles.size()];
@@ -187,6 +183,11 @@ Why don't we use glMapBuffer? Just uploading a whole load of new data is probabl
 and quicker than faffing with mapping and unmapping buffers!
 */
 void ParticleEmitter::Draw()	{
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
+	glDepthMask(GL_FALSE);
+
 	//Get 2 contiguous sections of memory full of our particle info
 	for(unsigned int i = 0; i < particles.size(); ++i) {
 		vertices[i] = particles.at(i)->position;
@@ -220,5 +221,9 @@ void ParticleEmitter::Draw()	{
 	glDrawArrays(GL_POINTS,  0, particles.size());	// draw ordered list of vertices
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	glDepthMask(GL_TRUE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glBindVertexArray(0); //Remember to turn off our VAO ;)
+
 };

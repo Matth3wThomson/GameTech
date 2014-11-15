@@ -10,7 +10,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	anim = 0;
 	pause = false;
 	rotation = 0.0f;
-	
+
 
 
 	camera = new Camera(-8.0f, -25.0f, Vector3(-200.0f, 50.0f, 250.0f));
@@ -24,14 +24,16 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 
 	//Initialise parts of the scene!
+	if (!InitShadowBuffers())
+		return;
 	if (!InitSceneObjects())
 		return;
 	if (!InitSkybox())
 		return;
 	if (!InitWater())
 		return;
-	if (!InitShadowBuffers())
-		return;
+	/*if (!InitShadowBuffers())
+		return;*/
 	if (!InitPostProcess())
 		return;
 	if (!InitDebug())
@@ -42,8 +44,11 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	glBindTexture(GL_TEXTURE_2D, bloomTex);*/
 
 	//PARTICLE STUFF
-	particleShader = new Shader(SHADERDIR"basicVertex.glsl", 
-		SHADERDIR"colourFragment.glsl", SHADERDIR"particleEmitGeom.glsl");
+
+	if (!InitParticles()) 
+		return;
+	/*particleShader = new Shader(SHADERDIR"basicVertex.glsl", 
+	SHADERDIR"colourFragment.glsl", SHADERDIR"particleEmitGeom.glsl");
 
 	if (!particleShader->LinkProgram()) return;
 
@@ -53,7 +58,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	emitter->SetParticleVariance(1.0f);
 	emitter->SetLaunchParticles(16.0f);
 	emitter->SetParticleLifetime(2000.0f);
-	emitter->SetParticleSpeed(0.1f);
+	emitter->SetParticleSpeed(0.1f);*/
 
 	//Turn on depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -85,8 +90,9 @@ void Renderer::UpdateScene(float msec){
 		pause = !pause;
 
 	camera->UpdateCamera(msec);
-	emitter->Update(msec);
-	
+	/*emitter->Update(msec);*/
+	UpdateParticles(msec);
+
 	if (!pause){
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
 			movementVar += msec*0.0001f;
@@ -94,7 +100,7 @@ void Renderer::UpdateScene(float msec){
 		} else {
 			movementVar += msec*0.001f;
 		}
-		
+
 
 		UpdateSceneObjects(msec);
 	}
@@ -133,7 +139,7 @@ void Renderer::DrawCombinedScene(){
 	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
-	
+
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	//TODO: Sort out drawing the frustum!
@@ -170,32 +176,49 @@ void Renderer::DrawCombinedScene(){
 
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 
-	//Now we have a frame frustum, attempt to create our light bloom texture if the
-	//light is in the scene?
-	//if (frameFrustum.InsideFrustum(*lightSource)){
-	//	SetCurrentShader(renderColour);
-
-	//	//Set a frame buffer and upload some matrices;
-
-
-	//	
-	//}
-
 	BuildNodeLists(root, camera->GetPosition());
 	SortNodeLists();
-	DrawNodes();
 
-	if (debug)
+	//Draw the opaque nodes with the specific shader uploads
+	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
+		SetCurrentShader(sceneShader);
+
+		Matrix4 tempMatrix = shadowVPMatrix * (*itr)->GetWorldTransform();
+		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
+			"shadowVPMatrix"),1,false, tempMatrix.values);
+		(*itr)->Draw(*this);
+
+		if (debug){ 
+			if (drawBound) DrawBounds(*itr);
+			if ((*itr)->GetMesh()) objectsDrawn++;
+		}
+	}
+
+	for (auto itr = transparentNodes.rbegin(); itr != transparentNodes.rend(); ++itr){
+		SetCurrentShader(sceneShader);
+
+		Matrix4 tempMatrix = shadowVPMatrix * (*itr)->GetWorldTransform();
+		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
+			"shadowVPMatrix"),1,false, tempMatrix.values);
+		(*itr)->Draw(*this);
+
+		if (debug){
+			if (drawBound) DrawBounds(*itr);
+			if ((*itr)->GetMesh()) objectsDrawn++;
+		}
+	}
+
+	/*if (debug)
 		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
 			if ((*itr)->GetMesh()) objectsDrawn++;
 			if (drawBound) DrawBounds(*itr);
-		}
+		}*/
 
 	ClearNodeLists();
-	
+
 	DrawWater(false);
-	DrawParticleEmitter(emitter);
-	
+	//DrawParticleEmitter(emitter);
+
 	PPDrawn();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
@@ -240,25 +263,3 @@ void Renderer::DrawLight(const Light* light){
 	glUseProgram(0);
 }
 
-void Renderer::DrawParticleEmitter(ParticleEmitter* pe){
-	SetCurrentShader(particleShader);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
-	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "particleSize"), pe->GetParticleSize());
-	/*modelMatrix.ToIdentity();*/
-	//modelMatrix = Matrix4::Translation(light->GetPosition());
-	modelMatrix = Matrix4::Translation(Vector3(0,200,0));
-
-	UpdateShaderMatrices();
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
-	glDepthMask(GL_FALSE);
-
-	pe->Draw();
-
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
-
-	glUseProgram(0);
-}

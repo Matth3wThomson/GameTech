@@ -13,7 +13,7 @@ bool Renderer::InitDebug(){
 
 	objectsDrawn = 0;
 	objectsShadowed = 0;
-	drawBound = false;
+	drawBound = true;
 
 	return true;
 }

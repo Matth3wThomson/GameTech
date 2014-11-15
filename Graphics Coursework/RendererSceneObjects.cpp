@@ -39,15 +39,18 @@ bool Renderer::InitSceneObjects(){
 
 	hellNode->SetTransform(Matrix4::Translation(Vector3(0,500,0)));
 	hellNode->SetBoundingRadius(100);
+	hellNode->SetShader(sceneShader);
 
 	heightMapNode = new SceneNode(heightMap);
 	heightMapNode->SetBoundingRadius( sqrt( pow(RAW_WIDTH * HEIGHTMAP_X * 0.5f, 2) + pow(RAW_HEIGHT * HEIGHTMAP_Z * 0.5f, 2)));
+	heightMapNode->SetShader(sceneShader);
 
 	lightSource = new SceneNode(sphere);
 	lightSource->SetTransform(Matrix4::Translation(light->GetPosition()) *
 		Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));
 	lightSource->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	lightSource->SetBoundingRadius(100.0f);
+	lightSource->SetShader(passThrough);
 
 	root->AddChild(hellNode);
 	root->AddChild(heightMapNode);
@@ -144,6 +147,7 @@ void Renderer::DrawNodes(){
 
 //TODO: Possibly a drawing counter passed to this function?
 void Renderer::DrawNode(SceneNode* n){
+
 	if (n->GetMesh()){
 		/*glUniformMatrix4fv(
 		glGetUniformLocation(currentShader->GetProgram(), "modelMatrix"),
@@ -155,7 +159,7 @@ void Renderer::DrawNode(SceneNode* n){
 		modelMatrix = n->GetTransform();
 
 		glUniform4fv ( glGetUniformLocation ( currentShader->GetProgram(),
-			"nodeColour") ,1 ,( float *)& n->GetColour ());
+			"nodeColour") ,1 ,( float *)& n->GetColour());
 
 		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 			"useTexture"), (int)n->GetMesh()->GetTexture());

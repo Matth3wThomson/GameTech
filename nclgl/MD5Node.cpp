@@ -95,6 +95,8 @@ void	MD5Node::Draw(const OGLRenderer &r) {
 #endif
 	//Finally, we draw the mesh, just like the base class Draw function...
 	m->Draw();
+
+	//TODO: This should call the parent's method?
 }
 
 

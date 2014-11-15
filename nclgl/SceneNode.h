@@ -22,14 +22,17 @@ public:
 	Vector3 GetModelScale() const { return modelScale; }
 	void SetModelScale(Vector3 s){ modelScale = s; }
 
-	Mesh* GetMesh() const { return mesh; }
+	virtual Mesh* GetMesh() const { return mesh; }
 	void SetMesh(Mesh* m) { mesh = m; }
+
+	Shader* GetShader() const { return shader; }
+	void SetShader(Shader* shader){ this->shader = shader; }
 
 	void AddChild(SceneNode* s);
 	void RemoveChild(SceneNode* s);
 
 	virtual void Update(float msec);
-	virtual void Draw(const OGLRenderer& r);
+	virtual void Draw(OGLRenderer& r, const bool useShader = true);
 
 	float GetBoundingRadius() const { return boundingRadius; }
 	void SetBoundingRadius(float f){ boundingRadius = f; }
@@ -50,6 +53,7 @@ public:
 protected:
 	SceneNode* parent;
 	Mesh* mesh;
+	Shader* shader;
 
 	//Possibly store pointer to shader to render?
 

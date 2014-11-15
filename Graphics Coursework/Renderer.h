@@ -9,6 +9,7 @@
 #include "../nclgl/HeightMap.h"
 #include "../nclgl/OBJMesh.h"
 #include "../nclgl/ParticleEmitter.h"
+#include "ParticleEmitterNode.h"
 #include <algorithm>
 #include <sstream>
 
@@ -66,7 +67,9 @@ protected:
 	bool InitShadowBuffers();
 	void DeleteShadowBuffers();
 
+	void UpdateShadowShaderMatrices();
 	void DrawShadowScene();
+	void DrawNodeShadow(SceneNode* n); //Special draw method for creating shadow map
 	void DrawCombinedScene();
 
 	Shader* sceneShader;
@@ -89,6 +92,7 @@ protected:
 	//Water additions!
 	bool InitWater();
 	void DeleteWater();
+	void UpdateWaterShaderMatrices();
 
 	void DrawWater(bool shadowMap = false);
 
@@ -128,6 +132,7 @@ protected:
 	//TODO: Post Proccess additions
 	bool InitPostProcess();
 	void DeletePostProcess();
+	void UpdatePPShaderMatrices();
 
 	GLuint bufferFBO;
 	GLuint processFBO;
@@ -185,6 +190,10 @@ protected:
 	Shader* particleShader;
 	ParticleEmitter* emitter;
 
+	bool InitParticles();
+	void DeleteParticles();
+
+	void UpdateParticles(float msec);
 	void DrawParticleEmitter(ParticleEmitter* pe);
 
 	//End attempt particle emission

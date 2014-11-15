@@ -54,7 +54,7 @@ struct Particle {
 
 class ParticleEmitter : public Mesh	{
 public:
-	ParticleEmitter(void);
+	ParticleEmitter(const std::string& filename);
 	~ParticleEmitter(void);
 
 	/*
@@ -63,8 +63,7 @@ public:
 	updating functions you've seen.
 	*/
 	void Update(float msec);
-
-	virtual void Draw();
+	virtual void Draw();	//Mesh draw overload
 
 	/*
 	How often we spit out some new particles!

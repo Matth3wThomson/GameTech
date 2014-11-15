@@ -37,7 +37,6 @@ _-_-_-_-_-_-_-""  ""
 
 using std::vector;
 
-
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "SOIL.lib")
@@ -98,6 +97,10 @@ class Shader;
 class OGLRenderer	{
 public:
 	friend class Window;
+	friend class SceneNode;
+	friend class ParticleEmitterNode;
+	friend class WaterNode;
+
 	OGLRenderer(Window &parent);
 	virtual ~OGLRenderer(void);
 
