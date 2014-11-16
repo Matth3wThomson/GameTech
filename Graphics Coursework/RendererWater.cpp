@@ -2,17 +2,27 @@
 
 bool Renderer::InitWater(){
 	waterTex = 0;
-	//TODO: Get bump mapping in!
-	/*reflectShader = new Shader(SHADERDIR"PerPixelVertex.glsl",
-	SHADERDIR"reflectFragment.glsl");*/
-
-	/*reflectShader = new Shader(SHADERDIR"BumpVertex.glsl",
-	SHADERDIR"reflectBumpFrag.glsl");*/
+	
 	reflectShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
 		SHADERDIR"reflectBumpFrag.glsl");
 
 	if (!reflectShader->LinkProgram())
 		return false;
+
+	//Upload all uniforms that will not change thoughout the program!
+	SetCurrentShader(reflectShader);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"diffuseTex"), 0);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"bumpTex"), 1);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"shadowTex"), 2);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"cubeTex"), 3);
 
 	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"blue2.jpg",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
@@ -33,6 +43,22 @@ bool Renderer::InitWater(){
 	if (!waterBump)
 		return false;
 
+	waterQuad = Mesh::GenerateQuad();
+
+	waterQuad->SetTexture(waterTex);
+	waterQuad->SetBumpMap(waterBump);
+
+	waterNode = new SceneNode(waterQuad, Vector4(1,1,1,1));
+	waterNode->SetTransform(Matrix4::Translation(Vector3(-1115.9f,150,-1501.6f)) *
+		Matrix4::Rotation(90, Vector3(1,0,0)) *
+		Matrix4::Scale(Vector3(939.3f,554.9f,1)));
+	waterNode->SetBoundingRadius(1000);
+
+	waterNode->SetShader(reflectShader);
+	waterNode->SetUpdateShaderFunction([this](){ UpdateWaterShaderMatricesPO(waterNode); } );
+
+	root->AddChild(waterNode);
+
 	SetTextureRepeating(waterTex, true);
 	SetTextureRepeating(waterBump, true);
 
@@ -43,65 +69,31 @@ void Renderer::DeleteWater(){
 	delete reflectShader;
 }
 
-void Renderer::DrawWater(bool shadowMap){
+//Frame + object specific uploads.
+void Renderer::UpdateWaterShaderMatricesPO(SceneNode* n){
 
-	//TODO: Test changing order of scale+rotate
-	SetCurrentShader(reflectShader);
+	Matrix4 tempMatrix = shadowVPMatrix * n->GetWorldTransform();
 
-	SetShaderLight(*light);
-	quad->SetTexture(waterTex);
-	quad->SetBumpMap(waterBump);
+	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
+			"shadowVPMatrix"),1,false, tempMatrix.values);
 
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"diffuseTex"), 0);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"bumpTex"), 1);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"cubeTex"), 2);
-
-	if (!shadowMap){
-		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-			"shadowTex"), 3);
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, shadowTex);
-
-	}
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-
-	//TODO: NOT TIME SPECIFIC
 	rotation += 0.05f;
-
-	modelMatrix = Matrix4::Translation(Vector3(-1115.9f,150,-1501.6f)) *
-		Matrix4::Rotation(90, Vector3(1,0,0)) *
-		Matrix4::Scale(Vector3(939.3f,554.9f,1));
 
 	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) *
 		Matrix4::Rotation(rotation, Vector3(0.0f, 0.0f, 1.0f));
 
-	UpdateShaderMatrices();
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
 
-	if (!shadowMap){
-		Matrix4 tempMatrix = shadowVPMatrix * modelMatrix;
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+}
 
-		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-			"shadowVPMatrix"),1,false, tempMatrix.values);
-	} else {
-		glDisable(GL_CULL_FACE);
-	}
+void Renderer::UpdateWaterShaderMatricesPF(){
+	SetCurrentShader(reflectShader);
 
-	quad->Draw();
-	quad->SetBumpMap(0);
+	SetShaderLight(*light);
 
-	if (shadowMap)
-		glEnable(GL_CULL_FACE);
-
-	glUseProgram(0);
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+		"cameraPos"), 1, (float*)&camera->GetPosition());
 }

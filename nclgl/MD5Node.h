@@ -68,7 +68,7 @@ public:
 		return &currentSkeleton;
 	}
 
-	const MD5FileData&	GetSourceData() {
+	const MD5FileData&	GetSourceData(){
 		return sourceData;
 	}
 

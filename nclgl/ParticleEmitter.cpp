@@ -16,19 +16,15 @@ ParticleEmitter::ParticleEmitter(const std::string& filename)	{
 	particleLifetime	= 500.0f;
 	particleSize		= 24.0f;
 	particleVariance	= 0.2f;
+	colourVariance		= 1.0f;
+	particlePositionVariance = 0.0f;
+	yOffset = 0.0f;
 	nextParticleTime	= 0.0f;
 	particleSpeed		= 0.2f;
 	numLaunchParticles	= 10;
 	largestSize			= 0;
 
-
-	/*
-	Each particle is a white dot, which has an alpha fade on it,
-	so the edges fade to 0.0 alpha.
-	*/
-
-	//texture = SOIL_load_OGL_texture("../Textures/particle.tga",
-	//SOIL_LOAD_AUTO,SOIL_CREATE_NEW_ID,SOIL_FLAG_COMPRESS_TO_DXT);
+	fadeOverTime = true;
 
 	texture = SOIL_load_OGL_texture(filename.c_str(),
 		SOIL_LOAD_AUTO,SOIL_CREATE_NEW_ID,SOIL_FLAG_COMPRESS_TO_DXT);
@@ -79,11 +75,12 @@ void ParticleEmitter::Update(float msec)	{
 
 		//We're keeping the particles 'life' in the alpha channel of its colour. 
 		//This means it'll also fade out as it loses energy. Kinda cool?
-		p->colour.w -= (msec / particleLifetime);
+		if (fadeOverTime) p->colour.w -= (msec / particleLifetime);
+		p->lifeTime -= msec;
 
 		//If this particle has ran out of life, remove it from the 'active' list,
 		//and put it on the 'free' list for reuse later.
-		if(p->colour.w <= 0.0f) {
+		if(p->lifeTime <= 0.0f) {
 			freeList.push_back(p);
 			i = particles.erase(i);
 		} else {
@@ -127,7 +124,10 @@ Particle* ParticleEmitter::GetFreeParticle()	{
 	//Now we have to reset its values - if it was popped off the
 	//free list, it'll still have the values of its 'previous life'
 
-	p->colour		= Vector4(RAND(),RAND(),RAND(),1.0);
+	p->colour		= Vector4(1 - RAND()*colourVariance,
+		1 - RAND()*colourVariance,
+		1 - RAND()*colourVariance, 1.0);
+
 	p->direction	= initialDirection;
 	p->direction.x += ((RAND()-RAND()) * particleVariance);
 	p->direction.y += ((RAND()-RAND()) * particleVariance);
@@ -135,6 +135,12 @@ Particle* ParticleEmitter::GetFreeParticle()	{
 
 	p->direction.Normalise();	//Keep its direction normalised!
 	p->position.ToZero();
+
+	p->position.x += ((RAND()-RAND()) * particlePositionVariance);
+	p->position.z += ((RAND()-RAND()) * particlePositionVariance);
+	p->position.y += yOffset;
+
+	p->lifeTime = particleLifetime;
 
 	return p;	//return the new particle :-)
 }

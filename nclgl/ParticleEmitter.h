@@ -50,6 +50,7 @@ struct Particle {
 	Vector3 position;
 	Vector4 colour;
 	Vector3 direction;
+	float lifeTime;
 };
 
 class ParticleEmitter : public Mesh	{
@@ -77,11 +78,17 @@ public:
 	float	GetParticleLifetime()			{return particleLifetime;}
 	void	SetParticleLifetime(float life) {particleLifetime = life;}
 
+	bool GetFadeOverTime(){ return fadeOverTime; }
+	void SetFadeOverTime(const bool fade){ fadeOverTime = fade; };
+
 	/*
 	How big each particle will be!
 	*/
 	float	GetParticleSize()				{return particleSize;}
 	void	SetParticleSize(float size)		{particleSize = size;}
+
+	float GetColourVariance(){ return colourVariance; }
+	void SetColourVariance(float colourVariance){ this->colourVariance = colourVariance; }
 
 	/*
 	How much variance of the direction axis each particle can have when 
@@ -91,6 +98,12 @@ public:
 	*/
 	float	GetParticleVariance()				{return particleVariance;}
 	void	SetParticleVariance(float variance) {particleVariance = variance;}
+
+	float GetParticlePositionVariance(){ return particlePositionVariance; }
+	void SetParticlePositionVariance(float ppv){ particlePositionVariance = ppv; }
+
+	float GetYOffset(){ return yOffset; }
+	void SetYOffset(float yOffset){ this->yOffset = yOffset; } 
 
 	/*
 	Linear velocity of the particle
@@ -122,10 +135,15 @@ protected:
 	*/
 	void	ResizeArrays();
 
+	bool fadeOverTime;
+
 	float particleRate;
 	float particleLifetime;
 	float particleSize;
 	float particleVariance;
+	float colourVariance;
+	float particlePositionVariance;
+	float yOffset;
 	float particleSpeed;
 	int	  numLaunchParticles;
 

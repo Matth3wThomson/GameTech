@@ -13,7 +13,7 @@ bool Renderer::InitDebug(){
 
 	objectsDrawn = 0;
 	objectsShadowed = 0;
-	drawBound = true;
+	drawBound = 0;
 
 	return true;
 }
@@ -61,14 +61,13 @@ void Renderer::DrawDebugOverlay(){
 	glUseProgram(0);
 }
 
-//TODO: This method assumes that the model matrix is already set accordingly... correct?
 void Renderer::DrawBounds(SceneNode* n){
 	
 	glDisable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	SetCurrentShader(passThrough); //NEW
+	SetCurrentShader(passThrough);
 
-	UpdateShaderMatrices(); //NEW
+	UpdateShaderMatrices();
 
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
 		"modelMatrix"),	1,false, 
@@ -80,11 +79,10 @@ void Renderer::DrawBounds(SceneNode* n){
 
 	sphere->Draw();
 
-	glUseProgram(0); //NEW
+	glUseProgram(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_CULL_FACE);
 }
-
-
 
 //TODO: Lots of reinstantiation of view and proj matrix!
 void Renderer::DrawFrustum(){

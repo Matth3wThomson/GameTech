@@ -22,10 +22,9 @@ bool Renderer::InitSkybox(){
 
 }
 
-
 void Renderer::DrawSkybox(){
 
-	//TODO: Reduce overdraw of skybox.
+	//TODO: Reduce overdraw of skybox?
 	glDepthMask(GL_FALSE);
 	glDisable(GL_CULL_FACE);
 	SetCurrentShader(skyboxShader);

@@ -5,6 +5,7 @@
 #include "Vector4.h"
 #include "Mesh.h"
 #include <vector>
+#include <functional>
 
 class SceneNode
 {
@@ -27,6 +28,9 @@ public:
 
 	Shader* GetShader() const { return shader; }
 	void SetShader(Shader* shader){ this->shader = shader; }
+
+	//NEW
+	void SetUpdateShaderFunction(std::function<void()> shaderUpdater){ updateShaderFunction = shaderUpdater; }
 
 	void AddChild(SceneNode* s);
 	void RemoveChild(SceneNode* s);
@@ -55,7 +59,7 @@ protected:
 	Mesh* mesh;
 	Shader* shader;
 
-	//Possibly store pointer to shader to render?
+	std::function<void()> updateShaderFunction;
 
 	Matrix4 worldTransform;
 	Matrix4 transform;

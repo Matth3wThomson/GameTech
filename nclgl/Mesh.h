@@ -18,6 +18,7 @@ public:
 	static Mesh* GenerateTriangle();
 	static Mesh* GenerateQuad();
 	static Mesh* GenerateTransQuad();
+	static Mesh* GenerateCylinder(int accuracy);
 
 	void SetTexture(GLuint tex){ texture = tex; }
 	GLuint GetTexture() const { return texture; }

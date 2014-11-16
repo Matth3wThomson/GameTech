@@ -38,7 +38,7 @@ void	MD5Node::Update(float msec) {
 		//anim
 		currentAnim->TransformSkeleton(currentSkeleton,currentAnimFrame-1);
 	}
-	//Call our base class update function, too! Doing so will presever the 
+	//Call our base class update function, too! Doing so will preseve the 
 	//ability to build up the world matrices for every node. 
 	SceneNode::Update(msec);
 }

@@ -12,6 +12,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	rotation = 0.0f;
 
 
+	std::cout << "START gl error: " << glGetError() << std::endl;
 
 	camera = new Camera(-8.0f, -25.0f, Vector3(-200.0f, 50.0f, 250.0f));
 
@@ -23,42 +24,38 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	if (!passThrough->LinkProgram())
 		return;
 
+	std::cout << "gl error: " << glGetError() << std::endl;
+
 	//Initialise parts of the scene!
 	if (!InitShadowBuffers())
 		return;
-	if (!InitSceneObjects())
+	std::cout << "gl error: " << glGetError() << std::endl;
+
+	if (!InitSceneObjects()) //ERROR
 		return;
-	if (!InitSkybox())
+	std::cout << "gl error: " << glGetError() << std::endl;
+
+	if (!InitSkybox())	//ERROR
 		return;
-	if (!InitWater())
+	std::cout << "gl error: " << glGetError() << std::endl;
+
+	if (!InitWater()) //ERROR
 		return;
-	/*if (!InitShadowBuffers())
-		return;*/
+	
+	std::cout << "gl error: " << glGetError() << std::endl;
+
 	if (!InitPostProcess())
 		return;
-	if (!InitDebug())
+
+	std::cout << "gl error: " << glGetError() << std::endl;
+
+	if (!InitDebug()) //ERROR
 		return;
 
-	//BLOOM TESTING!
-	/*glGenTextures(1, &bloomTex);
-	glBindTexture(GL_TEXTURE_2D, bloomTex);*/
-
-	//PARTICLE STUFF
+	std::cout << "gl error: " << glGetError() << std::endl;
 
 	if (!InitParticles()) 
 		return;
-	/*particleShader = new Shader(SHADERDIR"basicVertex.glsl", 
-	SHADERDIR"colourFragment.glsl", SHADERDIR"particleEmitGeom.glsl");
-
-	if (!particleShader->LinkProgram()) return;
-
-	emitter = new ParticleEmitter();
-
-	emitter->SetParticleSize(8.0f);
-	emitter->SetParticleVariance(1.0f);
-	emitter->SetLaunchParticles(16.0f);
-	emitter->SetParticleLifetime(2000.0f);
-	emitter->SetParticleSpeed(0.1f);*/
 
 	//Turn on depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -69,6 +66,24 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	cameraProjMat = projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
 		(float) width / (float) height, 45.0f);
 	ortho = Matrix4::Orthographic(-1.0f,1.0f,(float)width, 0.0f,(float)height, 0.0f);
+
+	std::cout << "gl error: " << glGetError() << std::endl;
+	std::cout << "gl error: " << glGetError() << std::endl;
+
+	cylinder = Mesh::GenerateCylinder(50);
+	
+	cylinder->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.jpg",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	if (!cylinder->GetTexture()){
+		return;
+	}
+
+	SetTextureRepeating(cylinder->GetTexture(), true);
+
+	SetCurrentShader(debugDrawShader);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"diffuseTex"), 0);
 
 	init = true;
 }
@@ -90,8 +105,6 @@ void Renderer::UpdateScene(float msec){
 		pause = !pause;
 
 	camera->UpdateCamera(msec);
-	/*emitter->Update(msec);*/
-	UpdateParticles(msec);
 
 	if (!pause){
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
@@ -101,9 +114,11 @@ void Renderer::UpdateScene(float msec){
 			movementVar += msec*0.001f;
 		}
 
-
+		UpdateParticles(msec);
 		UpdateSceneObjects(msec);
 	}
+
+	UpdateShadersPerFrame();
 
 	//TEXT
 	UpdatePostProcess(msec);
@@ -114,7 +129,7 @@ void Renderer::UpdateScene(float msec){
 void Renderer::RenderScene(){
 
 	//Build node lists in order of distance from the light
-	DrawShadowScene(); //First Render pass
+	DrawShadowScene(); //First Render pass //ISSUE
 
 	//Build node lists in order of distance from the camera
 	DrawCombinedScene(); //Second render pass
@@ -148,28 +163,6 @@ void Renderer::DrawCombinedScene(){
 
 	DrawSkybox();
 
-	SetCurrentShader(sceneShader);
-
-	//Upload our textures to units 0-2
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"diffuseTex"), 0);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"bumpTex"), 1);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"shadowTex"), 2);
-
-	//upload our cameras position
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
-
-	SetShaderLight(*light);
-
-	//Bind our depth texture from our shadow FBO to texture unit 2
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, shadowTex);
-
 	viewMatrix = camera->BuildViewMatrix();
 	projMatrix = cameraProjMat;
 	textureMatrix.ToIdentity();
@@ -182,10 +175,6 @@ void Renderer::DrawCombinedScene(){
 	//Draw the opaque nodes with the specific shader uploads
 	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
 		SetCurrentShader(sceneShader);
-
-		Matrix4 tempMatrix = shadowVPMatrix * (*itr)->GetWorldTransform();
-		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-			"shadowVPMatrix"),1,false, tempMatrix.values);
 		(*itr)->Draw(*this);
 
 		if (debug){ 
@@ -196,10 +185,6 @@ void Renderer::DrawCombinedScene(){
 
 	for (auto itr = transparentNodes.rbegin(); itr != transparentNodes.rend(); ++itr){
 		SetCurrentShader(sceneShader);
-
-		Matrix4 tempMatrix = shadowVPMatrix * (*itr)->GetWorldTransform();
-		glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
-			"shadowVPMatrix"),1,false, tempMatrix.values);
 		(*itr)->Draw(*this);
 
 		if (debug){
@@ -216,12 +201,16 @@ void Renderer::DrawCombinedScene(){
 
 	ClearNodeLists();
 
-	DrawWater(false);
-	//DrawParticleEmitter(emitter);
+	DrawCylinder();
 
 	PPDrawn();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
+}
+
+void Renderer::UpdateShadersPerFrame(){
+	UpdateWaterShaderMatricesPF();
+	UpdateCombineSceneShaderMatricesPF();
 }
 
 void Renderer::DrawString(const std::string& text, const Vector3& pos, const float size, const bool perspective){
@@ -247,18 +236,19 @@ void Renderer::DrawString(const std::string& text, const Vector3& pos, const flo
 
 }
 
-//TODO: Drawing light source no matter what!?
-void Renderer::DrawLight(const Light* light){
-	SetCurrentShader(passThrough);
+void Renderer::DrawCylinder(){
+	SetCurrentShader(debugDrawShader);
 
-	modelMatrix = Matrix4::Translation(light->GetPosition()) *
-		Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f));
-	viewMatrix = camera->BuildViewMatrix();
-	projMatrix = cameraProjMat;
+	modelMatrix = Matrix4::Translation(Vector3(0, 1000, 0))
+		* Matrix4::Scale(Vector3(200,200,200));
+	this;
 	UpdateShaderMatrices();
 
-	sphere->Draw();
-	objectsDrawn++;
+	/*glDisable(GL_CULL_FACE);*/
+	/*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);*/
+	cylinder->Draw();
+	/*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
+	/*glEnable(GL_CULL_FACE);*/
 
 	glUseProgram(0);
 }

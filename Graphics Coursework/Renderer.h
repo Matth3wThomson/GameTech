@@ -22,6 +22,8 @@
 //TODO: Combine light node and source to become one!?
 //TODO: Get textures and bump maps back onto hell knight
 //TODO: Make everything possible scene nodes so frustum culling makes sense!?
+//TODO: Sort out the open GL issues found and hence why nvidia nsight isnt working,
+	//and remove all the debugging code!!
 
 
 #define SHADOWSIZE 2048 * 8
@@ -46,6 +48,8 @@ protected:
 	//Generic Shaders
 	Shader* passThrough;
 
+	void UpdateShadersPerFrame();
+
 	//Functionality properties
 	bool pause;
 	float movementVar;
@@ -67,9 +71,9 @@ protected:
 	bool InitShadowBuffers();
 	void DeleteShadowBuffers();
 
-	void UpdateShadowShaderMatrices();
+	void UpdateCombineSceneShaderMatricesPF();
+	void UpdateCombineSceneShaderMatricesPO(SceneNode* n);
 	void DrawShadowScene();
-	void DrawNodeShadow(SceneNode* n); //Special draw method for creating shadow map
 	void DrawCombinedScene();
 
 	Shader* sceneShader;
@@ -92,13 +96,16 @@ protected:
 	//Water additions!
 	bool InitWater();
 	void DeleteWater();
-	void UpdateWaterShaderMatrices();
+	void UpdateWaterShaderMatricesPO(SceneNode* n);
+	void UpdateWaterShaderMatricesPF();
 
-	void DrawWater(bool shadowMap = false);
+	//void DrawWater(bool shadowMap = false);
 
 	Shader* reflectShader;
 	GLuint waterTex;
 	GLuint waterBump;
+	SceneNode* waterNode;
+	Mesh* waterQuad;
 
 	//Scene Objects
 	//TODO: Compress objects we no longer need access too!
@@ -114,7 +121,6 @@ protected:
 	SceneNode* root;
 	MD5Node* hellNode;
 	SceneNode* heightMapNode;
-	SceneNode* quadNode;
 
 	Frustum frameFrustum;
 
@@ -123,8 +129,6 @@ protected:
 
 	void BuildNodeLists(SceneNode* from, const Vector3& viewPos);
 	void SortNodeLists();
-	void DrawNodes();
-	void DrawNode(SceneNode* n);
 	void ClearNodeLists();
 	
 	//End scene objects
@@ -186,16 +190,21 @@ protected:
 
 	//End attempts of custom bloom!
 
-	//Attempt particle emission
+	//PARTICLE EMISSION STUFF
 	Shader* particleShader;
-	ParticleEmitter* emitter;
+	ParticleEmitter* rain;
+	ParticleEmitter* snow;
+
+	ParticleEmitterNode* rainNode;
+	ParticleEmitterNode* snowNode;
+
+	bool raining;
+	bool snowing;
 
 	bool InitParticles();
 	void DeleteParticles();
 
 	void UpdateParticles(float msec);
-	void DrawParticleEmitter(ParticleEmitter* pe);
-
 	//End attempt particle emission
 
 	//Text additions
@@ -224,6 +233,12 @@ protected:
 	int objectsShadowed;
 	bool drawBound;
 	//End Debugging Properties
+
+	//PLANT STUFF!?
+	Mesh* cylinder;
+
+	void DrawCylinder();
+	//End plant stuff 
 
 };
 

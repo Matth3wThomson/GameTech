@@ -124,6 +124,107 @@ Mesh* Mesh::GenerateTransQuad(){
 
 }
 
+Mesh* Mesh::GenerateCylinder(int accuracy){
+
+	//We must make accuracy odd!
+	accuracy += 1 - accuracy%2;
+
+	//The first circle will require
+	// accuracy+1 vertices;
+	// accuracy*3 indices
+
+	//The second circle will require
+	// accuracy+1 vertices
+	//accuracy*3 indices
+
+	//The strip around the outside requires
+	// 6 indices per quad. accuracy * quad
+	
+
+	Mesh* m = new Mesh();
+
+	m->numVertices = (accuracy+1)*2;
+	m->numIndices = accuracy*3*2 + accuracy * 6; //THIS NEEDS TO BE CALCULATED
+	m->type = GL_TRIANGLES;
+	/*m->type = GL_TRIANGLE_FAN;*/
+
+
+	m->indices = new unsigned int[m->numIndices];
+
+	m->vertices = new Vector3[m->numVertices];
+	m->textureCoords = new Vector2[m->numVertices];
+	m->colours = new Vector4[m->numVertices];
+	m->normals = new Vector3[m->numVertices];
+	m->tangents = new Vector3[m->numVertices];
+
+	m->vertices[0] = Vector3(0,-1,0);
+	m->colours[0] = Vector4(1,1,1,1);
+	m->textureCoords[0] = Vector2(0.5, 0.5);
+
+	int indexCounter = 0;
+
+	//Generate the bottom circle
+
+	for (int i=1; i<accuracy+1; i++){
+		m->vertices[i] = Vector3( sin( DegToRad(((float) i/accuracy) * 360)), -1, cos( DegToRad(((float) i/accuracy) * 360)));
+		std::cout << m->vertices[i] << std::endl;
+
+		//m->textureCoords[i] = Vector2( sin( DegToRad(((float)i/accuracy) * 360)), cos( DegToRad(((float)i/accuracy) * 360)));
+		m->textureCoords[i] = Vector2((float) i / accuracy, 0);
+		
+		m->colours[i] = Vector4(1,1,1,1);
+		
+		//draw the shape CCW so GL can cull the face when not in view!
+		m->indices[indexCounter++] = 0;
+		m->indices[indexCounter++] = (i%accuracy)+1;
+		m->indices[indexCounter++] = i;
+	}
+
+	//Generate the top circle
+	m->vertices[accuracy+1] = Vector3(0,1,0);
+	m->colours[accuracy+1] = Vector4(1,1,1,1);
+	m->textureCoords[accuracy+1] = Vector2(0.5, 0.5);
+
+	std::cout << std::endl;
+
+	for (int i=accuracy+2; i< m->numVertices; i++){
+		m->vertices[i] = Vector3(sin(
+			DegToRad(((float) (i-accuracy-2) /accuracy) * 360))
+			, 1, cos( DegToRad(((float) (i - accuracy - 2) /accuracy) * 360)));
+
+		//m->textureCoords[i] = Vector2(sin( DegToRad(((float)i/accuracy) * 360)), cos( DegToRad(((float)i/accuracy) * 360)));
+		m->textureCoords[i] = Vector2((float) (i-accuracy-2) /accuracy, 1);
+
+		m->colours[i] = Vector4(1,1,1,1);
+		std::cout << m->vertices[i] << std::endl;
+
+		m->indices[indexCounter++] = accuracy+1;
+		m->indices[indexCounter++] = i;
+		m->indices[indexCounter++] = ( (i - 1) % accuracy) + accuracy + 2;
+	}
+
+	//Generate tube around cylinder
+	for (int i=1; i<accuracy+1; i++){
+		m->indices[indexCounter++] = i;
+		m->indices[indexCounter++] = (i%accuracy)+1;
+		m->indices[indexCounter++] = i+accuracy+1;
+		
+		m->indices[indexCounter++] = /*i+accuracy+2;*/( (i) % accuracy) + accuracy + 2;
+		m->indices[indexCounter++] = i+accuracy+1;
+		m->indices[indexCounter++] = (i%accuracy)+1;
+		
+		
+	}
+
+   	m->GenerateNormals();
+	m->GenerateTangents();
+
+	m->BufferData();
+
+	return m;
+
+}
+
 void Mesh::GenerateNormals(){
 	if (!normals)
 		normals = new Vector3[numVertices];

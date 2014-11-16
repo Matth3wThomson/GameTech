@@ -31,6 +31,7 @@ as the current renderer of the passed 'parent' Window. Not the best
 way to do it - but it kept the Tutorial code down to a minimum!
 */
 OGLRenderer::OGLRenderer(Window &window)	{
+
 	init					= false;
 	drawnDebugOrtho			= false;
 	drawnDebugPerspective	= false;
@@ -124,14 +125,22 @@ OGLRenderer::OGLRenderer(Window &window)	{
 
 	wglDeleteContext(tempContext);	//We don't need the temporary context any more!
 
+	
+
 	glewExperimental = GL_TRUE;	//This forces GLEW to give us function pointers for everything (gets around GLEW using 'old fashioned' methods
 								//for determining whether a OGL context supports a particular function or not
 	
+	std::cout << "gl error: " << glGetError() << std::endl;
+
 	if (glewInit() != GLEW_OK) {	//Try to initialise GLEW
 		std::cout << "OGLRenderer::OGLRenderer(): Cannot initialise GLEW!" << std::endl;	//It's all gone wrong!
 		return;
 	}
 	//If we get this far, everything's going well!
+
+	//TODO: Dont forget about me!
+	std::cout << "gl error: " << glGetError() << std::endl;
+	std::cout << "gl error: " << glGetError() << std::endl;
 
 #ifdef OPENGL_DEBUGGING
 	//PFNWGLCREATECONTEXTATTRIBSARBPROC glDebugMessageCallbackTEMP = (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("glDebugMessageCallbackARB");
@@ -155,6 +164,8 @@ OGLRenderer::OGLRenderer(Window &window)	{
 			return;
 		}
 	}
+
+	
 }
 
 /*

@@ -9,6 +9,18 @@ bool Renderer::InitShadowBuffers(){
 	if (!sceneShader->LinkProgram() || !shadowShader->LinkProgram())
 		return false;
 
+	//Update the shaders uniforms that will not be changed throughout the program.
+	SetCurrentShader(sceneShader);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"diffuseTex"), 0);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"bumpTex"), 1);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"shadowTex"), 2);
+
 	//Generate and bind a texture for our shadow FBO
 	glGenTextures(1, &shadowTex);
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
@@ -55,32 +67,6 @@ void Renderer::DeleteShadowBuffers(){
 	delete shadowShader;
 }
 
-void Renderer::UpdateShadowShaderMatrices(){
-	//Here I need to update the matrices for the shaders used in shadowing
-	//Shadow shader doesnt need any extra matrices updating as its almost a pass through
-	
-	SetCurrentShader(sceneShader);
-
-	//Half of these dont change per frame...
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"diffuseTex"), 0);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"bumpTex"), 1);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"shadowTex"), 2);
-
-	//upload our cameras position
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
-
-	SetShaderLight(*light);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, shadowTex);
-}
-
 void Renderer::DrawShadowScene(){
 
 	//Draw to our shadow framebuffer (with shadow texture)
@@ -88,7 +74,9 @@ void Renderer::DrawShadowScene(){
 
 	//Clear the old shadow texture
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_CULL_FACE); //TODO: Remember to remove this!
+
+	//We must disable face culling to prevent light "bleeding"
+	glDisable(GL_CULL_FACE); 
 
 	//Set our viewport to be the size of the shadow texture
 	glViewport(0,0,SHADOWSIZE,SHADOWSIZE);
@@ -114,22 +102,15 @@ void Renderer::DrawShadowScene(){
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 	BuildNodeLists(root, light->GetPosition());
 	SortNodeLists();
-	DrawNodes();
 
-	if (debug)
-		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr)
-			if ((*itr)->GetMesh()) objectsShadowed++;
-
-	//CHANGES
-	//ONLY OPAQUE NODES
+	//Only draw the opaque nodes
 	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
 		SetCurrentShader(shadowShader);
 		(*itr)->Draw(*this, false);
+		if (debug) if ((*itr)->GetMesh()) objectsShadowed++;
 	}
 
 	ClearNodeLists();
-
-	DrawWater(true);
 
 	//Disable our shader, turn colour writes back on and set our view port back to
 	//our window size
@@ -140,4 +121,28 @@ void Renderer::DrawShadowScene(){
 
 	//Unbind our shadow frame buffer too
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+void Renderer::UpdateCombineSceneShaderMatricesPF(){
+	SetCurrentShader(sceneShader);
+
+	//upload our cameras position
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+		"cameraPos"), 1, (float*)&camera->GetPosition());
+
+	SetShaderLight(*light);
+
+	//Bind our depth texture from our shadow FBO to texture unit 2
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+}
+
+void Renderer::UpdateCombineSceneShaderMatricesPO(SceneNode* n){
+
+	textureMatrix.ToIdentity();
+
+	Matrix4 tempMatrix = shadowVPMatrix * n->GetWorldTransform();
+	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
+		"shadowVPMatrix"),1,false, tempMatrix.values);
 }

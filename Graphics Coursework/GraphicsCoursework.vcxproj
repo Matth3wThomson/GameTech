@@ -77,14 +77,10 @@
     <ClCompile Include="RendererShadow.cpp" />
     <ClCompile Include="RendererSkybox.cpp" />
     <ClCompile Include="RendererWater.cpp" />
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="WaterNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ParticleEmitterNode.h" />
     <ClInclude Include="Renderer.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="WaterNode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

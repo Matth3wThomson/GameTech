@@ -56,10 +56,5 @@ void main(void){
 	//Blend it all together!
 	gl_FragColor = (lightColour * diffuse * atten) * (diffuse+reflection);
 	gl_FragColor.rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
-	// gl_FragColor.a = shadow;
-	// if (shadow < 1)
-		// gl_FragColor = vec4(shadow);
-	// gl_FragColor = IN.shadowProj;
-	
 	
 }
