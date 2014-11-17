@@ -10,6 +10,7 @@
 #include "../nclgl/OBJMesh.h"
 #include "../nclgl/ParticleEmitter.h"
 #include "ParticleEmitterNode.h"
+#include "TreeNode.h"
 #include <algorithm>
 #include <sstream>
 
@@ -24,6 +25,7 @@
 //TODO: Make everything possible scene nodes so frustum culling makes sense!?
 //TODO: Sort out the open GL issues found and hence why nvidia nsight isnt working,
 	//and remove all the debugging code!!
+//TODO: Have the map overlay inserted into the final scene!
 
 
 #define SHADOWSIZE 2048 * 8

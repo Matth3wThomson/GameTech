@@ -124,7 +124,7 @@ Mesh* Mesh::GenerateTransQuad(){
 
 }
 
-Mesh* Mesh::GenerateCylinder(int accuracy){
+Mesh* Mesh::GenerateCylinder(int accuracy, float topOffset){
 
 	//We must make accuracy odd!
 	accuracy += 1 - accuracy%2;
@@ -143,7 +143,7 @@ Mesh* Mesh::GenerateCylinder(int accuracy){
 
 	Mesh* m = new Mesh();
 
-	m->numVertices = (accuracy+1)*2;
+	m->numVertices = ((accuracy+1)*2) + 2;
 	m->numIndices = accuracy*3*2 + accuracy * 6; //THIS NEEDS TO BE CALCULATED
 	m->type = GL_TRIANGLES;
 	/*m->type = GL_TRIANGLE_FAN;*/
@@ -157,69 +157,97 @@ Mesh* Mesh::GenerateCylinder(int accuracy){
 	m->normals = new Vector3[m->numVertices];
 	m->tangents = new Vector3[m->numVertices];
 
-	m->vertices[0] = Vector3(0,-1,0);
+	int indexCounter = 0;
+
+	//Centre of bottom circle
+	m->vertices[0] = Vector3(0,0,0);
 	m->colours[0] = Vector4(1,1,1,1);
 	m->textureCoords[0] = Vector2(0.5, 0.5);
 
-	int indexCounter = 0;
+	//First texture correct vertex
+	m->vertices[1] = Vector3(0, 0, 1);
+	m->colours[1] = Vector4(1,1,1,1);
+	m->textureCoords[1] = Vector2(0,0);
+
+	/*m->indices[indexCounter++] = 0;
+	m->indices[indexCounter++] = 2;
+	m->indices[indexCounter++] = 1;*/
 
 	//Generate the bottom circle
 
-	for (int i=1; i<accuracy+1; i++){
-		m->vertices[i] = Vector3( sin( DegToRad(((float) i/accuracy) * 360)), -1, cos( DegToRad(((float) i/accuracy) * 360)));
-		std::cout << m->vertices[i] << std::endl;
+	for (int i=0; i<accuracy-1; i++){
+		m->vertices[i+2] = Vector3( sin( DegToRad(((float) (i+1) / (accuracy)) * 360)), 0, cos( DegToRad(((float) (i+1) / (accuracy)) * 360)));
 
 		//m->textureCoords[i] = Vector2( sin( DegToRad(((float)i/accuracy) * 360)), cos( DegToRad(((float)i/accuracy) * 360)));
-		m->textureCoords[i] = Vector2((float) i / accuracy, 0);
+		m->textureCoords[i+2] = Vector2((float) (i+1) / (accuracy), 0);
 		
-		m->colours[i] = Vector4(1,1,1,1);
+		m->colours[i+2] = Vector4(1,1,1,1);
 		
 		//draw the shape CCW so GL can cull the face when not in view!
 		m->indices[indexCounter++] = 0;
-		m->indices[indexCounter++] = (i%accuracy)+1;
-		m->indices[indexCounter++] = i;
+		m->indices[indexCounter++] = i+2;
+		m->indices[indexCounter++] = i+1;
 	}
+
+	//Place the final texture correct vertex
+	m->vertices[accuracy+1] = Vector3(0, 0, 1);
+	m->colours[accuracy+1] = Vector4(1,1,1,1);
+	m->textureCoords[accuracy+1] = Vector2(1,0);
+
+	m->indices[indexCounter++] = 0;
+	m->indices[indexCounter++] = accuracy+1;
+	m->indices[indexCounter++] = accuracy;
 
 	//Generate the top circle
-	m->vertices[accuracy+1] = Vector3(0,1,0);
-	m->colours[accuracy+1] = Vector4(1,1,1,1);
-	m->textureCoords[accuracy+1] = Vector2(0.5, 0.5);
 
-	std::cout << std::endl;
+	//Centre point
+	m->vertices[accuracy+2] = Vector3(0,1,0);
+	m->colours[accuracy+2] = Vector4(1,1,1,1);
+	m->textureCoords[accuracy+2] = Vector2(0.5, 0.5);
 
-	for (int i=accuracy+2; i< m->numVertices; i++){
-		m->vertices[i] = Vector3(sin(
-			DegToRad(((float) (i-accuracy-2) /accuracy) * 360))
-			, 1, cos( DegToRad(((float) (i - accuracy - 2) /accuracy) * 360)));
+	//First texture correct vertex
+	m->vertices[accuracy+3] = Vector3(0, 1, 1*topOffset);
+	m->colours[accuracy+3] = Vector4(1,1,1,1);
+	m->textureCoords[accuracy+3] = Vector2(0,1);
 
-		//m->textureCoords[i] = Vector2(sin( DegToRad(((float)i/accuracy) * 360)), cos( DegToRad(((float)i/accuracy) * 360)));
-		m->textureCoords[i] = Vector2((float) (i-accuracy-2) /accuracy, 1);
+	for (int i=0; i<accuracy-1; i++){
+		m->vertices[i+accuracy+4] = Vector3( topOffset * sin( DegToRad(((float) (i+1) / (accuracy)) * 360)), 1, topOffset* cos( DegToRad(((float) (i+1) / (accuracy)) * 360)));
 
-		m->colours[i] = Vector4(1,1,1,1);
-		std::cout << m->vertices[i] << std::endl;
-
-		m->indices[indexCounter++] = accuracy+1;
-		m->indices[indexCounter++] = i;
-		m->indices[indexCounter++] = ( (i - 1) % accuracy) + accuracy + 2;
+		//m->textureCoords[i] = Vector2( sin( DegToRad(((float)i/accuracy) * 360)), cos( DegToRad(((float)i/accuracy) * 360)));
+		m->textureCoords[i+accuracy+4] = Vector2((float) (i+1) / (accuracy), 1);
+		
+		m->colours[i+accuracy+4] = Vector4(1,1,1,1);
+		
+		//draw the shape CCW so GL can cull the face when not in view!
+		m->indices[indexCounter++] = accuracy+2;
+		m->indices[indexCounter++] = i+accuracy+3;
+		m->indices[indexCounter++] = i+accuracy+4;
 	}
+
+	//Place the final texture correct vertex
+	m->vertices[accuracy+accuracy-1+4] = Vector3(0, 1, 1*topOffset);
+	m->colours[accuracy+accuracy-1+4] = Vector4(1,1,1,1);
+	m->textureCoords[accuracy+accuracy-1+4] = Vector2(1,1);
+	
+	m->indices[indexCounter++] = accuracy+2;
+	m->indices[indexCounter++] = accuracy+accuracy-1+3;
+	m->indices[indexCounter++] = accuracy+accuracy-1+4;
 
 	//Generate tube around cylinder
 	for (int i=1; i<accuracy+1; i++){
-		m->indices[indexCounter++] = i;
-		m->indices[indexCounter++] = (i%accuracy)+1;
-		m->indices[indexCounter++] = i+accuracy+1;
+		m->indices[indexCounter++] = i;		//1
+		m->indices[indexCounter++] = i+1;	//2
+		m->indices[indexCounter++] = i+accuracy+3;	 //11
 		
-		m->indices[indexCounter++] = /*i+accuracy+2;*/( (i) % accuracy) + accuracy + 2;
-		m->indices[indexCounter++] = i+accuracy+1;
-		m->indices[indexCounter++] = (i%accuracy)+1;
-		
-		
+		m->indices[indexCounter++] = i+accuracy+3;		//11
+		m->indices[indexCounter++] = i+accuracy+2;	//10
+		m->indices[indexCounter++] = i;	 //1
 	}
 
    	m->GenerateNormals();
 	m->GenerateTangents();
 
-	m->BufferData();
+ 	m->BufferData();
 
 	return m;
 

@@ -14,7 +14,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 	std::cout << "START gl error: " << glGetError() << std::endl;
 
-	camera = new Camera(-8.0f, -25.0f, Vector3(-200.0f, 50.0f, 250.0f));
+	camera = new Camera(-8.0f, -25.0f, Vector3(0.0f, 500.0f, -250.0f));
 
 	light = new Light(Vector3(0.0f, 5000.0f, 0.0f),
 		Vector4(1,1,0.7f,1), 55000.0f);
@@ -70,20 +70,14 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	std::cout << "gl error: " << glGetError() << std::endl;
 	std::cout << "gl error: " << glGetError() << std::endl;
 
-	cylinder = Mesh::GenerateCylinder(50);
-	
-	cylinder->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.jpg",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	TreeNode* plant = new TreeNode();
+	plant->SetShader(sceneShader);
+	plant->SetUpdateShaderFunction([this, plant]{ UpdateCombineSceneShaderMatricesPO(plant); } );
 
-	if (!cylinder->GetTexture()){
-		return;
-	}
-
-	SetTextureRepeating(cylinder->GetTexture(), true);
-
-	SetCurrentShader(debugDrawShader);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-		"diffuseTex"), 0);
+	plant->SetTransform(Matrix4::Translation(Vector3(200, 350, 200)));
+	plant->SetModelScale(Vector3(100,1000,100));
+		
+	root->AddChild(plant);
 
 	init = true;
 }
@@ -201,7 +195,7 @@ void Renderer::DrawCombinedScene(){
 
 	ClearNodeLists();
 
-	DrawCylinder();
+	//DrawCylinder();
 
 	PPDrawn();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -237,10 +231,13 @@ void Renderer::DrawString(const std::string& text, const Vector3& pos, const flo
 }
 
 void Renderer::DrawCylinder(){
-	SetCurrentShader(debugDrawShader);
+	SetCurrentShader(sceneShader);
 
 	modelMatrix = Matrix4::Translation(Vector3(0, 1000, 0))
 		* Matrix4::Scale(Vector3(200,200,200));
+
+	textureMatrix.ToIdentity();
+
 	this;
 	UpdateShaderMatrices();
 

@@ -91,7 +91,11 @@ void Renderer::DrawShadowScene(){
 		light->GetPosition(), Vector3(0,0,0));
 
 	//TODO: Reevaluate this!
-	projMatrix = Matrix4::Perspective(2900.0f + 2000 * abs(cos(movementVar)), 7100.0f - 2000 * abs(cos(movementVar)),
+	/*projMatrix = Matrix4::Perspective(2900.0f + 2000 * abs(cos(movementVar)), 7100.0f - 2000 * abs(cos(movementVar)),
+		(float) width / (float) height, 45.0f);*/
+
+	//TODO: This seems to work fine... maybe make it a constant?
+	projMatrix = Matrix4::Perspective(2900.0f, 7100.0f,
 		(float) width / (float) height, 45.0f);
 
 	//Stores the shadows vp matrix multiplied by the bias matrix

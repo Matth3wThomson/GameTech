@@ -22,6 +22,16 @@ public:
 
 	Vector3 GetModelScale() const { return modelScale; }
 	void SetModelScale(Vector3 s){ modelScale = s; }
+	Vector3 GetWorldScale() const;
+
+	float GetRotationAngle(){ return angle; };
+	Vector3 GetRotationAxis(){ return rotationAxis; };
+	Matrix4 GetRotationMatrix(){ return Matrix4::Rotation(angle, rotationAxis); }
+
+	void SetModelRotation(float angle, const Vector3& axis){ 
+		this->rotationAxis = axis;
+		this->angle = angle;
+	}
 
 	virtual Mesh* GetMesh() const { return mesh; }
 	void SetMesh(Mesh* m) { mesh = m; }
@@ -64,6 +74,9 @@ protected:
 	Matrix4 worldTransform;
 	Matrix4 transform;
 	Vector3 modelScale;
+
+	Vector3 rotationAxis;
+	float angle;
 
 	float distanceFromCamera;
 	float boundingRadius;

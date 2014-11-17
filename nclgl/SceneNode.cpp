@@ -1,5 +1,7 @@
 #include "SceneNode.h"
 
+//TODO: With scale stored it is possible to offset certain objects if their mesh isnt origin centered locally
+
 SceneNode::SceneNode(Mesh* mesh, Vector4 colour){
 	this->mesh = mesh;
 	this->colour = colour;
@@ -11,6 +13,8 @@ SceneNode::SceneNode(Mesh* mesh, Vector4 colour){
 
 	parent = NULL;
 	modelScale = Vector3(1,1,1);
+	angle = 0;
+	rotationAxis = Vector3(0,1,0);
 }
 
 SceneNode::~SceneNode(void)
@@ -18,6 +22,18 @@ SceneNode::~SceneNode(void)
 	for (unsigned int i=0; i<children.size(); ++i){
 		delete children[i];
 	}
+}
+
+Vector3 SceneNode::GetWorldScale() const {
+	const SceneNode* parent = this->parent;
+	Vector3 overallScale = this->modelScale;
+
+	while (parent){
+		overallScale = overallScale * parent->modelScale;
+		parent = parent->parent;
+	}
+
+	return overallScale;
 }
 
 void SceneNode::AddChild(SceneNode* s){
@@ -45,7 +61,7 @@ void SceneNode::Draw(OGLRenderer& r, const bool useShader){
 		}
 
 		//TODO: Change this to world transform!
-		r.modelMatrix = GetWorldTransform();
+		r.modelMatrix = GetWorldTransform() * GetRotationMatrix() * Matrix4::Scale(GetModelScale());
 		r.UpdateShaderMatrices();
 
 		mesh->Draw();

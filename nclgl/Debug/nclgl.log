@@ -1,13 +1,10 @@
-﻿Build started 16/11/2014 11:57:27.
+﻿Build started 17/11/2014 12:12:13.
      1>Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" on node 2 (Build target(s)).
      1>InitializeBuildStatus:
-         Touching "Debug\nclgl.unsuccessfulbuild".
+         Creating "Debug\nclgl.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Mesh.cpp
-         Mesh.cpp
-     1>d:\dropbox\dropbox\university work\year 4\csc8502 adv graphics for games\graphics coursework\matthew thomson coursework\nclgl\mesh.cpp(169): warning C4244: 'argument' : conversion from 'double' to 'const float', possible loss of data
-     1>d:\dropbox\dropbox\university work\year 4\csc8502 adv graphics for games\graphics coursework\matthew thomson coursework\nclgl\mesh.cpp(190): warning C4018: '<' : signed/unsigned mismatch
-     1>d:\dropbox\dropbox\university work\year 4\csc8502 adv graphics for games\graphics coursework\matthew thomson coursework\nclgl\mesh.cpp(193): warning C4244: 'argument' : conversion from 'double' to 'const float', possible loss of data
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt SceneNode.cpp
+         SceneNode.cpp
        Lib:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\Lib.exe /OUT:"D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\Graphics Coursework\Debug\nclgl.lib" /NOLOGO Debug\Camera.obj
          Debug\Frustum.obj
@@ -41,4 +38,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.73
+Time Elapsed 00:00:00.85

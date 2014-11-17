@@ -55,8 +55,8 @@ bool Renderer::InitSceneObjects(){
 	std::cout << "gl error: " << glGetError() << std::endl;
 
 	lightSource = new SceneNode(sphere);
-	lightSource->SetTransform(Matrix4::Translation(light->GetPosition()) *
-		Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));
+	lightSource->SetTransform(Matrix4::Translation(light->GetPosition()));
+	lightSource->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
 	lightSource->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	lightSource->SetBoundingRadius(100.0f);
 	lightSource->SetShader(passThrough);
@@ -80,13 +80,14 @@ void Renderer::DeleteSceneObjects(){
 
 void Renderer::UpdateSceneObjects(float msec){
 
-	//light->SetPosition(Vector3(2000.0f, 5000.0f, 0)); //MIDDAY
-	light->SetPosition(Vector3(2000.0f * cos(movementVar), 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
+	light->SetPosition(Vector3(2000.0f, 5000.0f, 0)); //MIDDAY
+	//light->SetPosition(Vector3(2000.0f * cos(movementVar), 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
 	
-	light->SetRadius(max(6000.0f +  55000.0f * cos(movementVar), 0.0));
+	//light->SetRadius(max(6000.0f +  55000.0f * cos(movementVar), 0.0));
 
-	lightSource->SetTransform(Matrix4::Translation(light->GetPosition()) *
-		Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));
+	lightSource->SetTransform(Matrix4::Translation(light->GetPosition()));
+	//lightSource->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
+		/*Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));*/
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)){
 		++anim %= 6;
