@@ -71,10 +71,12 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	std::cout << "gl error: " << glGetError() << std::endl;
 
 	TreeNode* plant = new TreeNode();
-	plant->SetShader(sceneShader);
-	plant->SetUpdateShaderFunction([this, plant]{ UpdateCombineSceneShaderMatricesPO(plant); } );
+	//plant->SetShader(sceneShader);
+	//plant->SetUpdateShaderFunction([this, plant]{ UpdateCombineSceneShaderMatricesPO(plant); } );
+	plant->SetShader(passThrough);
 
-	plant->SetTransform(Matrix4::Translation(Vector3(200, 350, 200)));
+
+	plant->SetPosition(Vector3(200, 350, 200));
 	plant->SetModelScale(Vector3(100,1000,100));
 		
 	root->AddChild(plant);

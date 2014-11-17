@@ -15,6 +15,10 @@ public:
 
 	void SetTransform(const Matrix4& mat){ transform = mat; }
 	const Matrix4& GetTransform() const { return transform; }
+
+	void SetPosition(const Vector3& position){ this->position = position; }
+	Vector3 GetPosition(){ return position; }
+
 	Matrix4 GetWorldTransform() const { return worldTransform; }
 
 	Vector4 GetColour() const { return colour; }
@@ -22,7 +26,7 @@ public:
 
 	Vector3 GetModelScale() const { return modelScale; }
 	void SetModelScale(Vector3 s){ modelScale = s; }
-	Vector3 GetWorldScale() const;
+	Vector3 GetWorldScale() const{ return worldScale; };
 
 	float GetRotationAngle(){ return angle; };
 	Vector3 GetRotationAxis(){ return rotationAxis; };
@@ -73,6 +77,10 @@ protected:
 
 	Matrix4 worldTransform;
 	Matrix4 transform;
+
+	Vector3 position;
+
+	Vector3 worldScale;
 	Vector3 modelScale;
 
 	Vector3 rotationAxis;

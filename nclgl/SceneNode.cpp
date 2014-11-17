@@ -24,18 +24,6 @@ SceneNode::~SceneNode(void)
 	}
 }
 
-Vector3 SceneNode::GetWorldScale() const {
-	const SceneNode* parent = this->parent;
-	Vector3 overallScale = this->modelScale;
-
-	while (parent){
-		overallScale = overallScale * parent->modelScale;
-		parent = parent->parent;
-	}
-
-	return overallScale;
-}
-
 void SceneNode::AddChild(SceneNode* s){
 	children.push_back(s);
 	s->parent = this;
@@ -52,7 +40,7 @@ void SceneNode::RemoveChild(SceneNode* s){
 }
 
 void SceneNode::Draw(OGLRenderer& r, const bool useShader){
-	//if (mesh) mesh->Draw();
+
 	if (mesh && shader){
 		if (useShader){
 			r.SetCurrentShader(shader);
@@ -61,7 +49,7 @@ void SceneNode::Draw(OGLRenderer& r, const bool useShader){
 		}
 
 		//TODO: Change this to world transform!
-		r.modelMatrix = GetWorldTransform() * GetRotationMatrix() * Matrix4::Scale(GetModelScale());
+		r.modelMatrix = worldTransform *  Matrix4::Scale(worldScale * modelScale);
 		r.UpdateShaderMatrices();
 
 		mesh->Draw();
@@ -71,8 +59,29 @@ void SceneNode::Draw(OGLRenderer& r, const bool useShader){
 }
 
 void SceneNode::Update(float msec){
-	if (parent) worldTransform = parent->worldTransform * transform;
-	else worldTransform = transform;
+	//If this node has a parent
+	if (parent){
+
+		//We need to work out its parents relative scale. That is, the
+		//scale of its parent
+		worldScale = parent->modelScale * parent->worldScale;
+
+		//We need to transform ourselves relative to our parent's scale, to maintain
+		//correct distance from it. For example, if a person gets larger, we want the arm
+		//still to be connected to the shoulder!
+		transform =  Matrix4::Translation(position * worldScale) * GetRotationMatrix();
+
+		//Finally, our world transform is our parents world transform multiplied by ours.
+		worldTransform = parent->worldTransform * transform;
+		
+	} else {
+
+		//We are the parent, so we transform based on noone!
+		//We are scaled relative to ourself
+		worldTransform = Matrix4::Translation(position);
+		transform = worldTransform;
+		worldScale = Vector3(1,1,1);
+	}
 
 	for (vector<SceneNode*>::iterator i = children.begin();
 		i!= children.end(); ++i){

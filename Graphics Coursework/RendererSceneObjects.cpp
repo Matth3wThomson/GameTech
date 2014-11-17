@@ -42,7 +42,7 @@ bool Renderer::InitSceneObjects(){
 
 	root = new SceneNode();
 
-	hellNode->SetTransform(Matrix4::Translation(Vector3(0,500,0)));
+	hellNode->SetPosition(Vector3(0,500,0));
 	hellNode->SetBoundingRadius(100);
 	hellNode->SetShader(sceneShader);
 	hellNode->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(hellNode); } );
@@ -55,7 +55,7 @@ bool Renderer::InitSceneObjects(){
 	std::cout << "gl error: " << glGetError() << std::endl;
 
 	lightSource = new SceneNode(sphere);
-	lightSource->SetTransform(Matrix4::Translation(light->GetPosition()));
+	lightSource->SetPosition(light->GetPosition());
 	lightSource->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
 	lightSource->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	lightSource->SetBoundingRadius(100.0f);
@@ -85,7 +85,7 @@ void Renderer::UpdateSceneObjects(float msec){
 	
 	//light->SetRadius(max(6000.0f +  55000.0f * cos(movementVar), 0.0));
 
-	lightSource->SetTransform(Matrix4::Translation(light->GetPosition()));
+	lightSource->SetPosition(light->GetPosition());
 	//lightSource->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
 		/*Matrix4::Scale(Vector3(100.0f, 100.0f, 100.0f)));*/
 

@@ -51,7 +51,7 @@ bool Renderer::InitWater(){
 	waterQuad->SetBumpMap(waterBump);
 
 	waterNode = new SceneNode(waterQuad, Vector4(1,1,1,1));
-	waterNode->SetTransform(Matrix4::Translation(Vector3(-1115.9f,150,-1501.6f)));/* *
+	waterNode->SetPosition(Vector3(-1115.9f,150,-1501.6f));/* *
 		Matrix4::Rotation(90, Vector3(1,0,0)));*/
 
 	waterNode->SetModelScale(Vector3(939.3f,554.9f,1));
