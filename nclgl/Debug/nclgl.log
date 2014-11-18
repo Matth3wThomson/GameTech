@@ -1,10 +1,10 @@
-﻿Build started 17/11/2014 18:40:57.
+﻿Build started 18/11/2014 15:17:23.
      1>Project "D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\nclgl\nclgl.vcxproj" on node 2 (Build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\nclgl.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt SceneNode.cpp
-         SceneNode.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt ParticleEmitter.cpp
+         ParticleEmitter.cpp
        Lib:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\Lib.exe /OUT:"D:\Dropbox\Dropbox\University Work\Year 4\CSC8502 Adv Graphics for Games\Graphics Coursework\Matthew Thomson Coursework\Graphics Coursework\Debug\nclgl.lib" /NOLOGO Debug\Camera.obj
          Debug\Frustum.obj
@@ -24,7 +24,6 @@
          Debug\ParticleEmitter.obj
          Debug\Plane.obj
          Debug\Quaternion.obj
-         Debug\Renderer.obj
          Debug\SceneNode.obj
          Debug\Shader.obj
          Debug\TextMesh.obj
@@ -38,4 +37,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.88
+Time Elapsed 00:00:01.04

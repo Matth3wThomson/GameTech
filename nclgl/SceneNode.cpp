@@ -42,14 +42,14 @@ void SceneNode::RemoveChild(SceneNode* s){
 void SceneNode::Draw(OGLRenderer& r, const bool useShader){
 
 	if (mesh && shader){
-		if (useShader){
-			r.SetCurrentShader(shader);
-			//NEW
-			updateShaderFunction();
-		}
+		if (useShader) r.SetCurrentShader(shader);
+		
 
 		//TODO: Change this to world transform!
 		r.modelMatrix = worldTransform *  Matrix4::Scale(worldScale * modelScale);
+
+		if (useShader) updateShaderFunction();
+
 		r.UpdateShaderMatrices();
 
 		mesh->Draw();

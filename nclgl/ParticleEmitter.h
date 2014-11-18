@@ -55,6 +55,7 @@ struct Particle {
 
 class ParticleEmitter : public Mesh	{
 public:
+	ParticleEmitter();
 	ParticleEmitter(const std::string& filename);
 	~ParticleEmitter(void);
 

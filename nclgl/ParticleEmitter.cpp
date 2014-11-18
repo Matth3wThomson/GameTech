@@ -8,6 +8,24 @@
 //numbers between 0.0 and 1.0 to 2 DP
 #define RAND() ((rand()%101)/100.0f)
 
+ParticleEmitter::ParticleEmitter(){
+	particleRate		= 100.0f;
+	particleLifetime	= 500.0f;
+	particleSize		= 24.0f;
+	particleVariance	= 0.2f;
+	colourVariance		= 1.0f;
+	particlePositionVariance = 0.0f;
+	yOffset = 0.0f;
+	nextParticleTime	= 0.0f;
+	particleSpeed		= 0.2f;
+	numLaunchParticles	= 10;
+	largestSize			= 0;
+
+	fadeOverTime = true;
+
+	texture = 0;
+}
+
 /*
 Constructor, which sets everything to some 'sensible' defaults.
 */
@@ -190,10 +208,6 @@ and quicker than faffing with mapping and unmapping buffers!
 */
 void ParticleEmitter::Draw()	{
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
-	glDepthMask(GL_FALSE);
-
 	//Get 2 contiguous sections of memory full of our particle info
 	for(unsigned int i = 0; i < particles.size(); ++i) {
 		vertices[i] = particles.at(i)->position;
@@ -218,8 +232,9 @@ void ParticleEmitter::Draw()	{
 	//particles will have their colours added together on screen, giving us a cool effect when
 	//particles are near each other. Fire a lot of particles at once with slow speed to get a
 	//'plasma ball' type effect!
-	/*glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE);*/
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
+	glDepthMask(GL_FALSE);
 
 	//And now do our usual Drawing stuff...
 	glActiveTexture(GL_TEXTURE0);
@@ -229,6 +244,7 @@ void ParticleEmitter::Draw()	{
 
 	glDepthMask(GL_TRUE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glDisable(GL_BLEND);
 
 	glBindVertexArray(0); //Remember to turn off our VAO ;)
 

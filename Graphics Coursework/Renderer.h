@@ -74,7 +74,7 @@ protected:
 	void DeleteShadowBuffers();
 
 	void UpdateCombineSceneShaderMatricesPF();
-	void UpdateCombineSceneShaderMatricesPO(SceneNode* n);
+	void UpdateCombineSceneShaderMatricesPO();
 	void DrawShadowScene();
 	void DrawCombinedScene();
 
@@ -98,7 +98,7 @@ protected:
 	//Water additions!
 	bool InitWater();
 	void DeleteWater();
-	void UpdateWaterShaderMatricesPO(SceneNode* n);
+	void UpdateWaterShaderMatricesPO();
 	void UpdateWaterShaderMatricesPF();
 
 	//void DrawWater(bool shadowMap = false);

@@ -142,11 +142,11 @@ void Renderer::UpdateCombineSceneShaderMatricesPF(){
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
 }
 
-void Renderer::UpdateCombineSceneShaderMatricesPO(SceneNode* n){
+void Renderer::UpdateCombineSceneShaderMatricesPO(){
 
 	textureMatrix.ToIdentity();
 
-	Matrix4 tempMatrix = shadowVPMatrix * n->GetWorldTransform();
+	Matrix4 tempMatrix = shadowVPMatrix * modelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
 		"shadowVPMatrix"),1,false, tempMatrix.values);
 }

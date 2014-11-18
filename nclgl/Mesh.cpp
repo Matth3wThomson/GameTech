@@ -124,6 +124,32 @@ Mesh* Mesh::GenerateTransQuad(){
 
 }
 
+Mesh* Mesh::GenerateBAQuad(){
+	Mesh* m = new Mesh();
+	m->numVertices = 4;
+	m->type = GL_TRIANGLE_STRIP;
+
+	m->vertices = new Vector3[m->numVertices];
+	m->textureCoords = new Vector2[m->numVertices];
+	m->colours = new Vector4[m->numVertices];
+
+	m->vertices[0] = Vector3(-1.0f, 0.0f, 0.1f);
+	m->vertices[1] = Vector3(-1.0f, 1.0f, 0.1f);
+	m->vertices[2] = Vector3(1.0f, 0.0f, 0.1f);
+	m->vertices[3] = Vector3(1.0f, 1.0f, 0.1f);
+
+	m->textureCoords[0] = Vector2(0.0f, 1.0f);
+	m->textureCoords[1] = Vector2(0.0f, 0.0f);
+	m->textureCoords[2] = Vector2(1.0f, 1.0f);
+	m->textureCoords[3] = Vector2(1.0f, 0.0f);
+
+	for (int i=0; i<4; ++i)
+		m->colours[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	m->BufferData();
+	return m;
+}
+
 Mesh* Mesh::GenerateCylinder(int accuracy, float topOffset){
 
 	//We must make accuracy odd!
@@ -176,7 +202,7 @@ Mesh* Mesh::GenerateCylinder(int accuracy, float topOffset){
 	//Generate the bottom circle
 
 	for (int i=0; i<accuracy-1; i++){
-		m->vertices[i+2] = Vector3( sin( DegToRad(((float) (i+1) / (accuracy)) * 360)), 0, cos( DegToRad(((float) (i+1) / (accuracy)) * 360)));
+		m->vertices[i+2] = Vector3( (float) sin( DegToRad(((float) (i+1) / (accuracy)) * 360)), 0, (float) cos( DegToRad(((float) (i+1) / (accuracy)) * 360)));
 
 		//m->textureCoords[i] = Vector2( sin( DegToRad(((float)i/accuracy) * 360)), cos( DegToRad(((float)i/accuracy) * 360)));
 		m->textureCoords[i+2] = Vector2((float) (i+1) / (accuracy), 0);
@@ -211,7 +237,7 @@ Mesh* Mesh::GenerateCylinder(int accuracy, float topOffset){
 	m->textureCoords[accuracy+3] = Vector2(0,1);
 
 	for (int i=0; i<accuracy-1; i++){
-		m->vertices[i+accuracy+4] = Vector3( topOffset * sin( DegToRad(((float) (i+1) / (accuracy)) * 360)), 1, topOffset* cos( DegToRad(((float) (i+1) / (accuracy)) * 360)));
+		m->vertices[i+accuracy+4] = Vector3( topOffset * (float) sin( DegToRad(((float) (i+1) / (accuracy)) * 360)), 1, topOffset* (float) cos( DegToRad(((float) (i+1) / (accuracy)) * 360)));
 
 		//m->textureCoords[i] = Vector2( sin( DegToRad(((float)i/accuracy) * 360)), cos( DegToRad(((float)i/accuracy) * 360)));
 		m->textureCoords[i+accuracy+4] = Vector2((float) (i+1) / (accuracy), 1);

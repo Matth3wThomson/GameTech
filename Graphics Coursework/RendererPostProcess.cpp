@@ -190,7 +190,7 @@ void Renderer::Sobel(){
 
 	//TODO: Make configurable!
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
-		"threshold"), 0.8);
+		"threshold"), 0.8f);
 
 	quad->SetTexture(GetLastDrawn());
 
@@ -214,7 +214,7 @@ void Renderer::SobelDepth(){
 
 	//TODO: Make configurable!
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
-		"threshold"), 0.2);
+		"threshold"), 0.2f);
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"depthTex"), 2);
@@ -251,7 +251,7 @@ void Renderer::SobelAlias(){
 
 	//TODO: Make configurable!
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
-		"threshold"), 0.2);
+		"threshold"), 0.2f);
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"depthTex"), 2);

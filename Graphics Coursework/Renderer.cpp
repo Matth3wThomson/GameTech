@@ -61,6 +61,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//Initialize a projection matrix 
 	cameraProjMat = projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
@@ -70,16 +72,28 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	std::cout << "gl error: " << glGetError() << std::endl;
 	std::cout << "gl error: " << glGetError() << std::endl;
 
-	TreeNode* plant = new TreeNode();
-	//plant->SetShader(sceneShader);
-	//plant->SetUpdateShaderFunction([this, plant]{ UpdateCombineSceneShaderMatricesPO(plant); } );
-	plant->SetShader(passThrough);
 
 
-	plant->SetPosition(Vector3(200, 350, 200));
-	plant->SetModelScale(Vector3(100,1000,100));
-		
-	root->AddChild(plant);
+
+
+	//TreeNode* plant = new TreeNode();
+	////plant->SetShader(sceneShader);
+	////plant->SetUpdateShaderFunction([this, plant]{ UpdateCombineSceneShaderMatricesPO(plant); } );
+	//plant->SetShader(passThrough);
+	//plant->SetPosition(Vector3(200, 350, 200));
+	//plant->SetModelScale(Vector3(100,1000,100));
+	//	
+	int i = 1;
+	/*for (int i=0; i<5; ++i){*/
+	TreeNode* plant = new TreeNode(particleShader);
+		plant->SetShader(sceneShader);
+		plant->SetUpdateShaderFunction([this, plant]{ UpdateCombineSceneShaderMatricesPO(); } );
+		/*plant->SetShader(passThrough);*/
+		plant->SetPosition(Vector3((float) 200 * i, 200, (float) 200 * i));
+		plant->SetModelScale(Vector3(100,100,100));
+	
+		root->AddChild(plant);
+	/*}*/
 
 	init = true;
 }

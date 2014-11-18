@@ -61,7 +61,7 @@ bool Renderer::InitWater(){
 	//waterNode->SetColour(Vector4(1,1,1,0.5));
 
 	waterNode->SetShader(reflectShader);
-	waterNode->SetUpdateShaderFunction([this](){ UpdateWaterShaderMatricesPO(waterNode); } );
+	waterNode->SetUpdateShaderFunction([this](){ UpdateWaterShaderMatricesPO(); } );
 
 	root->AddChild(waterNode);
 
@@ -76,9 +76,9 @@ void Renderer::DeleteWater(){
 }
 
 //Frame + object specific uploads.
-void Renderer::UpdateWaterShaderMatricesPO(SceneNode* n){
+void Renderer::UpdateWaterShaderMatricesPO(){
 
-	Matrix4 tempMatrix = shadowVPMatrix * n->GetWorldTransform();
+	Matrix4 tempMatrix = shadowVPMatrix * modelMatrix;
 
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
 			"shadowVPMatrix"),1,false, tempMatrix.values);

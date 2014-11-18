@@ -20,6 +20,8 @@ void Camera::UpdateCamera(float msec){
 
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_CONTROL))
 		timeScaleFactor = 3.0f;
+	else if (Window::GetKeyboard()->KeyDown(KEYBOARD_TAB))
+		timeScaleFactor = 0.3f;
 	else
 		timeScaleFactor = 1.0f;
 
