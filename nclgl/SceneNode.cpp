@@ -45,7 +45,7 @@ void SceneNode::Draw(OGLRenderer& r, const bool useShader){
 		if (useShader) r.SetCurrentShader(shader);
 		
 
-		//TODO: Change this to world transform!
+		
 		r.modelMatrix = worldTransform *  Matrix4::Scale(worldScale * modelScale);
 
 		if (useShader) updateShaderFunction();

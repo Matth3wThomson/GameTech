@@ -24,7 +24,7 @@ bool Renderer::InitWater(){
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"cubeTex"), 3);
 
-	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"blue2.jpg",
+	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"blue3.png",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	GLfloat aniso;
@@ -58,7 +58,7 @@ bool Renderer::InitWater(){
 	waterNode->SetModelRotation(90, Vector3(1,0,0));
 		/*Matrix4::Scale(Vector3(939.3f,554.9f,1)));*/
 	waterNode->SetBoundingRadius(1000);
-	//waterNode->SetColour(Vector4(1,1,1,0.5));
+	waterNode->SetColour(Vector4(1,1,1,0.5));
 
 	waterNode->SetShader(reflectShader);
 	waterNode->SetUpdateShaderFunction([this](){ UpdateWaterShaderMatricesPO(); } );

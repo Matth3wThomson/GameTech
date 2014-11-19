@@ -242,9 +242,7 @@ void ParticleEmitter::Draw()	{
 	glDrawArrays(GL_POINTS,  0, particles.size());	// draw ordered list of vertices
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	glDepthMask(GL_TRUE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glDisable(GL_BLEND);
 
 	glBindVertexArray(0); //Remember to turn off our VAO ;)
 

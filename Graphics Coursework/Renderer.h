@@ -200,6 +200,8 @@ protected:
 	ParticleEmitterNode* rainNode;
 	ParticleEmitterNode* snowNode;
 
+	void UpdateParticleShaderMatricesPO();
+
 	bool raining;
 	bool snowing;
 

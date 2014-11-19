@@ -55,6 +55,7 @@ void main(void){
 	
 	//Blend it all together!
 	gl_FragColor = (lightColour * diffuse * atten) * (diffuse+reflection);
+	gl_FragColor.a = diffuse.a;
 	gl_FragColor.rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
 	
 }

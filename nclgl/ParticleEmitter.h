@@ -53,6 +53,12 @@ struct Particle {
 	float lifeTime;
 };
 
+/*
+	NOTES
+		-Particle emitters will turn off depth writing when drawing themselves. Be sure to
+		turn it back on afterwards elsewhere!
+*/
+
 class ParticleEmitter : public Mesh	{
 public:
 	ParticleEmitter();

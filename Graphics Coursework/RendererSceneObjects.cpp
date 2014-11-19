@@ -80,10 +80,10 @@ void Renderer::DeleteSceneObjects(){
 
 void Renderer::UpdateSceneObjects(float msec){
 
-	//light->SetPosition(Vector3(2000.0f, 5000.0f, 0)); //MIDDAY
-	light->SetPosition(Vector3(2000.0f * cos(movementVar), 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
+	light->SetPosition(Vector3(2000.0f, 5000.0f, 0)); //MIDDAY
+	//light->SetPosition(Vector3(2000.0f * cos(movementVar), 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
 	
-	light->SetRadius(max(6000.0f +  55000.0f * cos(movementVar), 0.0f));
+	//light->SetRadius(max(6000.0f +  55000.0f * cos(movementVar), 0.0f));
 
 	lightSource->SetPosition(light->GetPosition());
 	//lightSource->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));

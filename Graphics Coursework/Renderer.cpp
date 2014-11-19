@@ -193,6 +193,8 @@ void Renderer::DrawCombinedScene(){
 		}
 	}
 
+	glDisable(GL_CULL_FACE);
+	glDepthMask(GL_FALSE);
 	for (auto itr = transparentNodes.rbegin(); itr != transparentNodes.rend(); ++itr){
 		SetCurrentShader(sceneShader);
 		(*itr)->Draw(*this);
@@ -202,16 +204,10 @@ void Renderer::DrawCombinedScene(){
 			if ((*itr)->GetMesh()) objectsDrawn++;
 		}
 	}
-
-	/*if (debug)
-		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
-			if ((*itr)->GetMesh()) objectsDrawn++;
-			if (drawBound) DrawBounds(*itr);
-		}*/
+	glEnable(GL_CULL_FACE);
+	glDepthMask(GL_TRUE);
 
 	ClearNodeLists();
-
-	//DrawCylinder();
 
 	PPDrawn();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
