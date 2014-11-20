@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <sstream>
 
-
+//TODO: Make all init methods return a bool
 //TODO: Make shaders matrices multiplied pre-draw function
 //TODO: Bounding boxes http://fgiesen.wordpress.com/2010/10/17/view-frustum-culling/
 //TODO: Store a "camera view and proj" and "light view and proj" to save reinstantiation
@@ -77,23 +77,6 @@ protected:
 
 	void DrawLight(const Light* light);
 	//End lighting
-
-	//Shadowing
-	bool InitShadowBuffers();
-	void DeleteShadowBuffers();
-
-	void UpdateCombineSceneShaderMatricesPF();
-	void UpdateCombineSceneShaderMatricesPO();
-	void DrawShadowScene();
-	void DrawCombinedScene();
-
-	Shader* sceneShader;
-	Shader* shadowShader;
-
-	GLuint shadowTex;
-	GLuint shadowFBO;
-
-	Matrix4 shadowVPMatrix;
 
 	//HEIGHTMAP MULTI TEX EXTRAS
 	void UpdateHeightMapShaderPO();
@@ -263,10 +246,53 @@ protected:
 	//PLANT STUFF
 	TreeNode* tree1;
 	TreeNode* tree2;
-	/*Mesh* cylinder;
+	
+	//Shadowing
+	bool InitShadowBuffers();
+	void DeleteShadowBuffers();
 
-	void DrawCylinder();*/
-	//End plant stuff 
+	void UpdateCombineSceneShaderMatricesPF();
+	void UpdateCombineSceneShaderMatricesPO();
+	void DrawShadowScene();
+	void DrawCombinedScene();
 
+	Shader* sceneShader;
+	Shader* shadowShader;
+
+	GLuint shadowTex;
+	GLuint shadowFBO;
+
+	Matrix4 shadowVPMatrix;
+
+	//DEFERRED RENDERING
+	bool InitDeferredRendering();
+	void DeleteDeferredRendering();
+
+	void UpdateDeferredRendering(float msec);
+	void DrawDeferredRendering();
+
+	GLuint fireParticleTex;
+
+	//Make the rest of the program use this method?
+	void GenerateScreenTexture(GLuint& into, bool depth = false);
+
+	void FillBuffers();
+	void DrawPointLights();
+	void CombineBuffers();
+
+	Light* pointLights;
+	int numPointLights;
+	Mesh* icoSphere;
+
+	Shader* deferredSceneShader;
+	Shader* pointLightShader;
+	Shader* combineShader;
+
+	GLuint pointLightFBO;
+
+	GLuint originalSceneTex;
+	GLuint bufferNormalTex;
+	GLuint lightEmissiveTex;
+	GLuint lightSpecularTex;
 };
 

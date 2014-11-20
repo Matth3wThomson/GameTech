@@ -46,6 +46,10 @@ static inline unsigned int GetLastTextureGPUMem(){
 
 }
 
+//Cheap random number generator, will generate
+//numbers between 0.0 and 1.0 to 2 DP
+#define RAND() ((rand()%101)/100.0f)
+
 //I blame Microsoft...
 #define max(a,b)    (((a) > (b)) ? (a) : (b))
 #define min(a,b)    (((a) < (b)) ? (a) : (b))

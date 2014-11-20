@@ -185,7 +185,7 @@ void Renderer::Blur(){
 
 //TODO: Do we need to clear the textures!?
 void Renderer::Sobel(){
-	//Bind our processing FBO and attach bufferColourTex[1] to it
+	
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
@@ -381,7 +381,17 @@ void Renderer::PresentScene(){
 	UpdateShaderMatrices();
 
 	//The results of post processing is held in bufferColourTex[0]
-	quad->SetTexture(GetLastDrawn());
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_NUMPAD4)){
+		quad->SetTexture(lightEmissiveTex);
+	} else if (Window::GetKeyboard()->KeyDown(KEYBOARD_NUMPAD5)) {
+		quad->SetTexture(lightSpecularTex);
+	} else if (Window::GetKeyboard()->KeyDown(KEYBOARD_NUMPAD6)) {
+		quad->SetTexture(bufferNormalTex);
+	} else {
+		quad->SetTexture(GetLastDrawn());
+
+	}
+
 	quad->Draw();
 
 	glUseProgram(0);

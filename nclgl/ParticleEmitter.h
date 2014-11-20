@@ -94,6 +94,9 @@ public:
 	float	GetParticleSize()				{return particleSize;}
 	void	SetParticleSize(float size)		{particleSize = size;}
 
+	Vector4 GetDefaultColour(){ return defaultColour; };
+	void SetDefaultColour(Vector4 col){ defaultColour = col; };
+
 	float GetColourVariance(){ return colourVariance; }
 	void SetColourVariance(float colourVariance){ this->colourVariance = colourVariance; }
 
@@ -155,6 +158,7 @@ protected:
 	int	  numLaunchParticles;
 
 	Vector3 initialDirection;
+	Vector4 defaultColour;
 
 	float nextParticleTime;		//How long until we next spit out some particles?
 

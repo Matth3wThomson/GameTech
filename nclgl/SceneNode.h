@@ -7,6 +7,22 @@
 #include <vector>
 #include <functional>
 
+
+/*
+	NOTES:
+		-This class has been changed to scale its translation based on its parents
+		 world scale. (This is to ensure that an arm stays attached to a shoulder!)
+		-This world scale can also be used to scale a child based on the size of its
+		 parent. (This is to ensure that an arm stays the same scale as the shoulder it
+		 is connected to.)
+		-Specular power and specular factor has also been added to the scene node class.
+		 Due to the spec requiring that the scene be lit with ambient diffuse and specular,
+		 it was assumed that every object will have a lighting shader attached that accepts
+		 these variables as a uniform. This saved writing an entire new class to add this functionality
+		 seeing as polymorphism sucks, and everything was going to be lit.
+		-SceneNodes also now store a reference to a shader to use when they are drawn. This
+		 can be overriden when draw is called to prevent 
+*/
 class SceneNode
 {
 public:

@@ -25,9 +25,10 @@ void main(void){
 	//We get our z value from the depth texture for our world pos variable
 	pos.z	= texture(depthTex, pos.xy).r;
 	
+	
 	//We sample the texture using the found coordinates and convert the value found to
 	//clip space. 
-	vec3 normal = normalize(texture(normTex, pos.xy).xyz*2.0 - 1.0);
+	vec3 normal = normalize((texture(normTex, pos.xy).xyz * 2.0) - 1.0);
 	
 	//We can then convert the value of position to world space
 	vec4 clip = inverseProjView * vec4(pos * 2.0 - 1.0, 1.0);
@@ -42,7 +43,8 @@ void main(void){
 		discard;	//IF THIS FRAGMENT ISNT in range of a given light, then dont keep drawing it!
 	}
 	
-	vec3 incident	=	normalize(lightPos - pos);
+	 vec3 incident	=	normalize(lightPos - pos);
+	//vec3 incident	=	normalize(pos - lightPos);
 	vec3 viewDir = normalize(cameraPos - pos);
 	vec3 halfDir = normalize(incident + viewDir);
 	

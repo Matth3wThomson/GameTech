@@ -22,7 +22,7 @@ in Vertex {
 	vec4 shadowProj;
 } IN;
 
-out vec4 gl_FragColor;
+out vec4 gl_FragColor[3];
 
 void main(void){
 	
@@ -62,9 +62,12 @@ void main(void){
 	vec3 colour = (diffuse.rgb * lightColour.rgb);
 	colour += (lightColour.rgb * sFactor) * specFactorMod;
 	
-	gl_FragColor = vec4(colour * atten * lambert, diffuse.a);
-	gl_FragColor.rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
+	gl_FragColor[0] = vec4(colour * atten * lambert, diffuse.a);
+	gl_FragColor[0].rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
 	
+	gl_FragColor[1] = vec4(normal.xyz * 0.5 + 0.5, 1.0);
+	
+	gl_FragColor[2] = diffuse;
 	
 	//gl_FragColor.rgb = IN.tangent;
 	//gl_FragColor.rgb = normal;

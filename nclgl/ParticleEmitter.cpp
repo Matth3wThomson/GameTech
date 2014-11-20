@@ -4,9 +4,7 @@
 #include <stdio.h>
 
 
-//Cheap random number generator, will generate
-//numbers between 0.0 and 1.0 to 2 DP
-#define RAND() ((rand()%101)/100.0f)
+
 
 ParticleEmitter::ParticleEmitter(){
 	particleRate		= 100.0f;
@@ -22,6 +20,8 @@ ParticleEmitter::ParticleEmitter(){
 	largestSize			= 0;
 
 	fadeOverTime = true;
+
+	defaultColour = Vector4(1,1,1,1);
 
 	texture = 0;
 }
@@ -43,6 +43,8 @@ ParticleEmitter::ParticleEmitter(const std::string& filename)	{
 	largestSize			= 0;
 
 	fadeOverTime = true;
+
+	defaultColour = Vector4(1,1,1,1);
 
 	texture = SOIL_load_OGL_texture(filename.c_str(),
 		SOIL_LOAD_AUTO,SOIL_CREATE_NEW_ID,SOIL_FLAG_COMPRESS_TO_DXT);
@@ -142,9 +144,9 @@ Particle* ParticleEmitter::GetFreeParticle()	{
 	//Now we have to reset its values - if it was popped off the
 	//free list, it'll still have the values of its 'previous life'
 
-	p->colour		= Vector4(1 - RAND()*colourVariance,
-		1 - RAND()*colourVariance,
-		1 - RAND()*colourVariance, 1.0);
+	p->colour		= Vector4(defaultColour.x - RAND()*colourVariance,
+		defaultColour.y - RAND()*colourVariance,
+		defaultColour.z - RAND()*colourVariance, 1.0);
 
 	p->direction	= initialDirection;
 	p->direction.x += ((RAND()-RAND()) * particleVariance);

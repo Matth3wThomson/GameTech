@@ -48,8 +48,12 @@ void Renderer::DrawDebugOverlay(){
 	DrawString(buff.str(), Vector3(0,0,0.5f), FONT_SIZE);
 
 	buff = std::ostringstream();
-	buff << "Tree GPUMem used: " << tree1->GetGPUMemUsage() << " bytes. " << std::endl;
+	buff << "Tree 1 GPUMem used: " << tree1->GetGPUMemUsage() << " bytes. " << std::endl;
 	DrawString(buff.str(), Vector3(0,FONT_SIZE,0.5f), FONT_SIZE);
+
+	buff = std::ostringstream();
+	buff << "Tree 2 GPUMem used: " << tree2->GetGPUMemUsage() << " bytes. " << std::endl;
+	DrawString(buff.str(), Vector3(0,2*FONT_SIZE,0.5f), FONT_SIZE);
 
 	buff = std::ostringstream();
 	if (sobel) buff << "Sobel colour ";
@@ -59,8 +63,7 @@ void Renderer::DrawDebugOverlay(){
 	if (bloom) buff << "Bloom ";
 	if (dubVis) buff << "Double Vision ";
 	if (blur) buff << "Blur ";
-
-	DrawString(buff.str(), Vector3(0,2*FONT_SIZE,0.5f), FONT_SIZE);
+	DrawString(buff.str(), Vector3(0,3*FONT_SIZE,0.5f), FONT_SIZE);
 	
 	buff = std::ostringstream();
 
@@ -69,7 +72,7 @@ void Renderer::DrawDebugOverlay(){
 	if (lightTimeSlowed) buff << "Light slowed ";
 	if (timeSlowed) buff << "Time slowed";
 
-	DrawString(buff.str(), Vector3(0,3*FONT_SIZE,0.5f), FONT_SIZE);
+	DrawString(buff.str(), Vector3(0,4*FONT_SIZE,0.5f), FONT_SIZE);
 
 	glUseProgram(0);
 }

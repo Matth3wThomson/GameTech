@@ -39,35 +39,24 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"diffuseTex"), 0);
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-
 	//Initialise parts of the scene!
 	if (!InitShadowBuffers())
 		return;
-	std::cout << "gl error: " << glGetError() << std::endl;
 
 	if (!InitSceneObjects()) //ERROR
 		return;
-	std::cout << "gl error: " << glGetError() << std::endl;
 
 	if (!InitSkybox())	//ERROR
 		return;
-	std::cout << "gl error: " << glGetError() << std::endl;
 
 	if (!InitWater()) //ERROR
 		return;
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-
 	if (!InitPostProcess())
 		return;
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-
 	if (!InitDebug()) //ERROR
 		return;
-
-	std::cout << "gl error: " << glGetError() << std::endl;
 
 	if (!InitParticles()) 
 		return;
@@ -84,9 +73,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		(float) width / (float) height, 45.0f);
 	ortho = Matrix4::Orthographic(-1.0f,1.0f,(float)width, 0.0f,(float)height, 0.0f);
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-	std::cout << "gl error: " << glGetError() << std::endl;
-
 	tree1 = new TreeNode(particleShader, phong);
 	tree1->SetShader(sceneShader);
 	tree1->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );
@@ -100,6 +86,11 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	tree2->SetPosition(Vector3(0, 35, 1500));
 
 	root->AddChild(tree2);
+
+	//ADDITION OF DEFERRED RENDERING!
+	if (!InitDeferredRendering()){
+		return;
+	}
 
 	init = true;
 }
@@ -147,6 +138,7 @@ void Renderer::UpdateScene(float msec){
 		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD0)){
 			timeOfDay = 0;
 			tree1->ResetTree();
+			tree2->ResetTree();
 		}
 
 
@@ -156,6 +148,7 @@ void Renderer::UpdateScene(float msec){
 		UpdateSceneObjects(msec);
 		UpdateWater(msec);
 		UpdateSkybox(msec);
+		UpdateDeferredRendering(msec);
 	}
 
 	UpdateShadersPerFrame();
@@ -169,10 +162,14 @@ void Renderer::UpdateScene(float msec){
 void Renderer::RenderScene(){
 
 	//Build node lists in order of distance from the light
-	DrawShadowScene(); //First Render pass //ISSUE
+	DrawShadowScene(); //First Render pass
 
 	//Build node lists in order of distance from the camera
 	DrawCombinedScene(); //Second render pass
+
+	DrawPointLights();
+
+	CombineBuffers();
 
 	//Draw our post processing effects
 	DrawPostProcess();
@@ -290,10 +287,12 @@ void Renderer::SwitchToToon(bool toon){
 		heightMap->SetTexture(HMToonTex);
 		heightMap->SetHighgroundTex(HMToonHighTex);
 		tree1->SwitchToToon(toon);
+		tree2->SwitchToToon(toon);
 	} else {
 		heightMap->SetTexture(heightMapTex);
 		heightMap->SetHighgroundTex(heightMapHighTex);
 		tree1->SwitchToToon(toon);
+		tree2->SwitchToToon(toon);
 	}
 }
 

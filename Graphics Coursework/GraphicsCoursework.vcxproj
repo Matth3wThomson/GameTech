@@ -71,6 +71,7 @@
   <ItemGroup>
     <ClCompile Include="GrowingNode.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="RendererDeferred.cpp" />
     <ClCompile Include="TreeNode.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererDebug.cpp" />

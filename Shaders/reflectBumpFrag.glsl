@@ -24,7 +24,7 @@ in Vertex {
 	vec4 shadowProj;
 } IN;
 
-out vec4 gl_FragColor;
+out vec4 gl_FragColor[3];
 
 void main(void){
 
@@ -67,10 +67,12 @@ void main(void){
 	
 	//Blend it all together!
 	// gl_FragColor = (lightColour * diffuse * atten) * (diffuse+reflection);
-	gl_FragColor.rgb = (lightedColour * diffuse.rgb * atten) * (diffuse.rgb+reflection.rgb);
+	gl_FragColor[0].rgb = (lightedColour * diffuse.rgb * atten) * (diffuse.rgb+reflection.rgb);
 	//gl_FragColor.rgb += (lightColour.rgb * sFactor) * specFactorMod;
 	
-	gl_FragColor.a = diffuse.a;
-	gl_FragColor.rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
+	gl_FragColor[0].a = diffuse.a;
+	gl_FragColor[0].rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
 	
+	gl_FragColor[1] = vec4(normal.xyz * 0.5 + 0.5, 1.0);
+	gl_FragColor[2] = diffuse;
 }

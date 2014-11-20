@@ -22,8 +22,6 @@ bool Renderer::InitSceneObjects(){
 	hellData = new MD5FileData(MESHDIR"hellknight.md5mesh");
 	hellNode = new MD5Node(*hellData);
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-
 	hellData->AddAnim(MESHDIR"idle2.md5anim");
 	hellData->AddAnim(MESHDIR"attack2.md5anim");
 	hellData->AddAnim(MESHDIR"pain1.md5anim");
@@ -33,10 +31,8 @@ bool Renderer::InitSceneObjects(){
 
 	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
 
-	quad = Mesh::GenerateQuad(); //TODO: not index buffered?
+	quad = Mesh::GenerateQuad();
 	sphere = new OBJMesh(MESHDIR"sphere.obj");
-
-	std::cout << "gl error: " << glGetError() << std::endl;
 
 	heightMapHighTex = SOIL_load_OGL_texture(
 		TEXTUREDIR"Barren reds.jpg", SOIL_LOAD_AUTO,
@@ -92,8 +88,6 @@ bool Renderer::InitSceneObjects(){
 	heightMapNode->SetSpecularPower(20);
 	heightMapNode->SetSpecularFactor(0.2f);
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-
 	lightSource = new SceneNode(sphere);
 	lightSource->SetPosition(light->GetPosition());
 	lightSource->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
@@ -105,12 +99,12 @@ bool Renderer::InitSceneObjects(){
 	root->AddChild(heightMapNode);
 	root->AddChild(lightSource);
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-
 	return true;
 };
 
 void Renderer::DeleteSceneObjects(){
+	delete heightMapShader;
+
 	delete hellData;
 	delete root;
 

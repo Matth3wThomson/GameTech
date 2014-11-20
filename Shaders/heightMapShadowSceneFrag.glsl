@@ -25,7 +25,7 @@ in Vertex {
 	vec4 shadowProj;
 } IN;
 
-out vec4 gl_FragColor;
+out vec4 gl_FragColor[3];
 
 void main(void){
 	
@@ -33,20 +33,10 @@ void main(void){
 	
 	vec3 normal = normalize(TBN * (texture2D(bumpTex, IN.texCoord).rgb * 2.0 - 1.0));
 	
-	//vec4 diffuse = texture2D(diffuseTex, IN.texCoord);
-	//vec4 diffuse = texture2D(highGroundTex, IN.texCoord);
-	//Need to normalize IN.worldPos;
 	float normalizedHeightBlend = clamp(IN.worldPos.y / highestHeight, 0.0, 1.0);
-	//float normalizedHeightBlend = 1.0;
 	
 	vec4 diffuse = texture2D(diffuseTex, IN.texCoord) * (1 - normalizedHeightBlend);
 	diffuse += texture2D(highGroundTex, IN.texCoord) * (0 + normalizedHeightBlend);
-
-	
-	//diffuse = vec4(1);
-
-	
-	// vec4 diffuse = mix(texture2D(diffuseTex, IN.texCoord), texture2D(highGroundTex, IN.texCoord), normalizedHeightBlend);
 	
 	
 	vec3 incident = normalize(lightPos - IN.worldPos);
@@ -79,16 +69,11 @@ void main(void){
 	vec3 colour = (diffuse.rgb * lightColour.rgb);
 	colour += (lightColour.rgb * sFactor) * specFactorMod;
 	
-	gl_FragColor = vec4(colour * atten * lambert, diffuse.a);
-	gl_FragColor.rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
+	gl_FragColor[0] = vec4(colour * atten * lambert, diffuse.a);
+	gl_FragColor[0].rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
 	
-	// gl_FragColor = vec4(1.0);
-	
-	
-	//gl_FragColor.rgb = IN.tangent;
-	//gl_FragColor.rgb = normal;
-	
-	// gl_FragColor = IN.shadowProj;
-	//gl_FragColor = IN.shadowProj;
+
+	gl_FragColor[1] = vec4(normal.xyz * 0.5 + 0.5, 1.0);
+	gl_FragColor[2] = diffuse;
 	
 }

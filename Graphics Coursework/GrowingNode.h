@@ -4,6 +4,11 @@
 
 #define TOL 0.01
 
+/*
+	NOTES:
+		-This class was created in order to grow itself based on a given max size,
+		 and time to take. It is used by the tree node for its leaves and fruit.
+*/
 class GrowingNode : public SceneNode
 {
 public:
