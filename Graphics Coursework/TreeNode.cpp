@@ -83,7 +83,8 @@ TreeNode::TreeNode(Shader* pShader, Shader* fruitShad)
 		leafQuad->SetTexture(leafTex);
 		GPUBytes += GetLastTextureGPUMem() * 1.33;
 
-		leafToonTex = SOIL_load_OGL_texture(TEXTUREDIR"green.png",
+		//Changed from green.png
+		leafToonTex = SOIL_load_OGL_texture(TEXTUREDIR"darkGreen.png",
 			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 		GPUBytes += GetLastTextureGPUMem() * 1.33;
 
@@ -161,8 +162,8 @@ TreeNode::~TreeNode(void)
 		if (--instantiatedObjects == 0){
 			delete fruitMesh;
 			delete leafQuad;
+			delete cylinder;
 		};
-		delete cylinder;
 	}
 }
 
@@ -210,7 +211,8 @@ void TreeNode::Update(float msec){
 		//Else scale it relatively... 
 		//TODO: Use a modifier based on its y position to scale this
 		//more appropriately?
-		modelScale = Vector3(baseScale, growthAmount, baseScale);
+		//modelScale = Vector3(baseScale, growthAmount, baseScale);
+		modelScale = Vector3(baseScale * 10, growthAmount * MAX_TREE_HEIGHT, baseScale * 10);
 	}
 
 	SetBoundingRadius(growthAmount  * MAX_TREE_HEIGHT);
@@ -244,7 +246,9 @@ void TreeNode::AddRandomBranch(){
 
 	branch->SetPosition(Vector3(0, growthAmount * (depth+1), 0));
 
-	branch->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()-RAND(),0,RAND()-RAND()));
+	branch->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()- RAND(),0,RAND()-RAND()));
+
+	branch->SetScaleWithParent(false); //NEW
 
 	this->AddChild(branch);
 
@@ -289,7 +293,9 @@ void TreeNode::AddRandomLeaf(){
 
 	leaf->SetPosition(Vector3(0, RAND(), 0));
 
-	leaf->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()-RAND(),RAND()-RAND(),RAND()-RAND()));
+	//leaf->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()-RAND(),RAND()-RAND(),RAND()-RAND()));
+	leaf->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()- (2  * RAND()),0,RAND()- (2 * RAND())));
+
 
 	//TODO: Not perfect!
 	Vector3 axisOfGrowth = Vector3::Cross(leaf->GetPosition(), leaf->GetRotationAxis());

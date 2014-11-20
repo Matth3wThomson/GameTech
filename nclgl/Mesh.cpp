@@ -148,8 +148,10 @@ Mesh* Mesh::GenerateBAQuad(bool normals){
 		m->normals = new Vector3[m->numVertices];
 
 		for (unsigned int i=0; i<m->numVertices; ++i)
-			//TODO: Determine if this is the wrong way around!
-			m->normals[i] = Vector3(0,0,-1);
+			m->normals[i] = Vector3(0,0,1);
+
+		/*m->normals[1] = Vector3(0,0,1);
+		m->normals[2] = Vector3(0,0,1);*/
 		
 	}
 

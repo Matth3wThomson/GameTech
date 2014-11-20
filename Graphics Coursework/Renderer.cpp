@@ -91,9 +91,15 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	tree1->SetShader(sceneShader);
 	tree1->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );
 	tree1->SetPosition(Vector3(700, 35, 800));
-	tree1->SetModelScale(Vector3(100,100,100));
 
 	root->AddChild(tree1);
+
+	tree2 = new TreeNode(particleShader, phong);
+	tree2->SetShader(sceneShader);
+	tree2->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );
+	tree2->SetPosition(Vector3(0, 35, 1500));
+
+	root->AddChild(tree2);
 
 	init = true;
 }
@@ -112,8 +118,6 @@ Renderer::~Renderer(void)
 void Renderer::UpdateScene(float msec){
 
 	float debugMsec = msec;
-	lightTimeSlowed = false;
-	timeSlowed = false;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P))
 		pause = !pause;
@@ -125,23 +129,20 @@ void Renderer::UpdateScene(float msec){
 
 	camera->UpdateCamera(msec);
 
-	if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
-		msec *= 0.1f;
-		timeSlowed = !pause;
-	}
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2))
+		timeSlowed = !timeSlowed;
+	
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_3))
+		lightTimeSlowed = !lightTimeSlowed;
+	
+
+	if (timeSlowed)	msec *= 0.1f;
 
 	if (!pause){
 
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_3)){
-			timeOfDay += msec*0.0001f;
-			lightTimeSlowed = true;
-		} else {
-			timeOfDay += msec*0.001f;
-		}
-
-		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_4)){
-			timeOfDay = 25.0f;
-		}
+		if (lightTimeSlowed) timeOfDay += msec * 0.0001f;
+		else timeOfDay += msec*0.001f;
 
 		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD0)){
 			timeOfDay = 0;

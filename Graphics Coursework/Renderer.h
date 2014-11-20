@@ -29,7 +29,7 @@
 
 
 #define SHADOWSIZE 2048 * 8
-#define BLUR_PASSES 10
+#define BLUR_PASSES 5
 #define FONT_SIZE 16.0f
 
 class Renderer : public OGLRenderer
@@ -262,6 +262,7 @@ protected:
 
 	//PLANT STUFF
 	TreeNode* tree1;
+	TreeNode* tree2;
 	/*Mesh* cylinder;
 
 	void DrawCylinder();*/
