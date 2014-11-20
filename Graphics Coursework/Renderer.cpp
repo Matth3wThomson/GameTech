@@ -9,6 +9,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	timeOfDay = 0.0f;
 	anim = 0;
 	pause = false;
+	toon = false;
+	timeSlowed = false;
+	lightTimeSlowed = false;
 	rotation = 0.0f;
 
 	std::cout << "START gl error: " << glGetError() << std::endl;
@@ -109,6 +112,8 @@ Renderer::~Renderer(void)
 void Renderer::UpdateScene(float msec){
 
 	float debugMsec = msec;
+	lightTimeSlowed = false;
+	timeSlowed = false;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P))
 		pause = !pause;
@@ -122,12 +127,14 @@ void Renderer::UpdateScene(float msec){
 
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
 		msec *= 0.1f;
+		timeSlowed = !pause;
 	}
 
 	if (!pause){
 
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_3)){
 			timeOfDay += msec*0.0001f;
+			lightTimeSlowed = true;
 		} else {
 			timeOfDay += msec*0.001f;
 		}
@@ -146,6 +153,7 @@ void Renderer::UpdateScene(float msec){
 
 		UpdateParticles(msec);
 		UpdateSceneObjects(msec);
+		UpdateWater(msec);
 		UpdateSkybox(msec);
 	}
 
@@ -239,6 +247,7 @@ void Renderer::UpdateShadersPerFrame(){
 	UpdateGenericShadersPF();
 	UpdateWaterShaderMatricesPF();
 	UpdateCombineSceneShaderMatricesPF();
+	UpdateHeightMapShaderPF(); //NEW
 }
 
 void Renderer::DrawString(const std::string& text, const Vector3& pos, const float size, const bool perspective){
@@ -278,8 +287,12 @@ void Renderer::SwitchToToon(bool toon){
 
 	if (toon){
 		heightMap->SetTexture(HMToonTex);
-
+		heightMap->SetHighgroundTex(HMToonHighTex);
+		tree1->SwitchToToon(toon);
 	} else {
 		heightMap->SetTexture(heightMapTex);
+		heightMap->SetHighgroundTex(heightMapHighTex);
+		tree1->SwitchToToon(toon);
 	}
 }
+

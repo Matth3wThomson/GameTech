@@ -11,13 +11,15 @@ SceneNode::SceneNode(Mesh* mesh, Vector4 colour){
 	boundingRadius = 1.0f;
 	distanceFromCamera = 0.0f;
 
+	textureMatrix.ToIdentity();
+
 	parent = NULL;
 	scaleWithParent = true;
 	modelScale = Vector3(1,1,1);
 	angle = 0;
 	rotationAxis = Vector3(0,1,0);
 
-	specularPower = 33.0f;
+	specularPower = 33;
 	specularFactor = 0.3f;
 }
 
@@ -48,7 +50,8 @@ void SceneNode::Draw(OGLRenderer& r, const bool useShader){
 	if (mesh && shader){
 		if (useShader) r.SetCurrentShader(shader);
 
-		r.textureMatrix.ToIdentity();
+		//r.textureMatrix.ToIdentity();
+		r.textureMatrix = textureMatrix;
 
 		r.modelMatrix = worldTransform *  Matrix4::Scale(worldScale * modelScale);
 

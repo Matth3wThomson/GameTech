@@ -59,11 +59,15 @@ void main(void){
 	float rFactor = max(0.0, dot(halfDir, normal));
 	float sFactor = pow(rFactor, specularPower);
 	
+	vec3 lightedColour = (diffuse.rgb * lightColour.rgb);
+	lightedColour += (lightColour.rgb * sFactor) * specFactorMod;
+	
 	atten *= shadow;
 	// reflection *= shadow;
 	
 	//Blend it all together!
-	gl_FragColor = (lightColour * diffuse * atten) * (diffuse+reflection);
+	// gl_FragColor = (lightColour * diffuse * atten) * (diffuse+reflection);
+	gl_FragColor.rgb = (lightedColour * diffuse.rgb * atten) * (diffuse.rgb+reflection.rgb);
 	//gl_FragColor.rgb += (lightColour.rgb * sFactor) * specFactorMod;
 	
 	gl_FragColor.a = diffuse.a;

@@ -24,6 +24,9 @@ public:
 	Vector4 GetColour() const { return colour; }
 	void SetColour(Vector4 c){ colour = c; }
 
+	Matrix4 GetTextureMatrix() const { return textureMatrix; }
+	void SetTextureMatrix(Matrix4 texMat){ textureMatrix = texMat; };
+
 	void SetScaleWithParent(bool scale){ scaleWithParent = scale; };
 	bool GetScaleWithParent(){ return scaleWithParent; };
 
@@ -83,6 +86,8 @@ protected:
 	Shader* shader;
 
 	std::function<void()> updateShaderFunction;
+
+	Matrix4 textureMatrix;
 
 	bool scaleWithParent;
 

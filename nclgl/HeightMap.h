@@ -29,5 +29,13 @@ public:
 	//TODO: Why no reference?
 	HeightMap(const std::string& name);
 	~HeightMap(void);
+
+	float GetHeight(const float x, const float z);
+
+	void SetHighgroundTex(GLuint texture){ highGroundTex = texture; };
+	GLuint GetHighgroundTex(){ return highGroundTex; };
+
+	virtual void Draw();
+	GLuint highGroundTex;	//This is the texture to use at high ground
 };
 

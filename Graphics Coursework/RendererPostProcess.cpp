@@ -4,6 +4,7 @@ bool Renderer::InitPostProcess(){
 	toDrawTo = 0;
 	sobel = false;
 	sobelDepth = false;
+	quantizeCol = false;
 	dubVis = false;
 	blur = false;
 	bloom  = false;
@@ -21,6 +22,9 @@ bool Renderer::InitPostProcess(){
 	sobelDepthShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"sobelDepthFrag.glsl");
 
+	quantizeColShader = new Shader(SHADERDIR"TexturedVertex.glsl",
+		SHADERDIR"quantizeFrag.glsl");
+
 	fogShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"fogFrag.glsl");
 
@@ -29,6 +33,7 @@ bool Renderer::InitPostProcess(){
 
 	if (!blurShader->LinkProgram() ||
 		!sobelDepthShader->LinkProgram() ||
+		!quantizeColShader->LinkProgram() ||
 		!sobelShader->LinkProgram() ||
 		!fogShader->LinkProgram() ||
 		!doubVisShader->LinkProgram() ||
@@ -89,23 +94,26 @@ bool Renderer::InitPostProcess(){
 
 void Renderer::UpdatePostProcess(float msec){
 
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_5))
+		fog = !fog;
+
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_6))
 		sobelDepth = !sobelDepth;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_7))
-		sobel = !sobel;
+		quantizeCol = !quantizeCol;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_8))
-		dubVis = !dubVis;
+		sobel = !sobel;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_9))
-		blur = !blur;
+		dubVis = !dubVis;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_0))
-		bloom = !bloom;
+		blur = !blur;
 
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_5))
-		fog = !fog;
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_MINUS))
+		bloom = !bloom;
 }
 
 void Renderer::DrawPostProcess(){
@@ -115,6 +123,7 @@ void Renderer::DrawPostProcess(){
 
 	if (sobel) Sobel();
 	if (sobelDepth) SobelDepth();
+	if (quantizeCol) QuantizeCol();
 	if (fog) SobelAlias();
 	if (bloom) Bloom();
 	if (dubVis) DoubleVision();
@@ -208,6 +217,43 @@ void Renderer::SobelDepth(){
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	SetCurrentShader(sobelDepthShader);
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
+		1.0f / width, 1.0f / height);
+	UpdateShaderMatrices();
+
+	//TODO: Make configurable!
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"threshold"), 0.2f);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"depthTex"), 2);
+
+	//TODO: Need to upload near and far plane values
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"nearPlane"), 1.0);
+
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"farPlane"), 15000.0f);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
+
+	quad->SetTexture(GetLastDrawn());
+
+	//Draw the scene and blur horizontally
+	quad->Draw();
+	PPDrawn();
+}
+
+void Renderer::QuantizeCol(){
+	//Bind our processing FBO and attach bufferColourTex[1] to it
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, GetDrawTarget(), 0);
+
+	//Clear it
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	SetCurrentShader(quantizeColShader);
 	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
 		1.0f / width, 1.0f / height);
 	UpdateShaderMatrices();

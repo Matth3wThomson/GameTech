@@ -102,9 +102,8 @@ void Renderer::DrawShadowScene(){
 	//to keep coordinates in clip space range
 	shadowVPMatrix = biasMatrix*(projMatrix*viewMatrix);
 
-	//Draw the quad and the hellknight
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
-	BuildNodeLists(root, light->GetPosition());
+	BuildNodeLists(root, light->GetPosition(), false); //We dont care about transparent nodes!
 	SortNodeLists();
 
 	//Only draw the opaque nodes
@@ -143,8 +142,6 @@ void Renderer::UpdateCombineSceneShaderMatricesPF(){
 }
 
 void Renderer::UpdateCombineSceneShaderMatricesPO(){
-
-	textureMatrix.ToIdentity();
 
 	Matrix4 tempMatrix = shadowVPMatrix * modelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),

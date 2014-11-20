@@ -74,3 +74,32 @@ HeightMap::HeightMap(const std::string& name)
 HeightMap::~HeightMap(void)
 {
 }
+
+void HeightMap::Draw(){
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, highGroundTex);
+
+	Mesh::Draw();
+}
+
+
+//TODO: Come back to this...
+float HeightMap::GetHeight(const float x, const float z){
+	float xdim = RAW_WIDTH * HEIGHTMAP_X;
+	float zdim = RAW_HEIGHT * HEIGHTMAP_Z;
+
+	//The heightmap is translated to the centre
+	float xOffset = -(xdim/2);
+	float zOffset = -(zdim/2);
+
+	//Off the heightmap
+	if (x > xdim + xOffset || z > zdim + zOffset || x < xOffset || z < zOffset)
+		return 0.0f;
+
+	
+
+	//Four nearest values to the current x and z
+
+
+	return x;
+}

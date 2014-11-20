@@ -1,6 +1,24 @@
 #include "Renderer.h"
 
 bool Renderer::InitSceneObjects(){
+
+	heightMapShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
+		SHADERDIR"heightMapShadowSceneFrag.glsl");
+
+	if (!heightMapShader->LinkProgram())
+		return false;
+
+	SetCurrentShader(heightMapShader);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"diffuseTex"), 0);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"bumpTex"), 1);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"shadowTex"), 2);
+
 	hellData = new MD5FileData(MESHDIR"hellknight.md5mesh");
 	hellNode = new MD5Node(*hellData);
 
@@ -20,32 +38,41 @@ bool Renderer::InitSceneObjects(){
 
 	std::cout << "gl error: " << glGetError() << std::endl;
 
-	heightMapTex = SOIL_load_OGL_texture(
+	heightMapHighTex = SOIL_load_OGL_texture(
 		TEXTUREDIR"Barren reds.jpg", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	HMToonTex = SOIL_load_OGL_texture(
+	 heightMapTex = SOIL_load_OGL_texture(
+		TEXTUREDIR"grass.jpg", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	 HMToonTex = SOIL_load_OGL_texture(
+		TEXTUREDIR"darkGreen.png", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	HMToonHighTex = SOIL_load_OGL_texture(
 		TEXTUREDIR"brown.png", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	heightMap->SetTexture(heightMapTex);
+	heightMap->SetHighgroundTex(heightMapHighTex);
 
 	heightMap->SetBumpMap(SOIL_load_OGL_texture(
 		TEXTUREDIR"Barren redsDOT3.jpg", SOIL_LOAD_AUTO, 
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-
-	if (!heightMap->GetTexture() || !heightMap->GetBumpMap())
+	if (!heightMapTex ||
+		!heightMapHighTex ||
+		!HMToonTex ||
+		!HMToonHighTex ||
+		!heightMap->GetBumpMap())
 		return false;
 
-	std::cout << "gl error: " << glGetError() << std::endl;
-
-	SetTextureRepeating(heightMap->GetTexture(), true);
-	SetTextureRepeating(heightMap->GetBumpMap(), true);
+	SetTextureRepeating(heightMapTex, true);
+	SetTextureRepeating(heightMapHighTex, true);
+	SetTextureRepeating(HMToonHighTex, true);
 	SetTextureRepeating(HMToonTex, true);
-
-	std::cout << "gl error: " << glGetError() << std::endl;
+	SetTextureRepeating(heightMap->GetBumpMap(), true);
 
 	root = new SceneNode();
 
@@ -56,8 +83,14 @@ bool Renderer::InitSceneObjects(){
 
 	heightMapNode = new SceneNode(heightMap);
 	heightMapNode->SetBoundingRadius( sqrt( pow(RAW_WIDTH * HEIGHTMAP_X * 0.5f, 2) + pow(RAW_HEIGHT * HEIGHTMAP_Z * 0.5f, 2)));
-	heightMapNode->SetShader(sceneShader);
-	heightMapNode->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );
+	/*heightMapNode->SetShader(sceneShader);
+	heightMapNode->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );*/
+	heightMapNode->SetShader(heightMapShader);
+	heightMapNode->SetUpdateShaderFunction([this]{ UpdateHeightMapShaderPO(); });
+
+	heightMapNode->SetTextureMatrix(Matrix4::Scale(Vector3(2,2,2)));
+	heightMapNode->SetSpecularPower(20);
+	heightMapNode->SetSpecularFactor(0.2f);
 
 	std::cout << "gl error: " << glGetError() << std::endl;
 
@@ -113,27 +146,22 @@ void Renderer::UpdateSceneObjects(float msec){
 	root->Update(msec);
 }
 
-/*if (light->GetPosition().y < -500) light->SetRadius(sin(timeOfDay) * 8000.0f);
-	else light->SetRadius(55000.0f);*/
-	/*if (light->GetPosition().y > -500) light->SetRadius(9000.0f + 500000.0f * cos(timeOfDay));
-	else light->SetRadius(1000.0f);*/
-
-void Renderer::BuildNodeLists(SceneNode* from, const Vector3& viewPos){
+void Renderer::BuildNodeLists(SceneNode* from, const Vector3& viewPos, bool transparents){
 	if (frameFrustum.InsideFrustum(*from)){
 		Vector3 dir = from->GetWorldTransform().GetPositionVector() -
 			viewPos;
 
 		from->SetCameraDistance(Vector3::Dot(dir, dir));
 
-		if (from->GetColour().w < 1.0f)
-			transparentNodes.push_back(from);
-		else nodeList.push_back(from);
+		if (from->GetColour().w < 1.0f){
+			if (transparents) transparentNodes.push_back(from);
+		} else nodeList.push_back(from);
 
 	}
 
 	for (vector<SceneNode*>::const_iterator i = from->GetChildIteratorStart();
 		i != from->GetChildIteratorEnd(); ++i){
-			BuildNodeLists((*i), viewPos);
+			BuildNodeLists((*i), viewPos, transparents);
 	}
 }
 
@@ -151,3 +179,30 @@ void Renderer::ClearNodeLists(){
 	transparentNodes.clear();
 	nodeList.clear();
 }
+
+void Renderer::UpdateHeightMapShaderPF(){
+	SetCurrentShader(heightMapShader);
+
+	//upload our cameras position
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+		"cameraPos"), 1, (float*)&camera->GetPosition());
+
+	SetShaderLight(*light);
+
+	//Bind our depth texture from our shadow FBO to texture unit 2
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"highGroundTex"), 3);
+}
+
+void Renderer::UpdateHeightMapShaderPO(){
+
+	Matrix4 tempMatrix = shadowVPMatrix * modelMatrix;
+	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
+		"shadowVPMatrix"),1,false, tempMatrix.values);
+
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"highestHeight"), 300);
+};

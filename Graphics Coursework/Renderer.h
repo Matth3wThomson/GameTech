@@ -30,6 +30,7 @@
 
 #define SHADOWSIZE 2048 * 8
 #define BLUR_PASSES 10
+#define FONT_SIZE 16.0f
 
 class Renderer : public OGLRenderer
 {
@@ -62,6 +63,9 @@ protected:
 	float timeOfDay;
 	int anim;
 
+	bool timeSlowed;
+	bool lightTimeSlowed;
+
 	//TEMPORARY!
 	float rotation;
 	Vector3 scale;
@@ -91,6 +95,19 @@ protected:
 
 	Matrix4 shadowVPMatrix;
 
+	//HEIGHTMAP MULTI TEX EXTRAS
+	void UpdateHeightMapShaderPO();
+	void UpdateHeightMapShaderPF();
+
+	Shader* heightMapShader;
+
+	HeightMap* heightMap;
+	GLuint heightMapTex;
+	GLuint HMToonTex;
+
+	GLuint heightMapHighTex;
+	GLuint HMToonHighTex;
+
 	//SKYBOX STUFF
 	bool InitSkybox();
 	void DeleteSkybox();
@@ -106,6 +123,8 @@ protected:
 	//Water additions!
 	bool InitWater();
 	void DeleteWater();
+
+	void UpdateWater(float msec);
 	void UpdateWaterShaderMatricesPO();
 	void UpdateWaterShaderMatricesPF();
 
@@ -128,10 +147,6 @@ protected:
 	Mesh* sphere;
 	MD5FileData* hellData;
 
-	Mesh* heightMap;
-	GLuint heightMapTex;
-	GLuint HMToonTex;
-
 	SceneNode* root;
 	MD5Node* hellNode;
 	SceneNode* heightMapNode;
@@ -141,7 +156,7 @@ protected:
 	vector<SceneNode*> nodeList;
 	vector<SceneNode*> transparentNodes;
 
-	void BuildNodeLists(SceneNode* from, const Vector3& viewPos);
+	void BuildNodeLists(SceneNode* from, const Vector3& viewPos, bool transparents = true);
 	void SortNodeLists();
 	void ClearNodeLists();
 	
@@ -171,12 +186,14 @@ protected:
 	Shader* blurShader;
 	Shader* sobelShader;
 	Shader* sobelDepthShader;
+	Shader* quantizeColShader;
 	Shader* doubVisShader;
 	Shader* bloomShader;
 	Shader* fogShader;
 
 	bool sobel;
 	bool sobelDepth;
+	bool quantizeCol;
 	bool fog;
 	bool blur;
 	bool dubVis;
@@ -189,20 +206,13 @@ protected:
 	void Bloom();
 	void Sobel();
 	void SobelDepth();
+	void QuantizeCol();
 	void SobelAlias();
 	void DoubleVision();
 	void Blur();
 
 	void PresentScene();
 	//End of post process additions
-
-	//Attempt custom bloom!
-	/*Shader* renderColour;
-	Shader* bloomShader;
-
-	GLuint bloomTex;*/
-
-	//End attempts of custom bloom!
 
 	//PARTICLE EMISSION STUFF
 	Shader* particleShader;

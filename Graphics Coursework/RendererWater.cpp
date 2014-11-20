@@ -74,6 +74,13 @@ void Renderer::DeleteWater(){
 	delete reflectShader;
 }
 
+void Renderer::UpdateWater(float msec){
+	rotation += 0.005f * msec;
+
+	waterNode->SetTextureMatrix(Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) *
+		Matrix4::Rotation(rotation, Vector3(0.0f, 0.0f, 1.0f)));
+}
+
 //Frame + object specific uploads.
 void Renderer::UpdateWaterShaderMatricesPO(){
 
@@ -81,12 +88,7 @@ void Renderer::UpdateWaterShaderMatricesPO(){
 
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
 			"shadowVPMatrix"),1,false, tempMatrix.values);
-
-	//TODO: Make this not frame specific!
-	rotation += 0.05f;
-
-	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) *
-		Matrix4::Rotation(rotation, Vector3(0.0f, 0.0f, 1.0f));
+	
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, shadowTex);

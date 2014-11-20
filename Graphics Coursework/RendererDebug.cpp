@@ -45,22 +45,31 @@ void Renderer::DrawDebugOverlay(){
 	buff << "Drawn: " << objectsDrawn << std::endl;
 	buff << "Shadowed: " << objectsShadowed << std::endl;
 
-	DrawString(buff.str(), Vector3(0,0,0.5f), 16.0f);
+	DrawString(buff.str(), Vector3(0,0,0.5f), FONT_SIZE);
 
 	buff = std::ostringstream();
-	buff << "Tree GPU Memory usage: " << tree1->GetGPUMemUsage() << " bytes. " << std::endl;
-	DrawString(buff.str(), Vector3(0,16.0f,0.5f), 16.0f);
+	buff << "Tree GPUMem used: " << tree1->GetGPUMemUsage() << " bytes. " << std::endl;
+	DrawString(buff.str(), Vector3(0,FONT_SIZE,0.5f), FONT_SIZE);
 
 	buff = std::ostringstream();
 	if (sobel) buff << "Sobel colour ";
 	if (sobelDepth) buff << "Sobel depth ";
+	if (quantizeCol) buff << "Colour quantize ";
 	if (fog) buff << "Fog ";
 	if (bloom) buff << "Bloom ";
 	if (dubVis) buff << "Double Vision ";
 	if (blur) buff << "Blur ";
 
-	DrawString(buff.str(), Vector3(0,32.0f,0.5f), 16.0f);
+	DrawString(buff.str(), Vector3(0,2*FONT_SIZE,0.5f), FONT_SIZE);
 	
+	buff = std::ostringstream();
+
+	if (toon) buff << "Toon textures ";
+	if (pause) buff << "Time paused ";
+	if (lightTimeSlowed) buff << "Light slowed ";
+	if (timeSlowed) buff << "Time slowed";
+
+	DrawString(buff.str(), Vector3(0,3*FONT_SIZE,0.5f), FONT_SIZE);
 
 	glUseProgram(0);
 }
