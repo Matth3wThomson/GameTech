@@ -2,7 +2,7 @@
 
 bool Renderer::InitShadowBuffers(){
 	sceneShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
-		SHADERDIR"shadowSceneFrag.glsl");
+		SHADERDIR"shadowSceneBumpFrag.glsl");
 
 	shadowShader = new Shader(SHADERDIR"shadowVert.glsl", SHADERDIR"shadowFrag.glsl");
 
@@ -91,7 +91,7 @@ void Renderer::DrawShadowScene(){
 		light->GetPosition(), Vector3(0,0,0));
 
 	//TODO: Reevaluate this!
-	/*projMatrix = Matrix4::Perspective(2900.0f + 2000 * abs(cos(movementVar)), 7100.0f - 2000 * abs(cos(movementVar)),
+	/*projMatrix = Matrix4::Perspective(2900.0f + 2000 * abs(cos(timeOfDay)), 7100.0f - 2000 * abs(cos(timeOfDay)),
 		(float) width / (float) height, 45.0f);*/
 
 	//TODO: This seems to work fine... maybe make it a constant?

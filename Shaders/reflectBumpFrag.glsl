@@ -5,6 +5,9 @@ uniform sampler2D bumpTex;
 uniform samplerCube cubeTex;	//Automatically handles which of the 6 seperate textures the sample is from
 uniform sampler2DShadow shadowTex; //NEW
 
+uniform int specularPower;
+uniform float specFactorMod;
+
 uniform vec4 lightColour;
 uniform vec3 lightPos;
 uniform float lightRadius;
@@ -50,11 +53,19 @@ void main(void){
 	//vector and a normal
 	vec4 reflection  = texture(cubeTex, reflect(incident, normalize(normal)));
 	
+	vec3 viewDir = normalize(cameraPos - IN.worldPos);
+	vec3 halfDir = normalize(incident + viewDir);
+	
+	float rFactor = max(0.0, dot(halfDir, normal));
+	float sFactor = pow(rFactor, specularPower);
+	
 	atten *= shadow;
 	// reflection *= shadow;
 	
 	//Blend it all together!
 	gl_FragColor = (lightColour * diffuse * atten) * (diffuse+reflection);
+	//gl_FragColor.rgb += (lightColour.rgb * sFactor) * specFactorMod;
+	
 	gl_FragColor.a = diffuse.a;
 	gl_FragColor.rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
 	

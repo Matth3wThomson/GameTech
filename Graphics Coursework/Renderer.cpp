@@ -6,11 +6,10 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	//Generic Renderer + functionaility properties
 	//wglSwapIntervalEXT(0);
-	movementVar = 0;
+	timeOfDay = 0.0f;
 	anim = 0;
 	pause = false;
 	rotation = 0.0f;
-
 
 	std::cout << "START gl error: " << glGetError() << std::endl;
 
@@ -19,10 +18,23 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	light = new Light(Vector3(0.0f, 5000.0f, 0.0f),
 		Vector4(1,1,0.7f,1), 55000.0f);
 
+	phong = new Shader(SHADERDIR"PerPixelVertex.glsl", SHADERDIR"PerPixelFragment.glsl");
+
+	if (!phong->LinkProgram())
+		return;
+
+	SetCurrentShader(phong);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"diffuseTex"), 0);
+
 	passThrough = new Shader(SHADERDIR"TexturedVertex.glsl", SHADERDIR"TexturedFragment.glsl");
 
 	if (!passThrough->LinkProgram())
 		return;
+
+	SetCurrentShader(passThrough);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+		"diffuseTex"), 0);
 
 	std::cout << "gl error: " << glGetError() << std::endl;
 
@@ -41,7 +53,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 	if (!InitWater()) //ERROR
 		return;
-	
+
 	std::cout << "gl error: " << glGetError() << std::endl;
 
 	if (!InitPostProcess())
@@ -72,28 +84,13 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	std::cout << "gl error: " << glGetError() << std::endl;
 	std::cout << "gl error: " << glGetError() << std::endl;
 
+	tree1 = new TreeNode(particleShader, phong);
+	tree1->SetShader(sceneShader);
+	tree1->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );
+	tree1->SetPosition(Vector3(700, 35, 800));
+	tree1->SetModelScale(Vector3(100,100,100));
 
-
-
-
-	//TreeNode* plant = new TreeNode();
-	////plant->SetShader(sceneShader);
-	////plant->SetUpdateShaderFunction([this, plant]{ UpdateCombineSceneShaderMatricesPO(plant); } );
-	//plant->SetShader(passThrough);
-	//plant->SetPosition(Vector3(200, 350, 200));
-	//plant->SetModelScale(Vector3(100,1000,100));
-	//	
-	int i = 1;
-	/*for (int i=0; i<5; ++i){*/
-	TreeNode* plant = new TreeNode(particleShader);
-		plant->SetShader(sceneShader);
-		plant->SetUpdateShaderFunction([this, plant]{ UpdateCombineSceneShaderMatricesPO(); } );
-		/*plant->SetShader(passThrough);*/
-		plant->SetPosition(Vector3((float) 200 * i, 200, (float) 200 * i));
-		plant->SetModelScale(Vector3(100,100,100));
-	
-		root->AddChild(plant);
-	/*}*/
+	root->AddChild(tree1);
 
 	init = true;
 }
@@ -111,28 +108,52 @@ Renderer::~Renderer(void)
 
 void Renderer::UpdateScene(float msec){
 
+	float debugMsec = msec;
+
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P))
 		pause = !pause;
 
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_T)){
+		toon = !toon;
+		SwitchToToon(toon);
+	}
+
 	camera->UpdateCamera(msec);
 
-	if (!pause){
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
-			movementVar += msec*0.0001f;
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_2)){
+		msec *= 0.1f;
+	}
 
+	if (!pause){
+
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_3)){
+			timeOfDay += msec*0.0001f;
 		} else {
-			movementVar += msec*0.001f;
+			timeOfDay += msec*0.001f;
 		}
+
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_4)){
+			timeOfDay = 25.0f;
+		}
+
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD0)){
+			timeOfDay = 0;
+			tree1->ResetTree();
+		}
+
+
+		timeOfDay = std::fmod(timeOfDay, 2 * PI);
 
 		UpdateParticles(msec);
 		UpdateSceneObjects(msec);
+		UpdateSkybox(msec);
 	}
 
 	UpdateShadersPerFrame();
 
 	//TEXT
 	UpdatePostProcess(msec);
-	UpdateDebug(msec);
+	UpdateDebug(debugMsec);
 
 }
 
@@ -215,6 +236,7 @@ void Renderer::DrawCombinedScene(){
 }
 
 void Renderer::UpdateShadersPerFrame(){
+	UpdateGenericShadersPF();
 	UpdateWaterShaderMatricesPF();
 	UpdateCombineSceneShaderMatricesPF();
 }
@@ -242,23 +264,22 @@ void Renderer::DrawString(const std::string& text, const Vector3& pos, const flo
 
 }
 
-void Renderer::DrawCylinder(){
-	SetCurrentShader(sceneShader);
+void Renderer::UpdateGenericShadersPF(){
+	SetCurrentShader(phong);
 
-	modelMatrix = Matrix4::Translation(Vector3(0, 1000, 0))
-		* Matrix4::Scale(Vector3(200,200,200));
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+		"cameraPos"), 1, (float*) &camera->GetPosition());
 
-	textureMatrix.ToIdentity();
+	SetShaderLight(*light);
 
-	this;
-	UpdateShaderMatrices();
-
-	/*glDisable(GL_CULL_FACE);*/
-	/*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);*/
-	cylinder->Draw();
-	/*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
-	/*glEnable(GL_CULL_FACE);*/
-
-	glUseProgram(0);
 }
 
+void Renderer::SwitchToToon(bool toon){
+
+	if (toon){
+		heightMap->SetTexture(HMToonTex);
+
+	} else {
+		heightMap->SetTexture(heightMapTex);
+	}
+}

@@ -2,6 +2,8 @@
 
 uniform sampler2D diffuseTex;
 
+uniform bool useTex;
+
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
 uniform vec3 lightPos;
@@ -19,7 +21,11 @@ out vec4 gl_FragColor;
 void main(void){
 	
 	//Base diffuse colour of the fragment
-	vec4 diffuse = texture(diffuseTex, IN.texCoord);
+	vec4 diffuse = vec4(1,0,0,1);
+	
+	if (useTex){
+		diffuse = texture(diffuseTex, IN.texCoord);
+	}
 	
 	//Work out the incident vector beween the currently interpolated fragment world pos
 	//and current lights world pos, normalized
@@ -57,5 +63,9 @@ void main(void){
 	
 	//Add some ambient lighting
 	gl_FragColor.rgb += (diffuse.rgb * lightColour.rgb) * 0.1;
+	
+	// gl_FragColor = diffuse;
+	//gl_FragColor = lightColour;
+	//gl_FragColor = vec4(1,1,1,1);
 
 }

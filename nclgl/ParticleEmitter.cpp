@@ -188,10 +188,13 @@ void	ParticleEmitter::ResizeArrays() {
 	glBindBuffer(GL_ARRAY_BUFFER, bufferObject[VERTEX_BUFFER]);
 	glBufferData(GL_ARRAY_BUFFER, particles.size()*sizeof(Vector3), 0, GL_DYNAMIC_DRAW);
 
+	bytes = particles.size()*sizeof(Vector3);
 
 	glGenBuffers(1, &bufferObject[COLOUR_BUFFER]);
 	glBindBuffer(GL_ARRAY_BUFFER, bufferObject[COLOUR_BUFFER]);
 	glBufferData(GL_ARRAY_BUFFER, particles.size()*sizeof(Vector4), 0, GL_DYNAMIC_DRAW);
+
+	bytes += particles.size()*sizeof(Vector3);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);	//Done with our buffers...
 

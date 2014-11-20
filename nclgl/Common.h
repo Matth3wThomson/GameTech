@@ -12,6 +12,9 @@ _-_-_-_-_-_-_-""  ""
 
 #pragma once
 
+//#include "../../GLEW/include/GL/glew.h"
+#include "GL/glew.h"
+
 #define WEEK_2_CODE
 #define WEEK_3_CODE
 
@@ -26,10 +29,22 @@ static inline double RadToDeg(const double deg)	{
 	return deg * 180.0 / PI;
 };
 
+//Arent these the wrong way around? You pass a radian value to be converted to
+//degrees!
 //Degrees to radians
 static inline double DegToRad(const double rad)	{
 	return rad * PI / 180.0;
 };
+
+static inline unsigned int GetLastTextureGPUMem(){
+	int w,h;
+
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+
+	return 4 * w * h;
+
+}
 
 //I blame Microsoft...
 #define max(a,b)    (((a) > (b)) ? (a) : (b))

@@ -7,7 +7,7 @@ bool Renderer::InitPostProcess(){
 	dubVis = false;
 	blur = false;
 	bloom  = false;
-	antiAlias = false;
+	fog = false;
 
 	blurShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"blurFrag.glsl");
@@ -21,8 +21,8 @@ bool Renderer::InitPostProcess(){
 	sobelDepthShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"sobelDepthFrag.glsl");
 
-	antiAliasShader = new Shader(SHADERDIR"TexturedVertex.glsl",
-		SHADERDIR"sobelAlias.glsl");
+	fogShader = new Shader(SHADERDIR"TexturedVertex.glsl",
+		SHADERDIR"fogFrag.glsl");
 
 	bloomShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"bloomFrag.glsl");
@@ -30,7 +30,7 @@ bool Renderer::InitPostProcess(){
 	if (!blurShader->LinkProgram() ||
 		!sobelDepthShader->LinkProgram() ||
 		!sobelShader->LinkProgram() ||
-		!antiAliasShader->LinkProgram() ||
+		!fogShader->LinkProgram() ||
 		!doubVisShader->LinkProgram() ||
 		!bloomShader->LinkProgram())
 		return false;
@@ -105,7 +105,7 @@ void Renderer::UpdatePostProcess(float msec){
 		bloom = !bloom;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_5))
-		antiAlias = !antiAlias;
+		fog = !fog;
 }
 
 void Renderer::DrawPostProcess(){
@@ -115,7 +115,7 @@ void Renderer::DrawPostProcess(){
 
 	if (sobel) Sobel();
 	if (sobelDepth) SobelDepth();
-	if (antiAlias) SobelAlias();
+	if (fog) SobelAlias();
 	if (bloom) Bloom();
 	if (dubVis) DoubleVision();
 	if (blur) Blur();
@@ -244,7 +244,7 @@ void Renderer::SobelAlias(){
 	//Clear it
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	SetCurrentShader(antiAliasShader);
+	SetCurrentShader(fogShader);
 	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
 		1.0f / width, 1.0f / height);
 	UpdateShaderMatrices();

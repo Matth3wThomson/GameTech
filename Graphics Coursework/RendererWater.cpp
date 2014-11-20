@@ -1,7 +1,6 @@
 #include "Renderer.h"
 
 bool Renderer::InitWater(){
-	waterTex = 0;
 	
 	reflectShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
 		SHADERDIR"reflectBumpFrag.glsl");
@@ -24,33 +23,34 @@ bool Renderer::InitWater(){
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"cubeTex"), 3);
 
-	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"blue3.png",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	waterQuad = Mesh::GenerateQuad();
+
+	waterQuad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"blue3.png",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	if (!waterQuad->GetTexture())
+		return false;
+
+	SetTextureRepeating(waterQuad->GetTexture(), true);
 
 	GLfloat aniso;
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 
-	waterBump = SOIL_load_OGL_texture(TEXTUREDIR"waves.jpg",
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	waterQuad->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"waves.jpg",
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	if (!waterQuad->GetBumpMap())
+		return false;
+
+	SetTextureRepeating(waterQuad->GetBumpMap(), true);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 
-	if (!waterTex)
-		return false;
+	
 
-	if (!waterBump)
-		return false;
-
-
-	//TODO: Make the water slightly transparent!?
-	waterQuad = Mesh::GenerateQuad();
-
-	waterQuad->SetTexture(waterTex);
-	waterQuad->SetBumpMap(waterBump);
-
-	waterNode = new SceneNode(waterQuad, Vector4(1,1,1,1));
+	waterNode = new SceneNode(waterQuad, Vector4(1,1,1,0.5));
 	waterNode->SetPosition(Vector3(-1115.9f,150,-1501.6f));/* *
 		Matrix4::Rotation(90, Vector3(1,0,0)));*/
 
@@ -58,15 +58,14 @@ bool Renderer::InitWater(){
 	waterNode->SetModelRotation(90, Vector3(1,0,0));
 		/*Matrix4::Scale(Vector3(939.3f,554.9f,1)));*/
 	waterNode->SetBoundingRadius(1000);
-	waterNode->SetColour(Vector4(1,1,1,0.5));
+	//waterNode->SetColour(Vector4(1,1,1,0.5));
 
 	waterNode->SetShader(reflectShader);
 	waterNode->SetUpdateShaderFunction([this](){ UpdateWaterShaderMatricesPO(); } );
+	waterNode->SetSpecularPower(50);
+	waterNode->SetSpecularFactor(0.33f);
 
 	root->AddChild(waterNode);
-
-	SetTextureRepeating(waterTex, true);
-	SetTextureRepeating(waterBump, true);
 
 	return true;
 }
@@ -83,6 +82,7 @@ void Renderer::UpdateWaterShaderMatricesPO(){
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram(),
 			"shadowVPMatrix"),1,false, tempMatrix.values);
 
+	//TODO: Make this not frame specific!
 	rotation += 0.05f;
 
 	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) *

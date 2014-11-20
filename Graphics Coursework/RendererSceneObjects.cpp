@@ -20,9 +20,15 @@ bool Renderer::InitSceneObjects(){
 
 	std::cout << "gl error: " << glGetError() << std::endl;
 
-	heightMap->SetTexture(SOIL_load_OGL_texture(
+	heightMapTex = SOIL_load_OGL_texture(
 		TEXTUREDIR"Barren reds.jpg", SOIL_LOAD_AUTO,
-		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	HMToonTex = SOIL_load_OGL_texture(
+		TEXTUREDIR"brown.png", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	heightMap->SetTexture(heightMapTex);
 
 	heightMap->SetBumpMap(SOIL_load_OGL_texture(
 		TEXTUREDIR"Barren redsDOT3.jpg", SOIL_LOAD_AUTO, 
@@ -37,6 +43,7 @@ bool Renderer::InitSceneObjects(){
 
 	SetTextureRepeating(heightMap->GetTexture(), true);
 	SetTextureRepeating(heightMap->GetBumpMap(), true);
+	SetTextureRepeating(HMToonTex, true);
 
 	std::cout << "gl error: " << glGetError() << std::endl;
 
@@ -80,10 +87,12 @@ void Renderer::DeleteSceneObjects(){
 
 void Renderer::UpdateSceneObjects(float msec){
 
-	light->SetPosition(Vector3(2000.0f, 5000.0f, 0)); //MIDDAY
-	//light->SetPosition(Vector3(2000.0f * cos(movementVar), 5000.0f * cos(movementVar), 5000.0f * sin(movementVar)));
+	//light->SetPosition(Vector3(2000.0f, 5000.0f, 0)); //MIDDAY
+
+	/*light->SetPosition(Vector3(2000.0f * cos(timeOfDay), 5000.0f * cos(timeOfDay), 5000.0f * sin(timeOfDay)));*/
+	light->SetPosition(Vector3(2000.0f * sin(timeOfDay), 5000.0f * sin(timeOfDay), 5000.0f * cos(timeOfDay)));
 	
-	//light->SetRadius(max(6000.0f +  55000.0f * cos(movementVar), 0.0f));
+	light->SetRadius(max(6000.0f +  55000.0f * sin(timeOfDay), 0.0f));
 
 	lightSource->SetPosition(light->GetPosition());
 	//lightSource->SetModelScale(Vector3(100.0f, 100.0f, 100.0f));
@@ -104,9 +113,9 @@ void Renderer::UpdateSceneObjects(float msec){
 	root->Update(msec);
 }
 
-/*if (light->GetPosition().y < -500) light->SetRadius(sin(movementVar) * 8000.0f);
+/*if (light->GetPosition().y < -500) light->SetRadius(sin(timeOfDay) * 8000.0f);
 	else light->SetRadius(55000.0f);*/
-	/*if (light->GetPosition().y > -500) light->SetRadius(9000.0f + 500000.0f * cos(movementVar));
+	/*if (light->GetPosition().y > -500) light->SetRadius(9000.0f + 500000.0f * cos(timeOfDay));
 	else light->SetRadius(1000.0f);*/
 
 void Renderer::BuildNodeLists(SceneNode* from, const Vector3& viewPos){

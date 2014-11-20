@@ -12,9 +12,13 @@ SceneNode::SceneNode(Mesh* mesh, Vector4 colour){
 	distanceFromCamera = 0.0f;
 
 	parent = NULL;
+	scaleWithParent = true;
 	modelScale = Vector3(1,1,1);
 	angle = 0;
 	rotationAxis = Vector3(0,1,0);
+
+	specularPower = 33.0f;
+	specularFactor = 0.3f;
 }
 
 SceneNode::~SceneNode(void)
@@ -43,10 +47,16 @@ void SceneNode::Draw(OGLRenderer& r, const bool useShader){
 
 	if (mesh && shader){
 		if (useShader) r.SetCurrentShader(shader);
-		
 
-		
+		r.textureMatrix.ToIdentity();
+
 		r.modelMatrix = worldTransform *  Matrix4::Scale(worldScale * modelScale);
+
+		glUniform1i(glGetUniformLocation(r.currentShader->GetProgram(),
+			"specularPower"), specularPower);
+
+		glUniform1f(glGetUniformLocation(r.currentShader->GetProgram(),
+			"specFactorMod"), specularFactor);
 
 		if (useShader) updateShaderFunction();
 
@@ -64,16 +74,26 @@ void SceneNode::Update(float msec){
 
 		//We need to work out its parents relative scale. That is, the
 		//scale of its parent
-		worldScale = parent->modelScale * parent->worldScale;
 
-		//We need to transform ourselves relative to our parent's scale, to maintain
-		//correct distance from it. For example, if a person gets larger, we want the arm
-		//still to be connected to the shoulder!
-		transform =  Matrix4::Translation(position * worldScale) * GetRotationMatrix();
+		/*if (scaleWithParent){*/
+			worldScale = parent->modelScale * parent->worldScale;
+
+			//We need to transform ourselves relative to our parent's scale, to maintain
+			//correct distance from it. For example, if a person gets larger, we want the arm
+			//still to be connected to the shoulder!
+			transform =  Matrix4::Translation(position * worldScale) * GetRotationMatrix();
+
+		/*} else {
+			worldScale = Vector3(1,1,1);
+			transform = Matrix4::Translation(position);
+		}*/
+
+		if (!scaleWithParent)
+			worldScale = Vector3(1,1,1);
 
 		//Finally, our world transform is our parents world transform multiplied by ours.
 		worldTransform = parent->worldTransform * transform;
-		
+
 	} else {
 
 		//We are the parent, so we transform based on noone!

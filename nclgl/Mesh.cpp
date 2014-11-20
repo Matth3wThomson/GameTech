@@ -14,6 +14,7 @@ Mesh::Mesh(void)
 	numVertices = 0;
 	texture = 0;
 	bumpTexture = 0;
+	bytes = 0;
 
 	vertices = NULL;
 	normals = NULL;
@@ -124,7 +125,7 @@ Mesh* Mesh::GenerateTransQuad(){
 
 }
 
-Mesh* Mesh::GenerateBAQuad(){
+Mesh* Mesh::GenerateBAQuad(bool normals){
 	Mesh* m = new Mesh();
 	m->numVertices = 4;
 	m->type = GL_TRIANGLE_STRIP;
@@ -143,8 +144,18 @@ Mesh* Mesh::GenerateBAQuad(){
 	m->textureCoords[2] = Vector2(1.0f, 1.0f);
 	m->textureCoords[3] = Vector2(1.0f, 0.0f);
 
-	for (int i=0; i<4; ++i)
+	if (normals){
+		m->normals = new Vector3[m->numVertices];
+
+		for (unsigned int i=0; i<m->numVertices; ++i)
+			//TODO: Determine if this is the wrong way around!
+			m->normals[i] = Vector3(0,0,-1);
+		
+	}
+
+	for (unsigned int i=0; i<m->numVertices; ++i){
 		m->colours[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	}
 
 	m->BufferData();
 	return m;
@@ -396,6 +407,8 @@ void Mesh::BufferData(){
 	glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(Vector3),
 		vertices, GL_STATIC_DRAW);
 
+	bytes += numVertices*sizeof(Vector3);
+
 	//Tell gl that each attribute is 3 floats
 	glVertexAttribPointer(VERTEX_BUFFER, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(VERTEX_BUFFER);
@@ -408,6 +421,8 @@ void Mesh::BufferData(){
 		//Buffer our texture coordinate data
 		glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(Vector2),
 			textureCoords, GL_STATIC_DRAW);
+
+		bytes += numVertices*sizeof(Vector2);
 
 		//Tell gl that each attribute is 2 floats, and enable the vertex attrib array
 		glVertexAttribPointer(TEXTURE_BUFFER, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -423,6 +438,8 @@ void Mesh::BufferData(){
 		glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(Vector4),
 			colours, GL_STATIC_DRAW);
 
+		bytes += numVertices*sizeof(Vector4);
+
 		//Tell openGL that each attribute is 4 floats
 		glVertexAttribPointer(COLOUR_BUFFER, 4, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(COLOUR_BUFFER);
@@ -436,6 +453,8 @@ void Mesh::BufferData(){
 
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices*sizeof(GLuint),
 			indices, GL_STATIC_DRAW);
+
+		bytes += numIndices*sizeof(GLuint);
 	}
 
 	if (normals){
@@ -446,6 +465,8 @@ void Mesh::BufferData(){
 		//Buffer the data to the GPU
 		glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(Vector3),
 			normals, GL_STATIC_DRAW);
+
+		bytes += numVertices*sizeof(Vector3);
 
 		//Tell the gpu that each attrib is 3 floats, and enable it
 		glVertexAttribPointer(NORMAL_BUFFER, 3, GL_FLOAT, GL_FALSE,0,0);
@@ -461,6 +482,8 @@ void Mesh::BufferData(){
 		//Buffer the tangent data
 		glBufferData(GL_ARRAY_BUFFER, numVertices*sizeof(Vector3),
 			tangents, GL_STATIC_DRAW);
+
+		bytes += numVertices*sizeof(Vector3);
 
 		//Tell GL each compenent is 3 floats and enable the vbo
 		glVertexAttribPointer(TANGENT_BUFFER, 3, GL_FLOAT, GL_FALSE, 0, 0);

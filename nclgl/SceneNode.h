@@ -24,6 +24,9 @@ public:
 	Vector4 GetColour() const { return colour; }
 	void SetColour(Vector4 c){ colour = c; }
 
+	void SetScaleWithParent(bool scale){ scaleWithParent = scale; };
+	bool GetScaleWithParent(){ return scaleWithParent; };
+
 	Vector3 GetModelScale() const { return modelScale; }
 	void SetModelScale(Vector3 s){ modelScale = s; }
 	Vector3 GetWorldScale() const{ return worldScale; };
@@ -58,6 +61,12 @@ public:
 	float GetCameraDistance()const { return distanceFromCamera; }
 	void SetCameraDistance(float f){ distanceFromCamera = f; }
 
+	float GetSpecularFactor(){ return specularFactor; };
+	void SetSpecularFactor(float sf){ specularFactor = sf; };
+
+	int GetSpecularPower(){ return specularPower; };
+	void SetSpecularPower(int sp){ specularPower = sp; };
+
 	static bool CompareByCameraDistance(SceneNode* a, SceneNode* b){
 		return (a->distanceFromCamera < b->distanceFromCamera) ? true : false;
 	}
@@ -75,6 +84,8 @@ protected:
 
 	std::function<void()> updateShaderFunction;
 
+	bool scaleWithParent;
+
 	Matrix4 worldTransform;
 	Matrix4 transform;
 
@@ -88,6 +99,9 @@ protected:
 
 	float distanceFromCamera;
 	float boundingRadius;
+
+	int specularPower;
+	float specularFactor;
 
 	Vector4 colour;
 	std::vector<SceneNode*> children;

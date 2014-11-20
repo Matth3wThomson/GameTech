@@ -18,7 +18,7 @@ public:
 	static Mesh* GenerateTriangle();
 	static Mesh* GenerateQuad();
 	static Mesh* GenerateTransQuad();
-	static Mesh* GenerateBAQuad();
+	static Mesh* GenerateBAQuad(bool normals);
 	static Mesh* GenerateCylinder(int accuracy, float topOffset = 1.0f);
 
 	void SetTexture(GLuint tex){ texture = tex; }
@@ -26,6 +26,9 @@ public:
 
 	void SetBumpMap(GLuint tex){ bumpTexture = tex; }
 	GLuint GetBumpMap(){ return bumpTexture; }
+
+	//Note this does not include texture memory!
+	unsigned int GetGPUMemoryUsed(){ return bytes; };
 
 protected:
 	
@@ -37,7 +40,6 @@ protected:
 		const Vector2& tb, const Vector2& tc);
 
 	void BufferData();
-
 
 	GLuint arrayObject;
 	GLuint bufferObject[MAX_BUFFER];
@@ -55,5 +57,7 @@ protected:
 	Vector4* colours;
 	Vector2* textureCoords;
 	unsigned int* indices;
+
+	unsigned int bytes;
 };
 

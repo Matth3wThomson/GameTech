@@ -88,6 +88,9 @@ time lighting tutorial, uncomment both OBJ_USE_NORMALS and OBJ_USE_TANGENTS_BUMP
 #define OBJNORM		"vn"		//the current line of the obj file defines a normal
 #define OBJFACE		"f"			//the current line of the obj file defines a face
 
+#define OBJ_USE_NORMALS
+//#define CREATE_TEX_COORD //TODO: Remove this as its not very good!
+
 /*
 OBJSubMesh structs are used to temporarily keep the data loaded 
 in from the OBJ files, before being parsed into a series of

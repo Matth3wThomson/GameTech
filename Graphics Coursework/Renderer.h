@@ -14,18 +14,18 @@
 #include <algorithm>
 #include <sstream>
 
-//TODO: Make sure the far plane is far enough for light frustum culling!
+
 //TODO: Make shaders matrices multiplied pre-draw function
 //TODO: Bounding boxes http://fgiesen.wordpress.com/2010/10/17/view-frustum-culling/
 //TODO: Store a "camera view and proj" and "light view and proj" to save reinstantiation
 //TODO: Make post process only be used if the passes > 0
-//TODO: GL CULL FACE NEEDS TO BE CALLED ONLY IN DRAW FUNCTIONS!
 //TODO: Combine light node and source to become one!?
 //TODO: Get textures and bump maps back onto hell knight
 //TODO: Make everything possible scene nodes so frustum culling makes sense!?
 //TODO: Sort out the open GL issues found and hence why nvidia nsight isnt working,
 	//and remove all the debugging code!!
 //TODO: Have the map overlay inserted into the final scene!
+//TODO: Input a fog colour based on the time of day so that we dont gain lighting at night!
 
 
 #define SHADOWSIZE 2048 * 8
@@ -50,11 +50,16 @@ protected:
 	//Generic Shaders
 	Shader* passThrough;
 
+	//TODO: Rename this
+	Shader* phong;
+
+	void UpdateGenericShadersPF();
+
 	void UpdateShadersPerFrame();
 
 	//Functionality properties
 	bool pause;
-	float movementVar;
+	float timeOfDay;
 	int anim;
 
 	//TEMPORARY!
@@ -90,10 +95,13 @@ protected:
 	bool InitSkybox();
 	void DeleteSkybox();
 
+	void UpdateSkybox(float msec);
 	void DrawSkybox();
 
 	Shader* skyboxShader;
 	GLuint cubeMap;
+
+	float skyboxLight;
 
 	//Water additions!
 	bool InitWater();
@@ -104,8 +112,6 @@ protected:
 	//void DrawWater(bool shadowMap = false);
 
 	Shader* reflectShader;
-	GLuint waterTex;
-	GLuint waterBump;
 	SceneNode* waterNode;
 	Mesh* waterQuad;
 
@@ -115,11 +121,17 @@ protected:
 	void UpdateSceneObjects(float msec);
 	void DeleteSceneObjects();
 
+	bool toon;
+	void SwitchToToon(bool toon);
+
 	Mesh* quad;
 	Mesh* sphere;
 	MD5FileData* hellData;
+
 	Mesh* heightMap;
-	
+	GLuint heightMapTex;
+	GLuint HMToonTex;
+
 	SceneNode* root;
 	MD5Node* hellNode;
 	SceneNode* heightMapNode;
@@ -161,11 +173,11 @@ protected:
 	Shader* sobelDepthShader;
 	Shader* doubVisShader;
 	Shader* bloomShader;
-	Shader* antiAliasShader;
+	Shader* fogShader;
 
 	bool sobel;
 	bool sobelDepth;
-	bool antiAlias;
+	bool fog;
 	bool blur;
 	bool dubVis;
 	bool bloom;
@@ -238,10 +250,11 @@ protected:
 	bool drawBound;
 	//End Debugging Properties
 
-	//PLANT STUFF!?
-	Mesh* cylinder;
+	//PLANT STUFF
+	TreeNode* tree1;
+	/*Mesh* cylinder;
 
-	void DrawCylinder();
+	void DrawCylinder();*/
 	//End plant stuff 
 
 };

@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+
+//TODO: Possibly use 2 skyboxes?
 bool Renderer::InitSkybox(){
 	skyboxShader = new Shader(SHADERDIR"skyboxVertex.glsl",
 		SHADERDIR"skyboxFragment.glsl");
@@ -18,8 +20,19 @@ bool Renderer::InitSkybox(){
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
+	skyboxLight = 1.0f;
+
 	return true;
 
+}
+
+void Renderer::UpdateSkybox(float msec){
+
+	skyboxLight = min(0.1 + sin(min(timeOfDay, PI)), 1.0f);
+
+	//TODO: Remove
+	/*std::cout << "timeofday: " << timeOfDay << std::endl;
+	std::cout << skyboxLight << std::endl;*/
 }
 
 void Renderer::DrawSkybox(){
@@ -34,6 +47,10 @@ void Renderer::DrawSkybox(){
 	modelMatrix = Matrix4::GetIdentitiy();
 	viewMatrix = camera->BuildViewMatrix();
 	projMatrix = cameraProjMat;
+
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
+		"blend"), skyboxLight);
+
 	UpdateShaderMatrices();
 
 	quad->Draw();
