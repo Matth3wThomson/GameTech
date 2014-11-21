@@ -149,7 +149,7 @@ void Renderer::UpdateSceneObjects(float msec){
 
 	light->SetPosition(Vector3(2000.0f * sin(timeOfDay), 5000.0f * sin(timeOfDay), 5000.0f * cos(timeOfDay)));
 	
-	light->SetRadius(max(6000.0f +  55000.0f * sin(timeOfDay), 0.0f));
+	light->SetRadius(max(10000.0f +  55000.0f * sin(timeOfDay), 0.0f));
 
 	lightSource->SetPosition(light->GetPosition());
 
