@@ -14,24 +14,24 @@
 #include <algorithm>
 #include <sstream>
 
-//TODO: Make all init methods return a bool
-//TODO: Make shaders matrices multiplied pre-draw function
-//TODO: Bounding boxes http://fgiesen.wordpress.com/2010/10/17/view-frustum-culling/
-//TODO: Store a "camera view and proj" and "light view and proj" to save reinstantiation
-//TODO: Make post process only be used if the passes > 0
-//TODO: Combine light node and source to become one!?
-//TODO: Get textures and bump maps back onto hell knight
-//TODO: Make everything possible scene nodes so frustum culling makes sense!?
-//TODO: Sort out the open GL issues found and hence why nvidia nsight isnt working,
-	//and remove all the debugging code!!
-//TODO: Have the map overlay inserted into the final scene!
-//TODO: Input a fog colour based on the time of day so that we dont gain lighting at night!
-
 
 #define SHADOWSIZE 2048 * 8
 #define BLUR_PASSES 5
 #define FONT_SIZE 16.0f
 
+
+/**
+	NOTES:
+		-In an effort to make this class more tidy I have put all methods relevant to
+		 elements in the scene into their own CPP file where necessary. I have stuck to a
+		 particular format of Init -> Update -> Draw -> Delete for each section where
+		 relevant to ease readability.
+		-To maintain this cleanliness, all methods comments will be written in the cpp file.
+		-Because methods started to get fairly long winded names, there are a few acronyms used:
+			-PF -> Per frame
+			-PO -> Per object
+			-HM -> heightMap
+*/
 class Renderer : public OGLRenderer
 {
 public:
@@ -51,7 +51,6 @@ protected:
 	//Generic Shaders
 	Shader* passThrough;
 
-	//TODO: Rename this
 	Shader* phong;
 
 	void UpdateGenericShadersPF();
@@ -64,21 +63,13 @@ protected:
 	int anim;
 
 	bool timeSlowed;
-	bool lightTimeSlowed;
-
-	//TEMPORARY!
-	float rotation;
-	Vector3 scale;
-	Vector3 quadPos;
+	bool dayTimeSpeedIncrease;
 
 	//Lighting
 	Light* light;
 	SceneNode* lightSource;
 
-	void DrawLight(const Light* light);
-	//End lighting
-
-	//HEIGHTMAP MULTI TEX EXTRAS
+	//Heightmap multitexturing
 	void UpdateHeightMapShaderPO();
 	void UpdateHeightMapShaderPF();
 
@@ -91,7 +82,7 @@ protected:
 	GLuint heightMapHighTex;
 	GLuint HMToonHighTex;
 
-	//SKYBOX STUFF
+	//Skybox
 	bool InitSkybox();
 	void DeleteSkybox();
 
@@ -103,7 +94,7 @@ protected:
 
 	float skyboxLight;
 
-	//Water additions!
+	//Water
 	bool InitWater();
 	void DeleteWater();
 
@@ -111,17 +102,17 @@ protected:
 	void UpdateWaterShaderMatricesPO();
 	void UpdateWaterShaderMatricesPF();
 
-	//void DrawWater(bool shadowMap = false);
-
 	Shader* reflectShader;
 	SceneNode* waterNode;
 	Mesh* waterQuad;
+	float rotation;
 
 	//Scene Objects
-	//TODO: Compress objects we no longer need access too!
 	bool InitSceneObjects();
 	void UpdateSceneObjects(float msec);
 	void DeleteSceneObjects();
+
+	Shader* sunShader;
 
 	bool toon;
 	void SwitchToToon(bool toon);
@@ -142,10 +133,8 @@ protected:
 	void BuildNodeLists(SceneNode* from, const Vector3& viewPos, bool transparents = true);
 	void SortNodeLists();
 	void ClearNodeLists();
-	
-	//End scene objects
 
-	//TODO: Post Proccess additions
+	//POST PROCESS
 	bool InitPostProcess();
 	void DeletePostProcess();
 	void UpdatePPShaderMatrices();
@@ -167,12 +156,12 @@ protected:
 	GLuint bufferTex;
 
 	Shader* blurShader;
+	Shader* doubVisShader;
 	Shader* sobelShader;
 	Shader* sobelDepthShader;
 	Shader* quantizeColShader;
-	Shader* doubVisShader;
-	Shader* bloomShader;
 	Shader* fogShader;
+	Shader* bloomShader;
 
 	bool sobel;
 	bool sobelDepth;
@@ -190,22 +179,19 @@ protected:
 	void Sobel();
 	void SobelDepth();
 	void QuantizeCol();
-	void SobelAlias();
+	void Fog();
 	void DoubleVision();
 	void Blur();
 
 	void PresentScene();
-	//End of post process additions
 
-	//PARTICLE EMISSION STUFF
+	//PARTICLE EMISSION
 	Shader* particleShader;
 	ParticleEmitter* rain;
 	ParticleEmitter* snow;
 
 	ParticleEmitterNode* rainNode;
 	ParticleEmitterNode* snowNode;
-
-	void UpdateParticleShaderMatricesPO();
 
 	bool raining;
 	bool snowing;
@@ -214,13 +200,11 @@ protected:
 	void DeleteParticles();
 
 	void UpdateParticles(float msec);
-	//End attempt particle emission
 
 	//Text additions
 	Font* basicFont;
 
 	void DrawString(const std::string& text, const Vector3& pos, const float size = 10.0f, const bool perspective = false);
-	//End text additions
 
 	//Debugging properties
 	bool InitDebug();
@@ -229,8 +213,6 @@ protected:
 
 	void DrawDebugOverlay();
 	void DrawBounds(SceneNode* node);
-	//TODO: Finish this!
-	void DrawFrustum();
 
 	static bool debug;
 
@@ -241,9 +223,8 @@ protected:
 	int objectsDrawn;
 	int objectsShadowed;
 	bool drawBound;
-	//End Debugging Properties
 
-	//PLANT STUFF
+	//PLANTS
 	TreeNode* tree1;
 	TreeNode* tree2;
 	
@@ -273,7 +254,6 @@ protected:
 
 	GLuint fireParticleTex;
 
-	//Make the rest of the program use this method?
 	void GenerateScreenTexture(GLuint& into, bool depth = false);
 
 	void FillBuffers();
@@ -284,7 +264,6 @@ protected:
 	int numPointLights;
 	Mesh* icoSphere;
 
-	Shader* deferredSceneShader;
 	Shader* pointLightShader;
 	Shader* combineShader;
 

@@ -55,9 +55,11 @@ In our destructor, we must make sure we delete the particles held in BOTH
 of our lists!
 */
 ParticleEmitter::~ParticleEmitter(void)	{
+
 	for(std::vector<Particle *>::iterator i = particles.begin(); i != particles.end(); ++i) {
 		delete (*i);
 	}
+
 	for(std::vector<Particle *>::iterator i = freeList.begin(); i != freeList.end(); ++i) {
 		delete (*i);
 	}

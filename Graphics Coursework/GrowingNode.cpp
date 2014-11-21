@@ -11,8 +11,7 @@ GrowingNode::GrowingNode(Vector3& maxScale, float timeToTake, Vector4& colour):
 }
 
 
-GrowingNode::~GrowingNode(void)
-{
+GrowingNode::~GrowingNode(void){
 }
 
 void GrowingNode::Update(float msec){

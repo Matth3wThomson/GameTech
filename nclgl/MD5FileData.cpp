@@ -251,7 +251,7 @@ void	MD5FileData::LoadShaderProxy(std::string filename, MD5SubMesh &m) {
 	filename = filename.substr(1,filename.size()-2);
 	int at = filename.find_last_of('/');
 
-	std::ifstream f("../../Meshes/" + filename.substr(at+1) + ".proxy",std::ios::in);
+	std::ifstream f(MESHDIR + filename.substr(at+1) + ".proxy",std::ios::in);
 
 	if(!f) {	//Oh dear.
 		return;

@@ -5,11 +5,11 @@
 
 int main() {
 
-	Window w("Matthew Thomson Coursework", 1280,720,false);
+	Window w("Matthew Thomson Coursework", 1920,1080,true);
 	if(!w.HasInitialised()) {
 		return -1;
 	}
-	
+
 	Renderer renderer(w);//This handles all the boring OGL 3.2 initialisation stuff, and sets up our tutorial!
 	if(!renderer.HasInitialised()) {
 		return -1;
@@ -26,4 +26,6 @@ int main() {
 	}
 
 	return 0;
+
+
 }

@@ -13,7 +13,7 @@ class GrowingNode : public SceneNode
 {
 public:
 	GrowingNode(Vector3& maxScale, float timeToTake, Vector4& colour);
-	~GrowingNode(void);
+	virtual ~GrowingNode(void);
 
 	virtual void Update(float msec);
 

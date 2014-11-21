@@ -6,9 +6,10 @@
 
 /*
 	NOTES:
-		-Must be a seperate class as it needs to mess with openGL state in order to
-		 draw itself correctly. It also needs a different kind of mesh, which has
-		 an update method, and therefore needed to update it!
+		-Must be a seperate class as it needs a different kind of mesh, which has
+		 an update method, and therefore needed to update it! It also needs object specific
+		 shader uploads.
+		-Get Mesh was overriden as the program uses it to determine if a node is drawable.
 		 
 */
 
@@ -16,8 +17,13 @@ class ParticleEmitterNode :
 	public SceneNode
 {
 public:
-	ParticleEmitterNode(Vector4 colour = Vector4(1,1,1,0.5)):SceneNode(NULL, colour){};
-	virtual ~ParticleEmitterNode(void){};
+	ParticleEmitterNode(Vector4 colour = Vector4(1,1,1,0.5)):SceneNode(NULL, colour){
+		pe = NULL;
+	};
+
+	virtual ~ParticleEmitterNode(void){
+		delete pe;
+	};
 
 	void SetParticleEmitter(ParticleEmitter* pe){ this->pe = pe; };
 	ParticleEmitter* GetParticleEmitter() const { return pe; };
@@ -37,15 +43,7 @@ public:
 
 		r.UpdateShaderMatrices();
 
-		//glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA,GL_ONE);
-		//glDepthMask(GL_FALSE);
-
 		pe->Draw();
-
-		/*glDepthMask(GL_TRUE);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
-		//glDisable(GL_BLEND);
 
 		glUseProgram(0);
 	};

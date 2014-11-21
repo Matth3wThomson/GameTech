@@ -57,7 +57,7 @@ We want to reset all of the animation details
 	currentAnim			= sourceData.GetAnim(name);
 }
 
-void	MD5Node::Draw(OGLRenderer &r) {
+void	MD5Node::Draw(OGLRenderer &r, bool useShader){
 	MD5Mesh*m = (MD5Mesh*)mesh;
 
 	/*
@@ -96,8 +96,7 @@ void	MD5Node::Draw(OGLRenderer &r) {
 	//Finally, we draw the mesh, just like the base class Draw function...
 	//m->Draw();
 
-	SceneNode::Draw(r);
-	//TODO: This should call the parent's method?
+	SceneNode::Draw(r, useShader);
 }
 
 

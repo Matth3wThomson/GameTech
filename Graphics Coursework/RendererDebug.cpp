@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+//This method will initialise all things debugging
 bool Renderer::InitDebug(){
 	basicFont = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
@@ -19,10 +20,10 @@ bool Renderer::InitDebug(){
 }
 
 void Renderer::DeleteDebug(){
-
 	delete basicFont;
 }
 
+//Count our frame rate!
 void Renderer::UpdateDebug(float msec){
 	timeAcc += msec;
 	frames++;
@@ -37,6 +38,7 @@ void Renderer::UpdateDebug(float msec){
 	}
 }
 
+//Method to draw the overlay
 void Renderer::DrawDebugOverlay(){
 	SetCurrentShader(passThrough);
 
@@ -69,14 +71,17 @@ void Renderer::DrawDebugOverlay(){
 
 	if (toon) buff << "Toon textures ";
 	if (pause) buff << "Time paused ";
-	if (lightTimeSlowed) buff << "Light slowed ";
-	if (timeSlowed) buff << "Time slowed";
+	if (dayTimeSpeedIncrease) buff << "Day/night cycle speed increased ";
+	if (timeSlowed) buff << "Time slowed ";
+	if (raining) buff << "Rain ";
+	if (snowing) buff << "Snow ";
 
 	DrawString(buff.str(), Vector3(0,4*FONT_SIZE,0.5f), FONT_SIZE);
 
 	glUseProgram(0);
 }
 
+//Method to draw the bounds of a given sceneNode
 void Renderer::DrawBounds(SceneNode* n){
 	
 	glDisable(GL_CULL_FACE);
@@ -98,32 +103,4 @@ void Renderer::DrawBounds(SceneNode* n){
 	glUseProgram(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_CULL_FACE);
-}
-
-//TODO: Lots of reinstantiation of view and proj matrix!
-void Renderer::DrawFrustum(){
-	Plane* planes = frameFrustum.Get6Planes();
-
-	SetCurrentShader(passThrough);
-
-	for (int i=0; i<6; ++i){
-		modelMatrix = Matrix4::Translation(planes[i].GetNormal()
-			* planes[i].GetDistance())
-			* Matrix4::Translation(light->GetPosition())
-			* Matrix4::Scale(Vector3(1000,1000,1))
-			* Matrix4::Rotation(90, -planes[i].GetNormal());
-
-		viewMatrix = camera->BuildViewMatrix();
-		projMatrix = cameraProjMat;
-
-		UpdateShaderMatrices();
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		quad->SetTexture(0);
-		quad->Draw();
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	}
-
-	glUseProgram(0);
 }

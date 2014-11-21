@@ -6,8 +6,13 @@
 #include "ParticleEmitterNode.h"
 #include "GrowingNode.h"
 
-
-//TODO: Could remove relative scaling, and just have relative positioning on branches!?
+/*
+	NOTE:
+		-Meshes used in this class are static to prevent reinstantiation of the same mesh.
+			-In order to prevent multiple deletion, the class has a counter to count
+			 the number of objects of this class that has been instantiated, and only
+			 deletes these meshes if it is the last object to be deleted.
+*/
 
 //Investigate why this isnt scaled accoring to a given scale...
 #define MAX_TREE_HEIGHT 750.0f //The size of a tree
@@ -18,11 +23,10 @@
 #define LEAF_GROW_TIME 10000 //The time it takes for a leaf to get to full size
 #define FRUIT_GROW_TIME 10000	//The time it takes for a fruit to get to full size
 
-//TODO: Remove relative pos
 class TreeNode : public SceneNode
 {
 public:
-	//The constructor used for creating the root of the tree (or trunk)
+	
 	TreeNode(Shader* particleShader, Shader* fruitShader);
 
 	virtual ~TreeNode(void);
@@ -32,7 +36,11 @@ public:
 
 	unsigned int GetGPUMemUsage();
 	float GetGrowthAmount(){ return growthAmount; }
+
+	//Function to switch on toon textures that have been loaded in
 	void SwitchToToon(bool toon);
+
+	//Method to reset the tree to its beginning state
 	void ResetTree();
 
 protected:
@@ -43,14 +51,16 @@ protected:
 	//Growth functions
 	bool stillGrowing;	
 
+	//Function for growing the tree over time
 	float TendToOne(float x);
+
 	static float growthSpeed;
-	float growthAmount;
+	float growthAmount; //The amount the tree has grown
 
-	float lastBranch;
-	float branchInterval;
+	float lastBranch;	//The timestamp of the last branch to be added
+	float branchInterval; //The interval to add branches
 
-	float timePassed;
+	float timePassed; //The amount of time that has passed
 
 	//Recursion limits
 	int depth;
@@ -73,6 +83,10 @@ protected:
 
 	//Particles
 	void AddParticleEmitter();
+
+	//Because this class adds particle emitters with their own meshes
+	//that dynamically increase in size over time, we have to have a method
+	//that searches the tree for particle emitters to calculate their sizes
 	unsigned int GetParticleEmitterSizes();
 
 	//Trunk and branch mesh

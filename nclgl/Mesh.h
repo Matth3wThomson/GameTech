@@ -11,7 +11,7 @@ class Mesh
 {
 public:
 	Mesh(void);
-	~Mesh(void);
+	virtual ~Mesh(void);
 
 	virtual void Draw();
 

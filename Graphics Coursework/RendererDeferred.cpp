@@ -1,8 +1,17 @@
-
 #include "Renderer.h"
 
+/*
+	NOTES:
+		-To combine shadows with deferred rendering, we have to do forward lighting
+		 calculations, and record the "original scene colour" in order to apply our
+		 deferred lights correctly. "Original scene colour" is simply the full diffuse tex
+		 of the scene if it were to be illuminated entirely with no specularity
+*/
+
+//A set lightRadius
 #define LIGHTRADIUS 500
 
+//Easier for looping!
 Vector3 lightPositions[5] = {
 	Vector3(300, 50, 1500), 
 	Vector3(500, 50, 500), 
@@ -11,8 +20,10 @@ Vector3 lightPositions[5] = {
 	Vector3(-1000, 190, -1500)
 								};
 
+//This method initialises all things for deferred rendering
 bool Renderer::InitDeferredRendering(){
 
+	//Make the fires share a texture... dont want to be wasting memory!
 	fireParticleTex = SOIL_load_OGL_texture(TEXTUREDIR"particle.tga",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
@@ -20,7 +31,7 @@ bool Renderer::InitDeferredRendering(){
 
 	pointLights = new Light[numPointLights];
 
-	//Create our deferred lights here!
+	//Create our deferred lights and the "fire" emitters to go with them
 	for (int i=0; i<numPointLights; ++i){
 		pointLights[i].SetColour(Vector4(1,0.5f,0,1));
 		pointLights[i].SetRadius(LIGHTRADIUS);
@@ -37,21 +48,22 @@ bool Renderer::InitDeferredRendering(){
 		fireEmitter->SetParticleSpeed(0.2f);
 		fireEmitter->SetParticleRate(20.0f);
 		fireEmitter->SetLaunchParticles(2);
-		
 
 		ParticleEmitterNode* fire = new ParticleEmitterNode();
 		fire->SetParticleEmitter(fireEmitter);
 		fire->SetPosition(lightPositions[i]);
-		fire->SetBoundingRadius(pointLights[i].GetRadius());
+		fire->SetBoundingRadius(100);
 		fire->SetShader(particleShader);
-		fire->SetUpdateShaderFunction([this]{UpdateParticleShaderMatricesPO(); });
+		/*fire->SetUpdateShaderFunction([this]{UpdateParticleShaderMatricesPO(); });*/
 		fire->SetScaleWithParent(false);
 		
 		root->AddChild(fire);
 	}
 
-	icoSphere = new OBJMesh(MESHDIR"sphere.obj");
+	//Create the mesh for drawing deferred lights
+	icoSphere = new OBJMesh(MESHDIR"ico.obj");
 
+	//Load in the necessary shaders
 	combineShader = new Shader(SHADERDIR"combineVert.glsl",
 		SHADERDIR"combineFrag.glsl");
 
@@ -61,10 +73,13 @@ bool Renderer::InitDeferredRendering(){
 	if (!combineShader->LinkProgram() || !pointLightShader->LinkProgram())
 		return false;
 
-	//Here our bufferFBO has already been created.
+	//Here our bufferFBO has already been created, so we
+	//only create our pointlightFBO
 	glGenFramebuffers(1, &pointLightFBO);
 
 	//We want to generate a new screen texture for it!
+	//and add to our bufferFBO a normal texture and an
+	// "original scene" texture.
 	GenerateScreenTexture(originalSceneTex);
 	GenerateScreenTexture(bufferNormalTex);
 	GenerateScreenTexture(lightEmissiveTex);
@@ -90,6 +105,7 @@ bool Renderer::InitDeferredRendering(){
 		GL_FRAMEBUFFER_COMPLETE)
 		return false;
 
+	//Bind our light emissive and specular textures to our pointlight FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, pointLightFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, lightEmissiveTex, 0);
@@ -102,16 +118,31 @@ bool Renderer::InitDeferredRendering(){
 		return false;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return true;
 }
 
 void Renderer::UpdateDeferredRendering(float msec){
+	//This is to make the fires "flicker". Its only a cheeky oscillation though.
 	for (int i=0; i<numPointLights; ++i){
-		pointLights[i].SetRadius(LIGHTRADIUS + ((LIGHTRADIUS / 5) * sin(timeOfDay*10)));
-		/*pointLights[i].SetRadius(pointLights[i].GetRadius() + (pointLights[i].GetRadius() * RAND() - RAND()) );*/
+		pointLights[i].SetRadius(LIGHTRADIUS + ((LIGHTRADIUS / 5) * sin(timeOfDay*1000)));
 	}
 }
 
 void Renderer::DeleteDeferredRendering(){
+	glDeleteTextures(1, &fireParticleTex);
+
+	delete[] pointLights;
+	delete icoSphere;
+	delete combineShader;
+	delete pointLightShader;
+
+	glDeleteTextures(1, &originalSceneTex);
+	glDeleteTextures(1, &bufferNormalTex);
+	glDeleteTextures(1, &lightEmissiveTex);
+	glDeleteTextures(1, &lightSpecularTex);
+
+	glDeleteFramebuffers(1, &pointLightFBO);
 
 };
 
@@ -151,9 +182,6 @@ void Renderer::DrawPointLights(){
 		"cameraPos"), 1, (float*)&camera->GetPosition());
 	
 	//Pixel size is uploaded for ndc space access to textures
-	/*glUniform2f(glGetUniformLocation(currentShader->GetProgram(),
-		"pixelSize"), 1.0f / width, 1.0f / height);*/
-
 	Vector2 pixelSize = Vector2(1.0f / width, 1.0f / height);
 	glUniform2fv(glGetUniformLocation(currentShader->GetProgram(),
 		"pixelSize"), 1 , (float*)&pixelSize);
@@ -162,6 +190,7 @@ void Renderer::DrawPointLights(){
 	projMatrix = cameraProjMat;
 	textureMatrix.ToIdentity();
 
+	//Draw all of the pointlights in our scene to our lightingFBO
 	for (int x=0; x < numPointLights; ++x){
 		Light& l = pointLights[x];
 
@@ -197,6 +226,8 @@ void Renderer::DrawPointLights(){
 
 void Renderer::CombineBuffers(){
 
+	//When combining our textures we need to use the processFBO, 
+	//as we dont want to override our depth texture we created before!
 	glBindFramebuffer(GL_FRAMEBUFFER, processFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
@@ -206,7 +237,7 @@ void Renderer::CombineBuffers(){
 	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
 	UpdateShaderMatrices();
 
-	//We pass in the pass-through image as a texture, and the lighting information
+	//We pass in the forward lit scene, pass-through image as a texture, and the lighting information
 	//to calculate the final fragments colours as textures
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"diffuseTex"), 2);
@@ -232,11 +263,14 @@ void Renderer::CombineBuffers(){
 	//We draw our quad orthographically (filling up the entire screen)
 	quad->Draw();
 
+	//Let the post process system know that a texture has been drawn to.
+	//"Pinged"
 	PPDrawn();
 	glUseProgram(0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+//A simple method for creating screen textures without all the extra fluff!
 void Renderer::GenerateScreenTexture(GLuint& into, bool depth){
 	glGenTextures(1, &into);
 	glBindTexture(GL_TEXTURE_2D, into);

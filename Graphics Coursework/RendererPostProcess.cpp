@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+//Initialises all things post process!
 bool Renderer::InitPostProcess(){
 	toDrawTo = 0;
 	sobel = false;
@@ -10,6 +11,7 @@ bool Renderer::InitPostProcess(){
 	bloom  = false;
 	fog = false;
 
+	//Load in all of our post processing shaders
 	blurShader = new Shader(SHADERDIR"TexturedVertex.glsl",
 		SHADERDIR"blurFrag.glsl");
 
@@ -40,6 +42,7 @@ bool Renderer::InitPostProcess(){
 		!bloomShader->LinkProgram())
 		return false;
 
+	//Generate our frame buffers
 	glGenTextures(1, &bufferDepthTex);
 	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
 
@@ -49,8 +52,6 @@ bool Renderer::InitPostProcess(){
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	//BPP = Bits per pixel
-	//Packed format the texture so there are 24 (bpp) for depth and 8 (bpp) for stencil
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
 		width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
@@ -72,6 +73,7 @@ bool Renderer::InitPostProcess(){
 			GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	}
 
+	//Generate our frame buffers
 	glGenFramebuffers(1, &bufferFBO); // We render the scene into this
 	glGenFramebuffers(1, &processFBO); //And do post processing in this
 
@@ -92,6 +94,27 @@ bool Renderer::InitPostProcess(){
 	return true;
 }
 
+void Renderer::DeletePostProcess(){
+	delete blurShader;
+	delete doubVisShader;
+	delete sobelShader;
+	delete sobelDepthShader;
+	delete quantizeColShader;
+	delete fogShader;
+	delete bloomShader;
+	
+
+	glDeleteTextures(1, &bufferDepthTex);
+	glDeleteTextures(1, &bufferNormalTex);
+	glDeleteTextures(1, &originalSceneTex);
+	glDeleteTextures(2, bufferColourTex);
+
+	glDeleteFramebuffers(1, &bufferFBO);
+	glDeleteFramebuffers(1, &processFBO);
+}
+
+//Toggles of our post process effects. msec is not necessary here at all,
+//but its passed for consitencys sake!
 void Renderer::UpdatePostProcess(float msec){
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_5))
@@ -116,6 +139,7 @@ void Renderer::UpdatePostProcess(float msec){
 		bloom = !bloom;
 }
 
+//Draw our post process effects using ping pong
 void Renderer::DrawPostProcess(){
 	glDisable(GL_DEPTH_TEST);
 	SetupPPMatrices();
@@ -124,7 +148,7 @@ void Renderer::DrawPostProcess(){
 	if (sobel) Sobel();
 	if (sobelDepth) SobelDepth();
 	if (quantizeCol) QuantizeCol();
-	if (fog) SobelAlias();
+	if (fog) Fog();
 	if (bloom) Bloom();
 	if (dubVis) DoubleVision();
 	if (blur) Blur();
@@ -141,6 +165,7 @@ void Renderer::SetupPPMatrices(){
 	modelMatrix.ToIdentity();
 }
 
+//Performs a gaussian blur on the FBO
 void Renderer::Blur(){
 	//Bind our processing FBO and attach bufferColourTex[1] to it
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -183,9 +208,9 @@ void Renderer::Blur(){
 	}
 }
 
-//TODO: Do we need to clear the textures!?
+//Performs sobel edge detection on a the colour buffer
 void Renderer::Sobel(){
-	
+	//Bind our processing FBO and attach the next buffer to be drawn to to it
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
@@ -197,19 +222,18 @@ void Renderer::Sobel(){
 		1.0f / width, 1.0f / height);
 	UpdateShaderMatrices();
 
-	//TODO: Make configurable!
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
 		"threshold"), 0.8f);
 
 	quad->SetTexture(GetLastDrawn());
 
-	//Draw the scene and blur horizontally
 	quad->Draw();
 	PPDrawn();
 }
 
+//Performs sobel edge detection on the contents of a linearised depth buffer
 void Renderer::SobelDepth(){
-	//Bind our processing FBO and attach bufferColourTex[1] to it
+	//Bind our processing FBO and attach the next buffer to be drawn to to it
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
@@ -221,14 +245,12 @@ void Renderer::SobelDepth(){
 		1.0f / width, 1.0f / height);
 	UpdateShaderMatrices();
 
-	//TODO: Make configurable!
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
 		"threshold"), 0.2f);
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"depthTex"), 2);
 
-	//TODO: Need to upload near and far plane values
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
 		"nearPlane"), 1.0);
 
@@ -240,13 +262,13 @@ void Renderer::SobelDepth(){
 
 	quad->SetTexture(GetLastDrawn());
 
-	//Draw the scene and blur horizontally
 	quad->Draw();
 	PPDrawn();
 }
 
+//Performs colour quantization by calculating light intensity
 void Renderer::QuantizeCol(){
-	//Bind our processing FBO and attach bufferColourTex[1] to it
+	//Bind our processing FBO and attach the next buffer to be drawn to to it
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
@@ -258,14 +280,12 @@ void Renderer::QuantizeCol(){
 		1.0f / width, 1.0f / height);
 	UpdateShaderMatrices();
 
-	//TODO: Make configurable!
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
 		"threshold"), 0.2f);
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"depthTex"), 2);
 
-	//TODO: Need to upload near and far plane values
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
 		"nearPlane"), 1.0);
 
@@ -277,13 +297,13 @@ void Renderer::QuantizeCol(){
 
 	quad->SetTexture(GetLastDrawn());
 
-	//Draw the scene and blur horizontally
 	quad->Draw();
 	PPDrawn();
 }
 
-void Renderer::SobelAlias(){
-	//Bind our processing FBO and attach bufferColourTex[1] to it
+//Performs a fog effect based upon a linearized depth buffer
+void Renderer::Fog(){
+	//Bind our processing FBO and attach the next buffer to be drawn to to it
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
@@ -295,14 +315,12 @@ void Renderer::SobelAlias(){
 		1.0f / width, 1.0f / height);
 	UpdateShaderMatrices();
 
-	//TODO: Make configurable!
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
 		"threshold"), 0.2f);
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"depthTex"), 2);
 
-	//TODO: Need to upload near and far plane values based on the proj Matrix
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(),
 		"nearPlane"), 1.0);
 
@@ -314,13 +332,13 @@ void Renderer::SobelAlias(){
 
 	quad->SetTexture(GetLastDrawn());
 
-	//Draw the scene and perform anti aliasing
 	quad->Draw();
 	PPDrawn();
 }
 
+//Performs a double vision effect on the screen
 void Renderer::DoubleVision(){
-	//Bind our processing FBO and attach bufferColourTex[1] to it
+	//Bind our processing FBO and attach the next buffer to be drawn to to it
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
@@ -331,7 +349,6 @@ void Renderer::DoubleVision(){
 	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"),
 		1.0f / width, 1.0f / height);
 
-	//TODO: Make configurable!
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 		"pixelOffset"), 40);
 
@@ -339,14 +356,14 @@ void Renderer::DoubleVision(){
 
 	quad->SetTexture(GetLastDrawn());
 
-	//Draw the scene and blur horizontally
 	quad->Draw();
 	PPDrawn();
 
 }
 
+//Blooms each fragment based on its local fragments
 void Renderer::Bloom(){
-	//Bind our processing FBO and attach bufferColourTex[1] to it
+	//Bind our processing FBO and attach the next buffer to be drawn to to it
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
@@ -358,16 +375,14 @@ void Renderer::Bloom(){
 		1.0f / width, 1.0f / height);
 	UpdateShaderMatrices();
 
-	//NEW
 	quad->SetTexture(GetLastDrawn());
 
-	//Draw the scene and blur horizontally
 	quad->Draw();
 	PPDrawn();
 
 }
 
-//TODO: Should this assume that it is ready to be renderered orthographically!?
+//Presents which ever scene was the last to be drawn to to the back buffer
 void Renderer::PresentScene(){
 	//We draw the final result to the default framebuffer (the back buffer)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -396,17 +411,4 @@ void Renderer::PresentScene(){
 
 	glUseProgram(0);
 
-}
-
-void Renderer::DeletePostProcess(){
-	delete blurShader;
-	delete bloomShader;
-	delete sobelShader;
-	delete doubVisShader;
-
-	glDeleteTextures(1, &bufferDepthTex);
-	glDeleteTextures(2, bufferColourTex);
-
-	glDeleteFramebuffers(1, &bufferFBO);
-	glDeleteFramebuffers(1, &processFBO);
 }

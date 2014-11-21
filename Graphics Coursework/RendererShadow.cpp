@@ -1,6 +1,9 @@
 #include "Renderer.h"
 
+//Initialises all things to do with shadow buffers
 bool Renderer::InitShadowBuffers(){
+
+	//Loads in the sceneShader and shadow shader
 	sceneShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
 		SHADERDIR"shadowSceneBumpFrag.glsl");
 
@@ -90,11 +93,6 @@ void Renderer::DrawShadowScene(){
 	viewMatrix = Matrix4::BuildViewMatrix(
 		light->GetPosition(), Vector3(0,0,0));
 
-	//TODO: Reevaluate this!
-	/*projMatrix = Matrix4::Perspective(2900.0f + 2000 * abs(cos(timeOfDay)), 7100.0f - 2000 * abs(cos(timeOfDay)),
-		(float) width / (float) height, 45.0f);*/
-
-	//TODO: This seems to work fine... maybe make it a constant?
 	projMatrix = Matrix4::Perspective(2900.0f, 7100.0f,
 		(float) width / (float) height, 45.0f);
 
@@ -127,6 +125,7 @@ void Renderer::DrawShadowScene(){
 
 }
 
+//Shader update method to be called once per frame for the combine shader
 void Renderer::UpdateCombineSceneShaderMatricesPF(){
 	SetCurrentShader(sceneShader);
 
@@ -141,6 +140,7 @@ void Renderer::UpdateCombineSceneShaderMatricesPF(){
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
 }
 
+//Shader update method to be called once per object for the combine shader
 void Renderer::UpdateCombineSceneShaderMatricesPO(){
 
 	Matrix4 tempMatrix = shadowVPMatrix * modelMatrix;

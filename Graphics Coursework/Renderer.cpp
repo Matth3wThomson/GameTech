@@ -2,19 +2,21 @@
 
 bool Renderer::debug = true;
 
+/**
+	NOTES:
+		-This cpp file contains the methods that are too generic to be specialized.
+*/
+
 Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	//Generic Renderer + functionaility properties
-	//wglSwapIntervalEXT(0);
 	timeOfDay = 0.0f;
 	anim = 0;
 	pause = false;
 	toon = false;
 	timeSlowed = false;
-	lightTimeSlowed = false;
+	dayTimeSpeedIncrease = false;
 	rotation = 0.0f;
-
-	std::cout << "START gl error: " << glGetError() << std::endl;
 
 	camera = new Camera(-8.0f, -25.0f, Vector3(0.0f, 500.0f, -250.0f));
 
@@ -43,36 +45,34 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	if (!InitShadowBuffers())
 		return;
 
-	if (!InitSceneObjects()) //ERROR
+	if (!InitSceneObjects())
 		return;
 
-	if (!InitSkybox())	//ERROR
+	if (!InitSkybox())
 		return;
 
-	if (!InitWater()) //ERROR
+	if (!InitWater())
 		return;
 
 	if (!InitPostProcess())
 		return;
 
-	if (!InitDebug()) //ERROR
+	if (!InitDebug())
 		return;
 
 	if (!InitParticles()) 
 		return;
 
-	//Turn on depth testing
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (!InitDeferredRendering()){
+		return;
+	}
 
 	//Initialize a projection matrix 
 	cameraProjMat = projMatrix = Matrix4::Perspective(1.0f, 15000.0f,
 		(float) width / (float) height, 45.0f);
 	ortho = Matrix4::Orthographic(-1.0f,1.0f,(float)width, 0.0f,(float)height, 0.0f);
 
+	//Add the trees! :D
 	tree1 = new TreeNode(particleShader, phong);
 	tree1->SetShader(sceneShader);
 	tree1->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );
@@ -87,10 +87,12 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 	root->AddChild(tree2);
 
-	//ADDITION OF DEFERRED RENDERING!
-	if (!InitDeferredRendering()){
-		return;
-	}
+	//Set our generic openGL values
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	init = true;
 }
@@ -98,17 +100,29 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 Renderer::~Renderer(void)
 {
+
 	DeleteDebug();
 	DeletePostProcess();
-	DeleteShadowBuffers();
+	DeleteParticles();
 	DeleteWater();
 	DeleteSkybox();
+	DeleteDeferredRendering();
 	DeleteSceneObjects();
+	DeleteShadowBuffers();
+
+	delete camera;
+	delete light;
+	delete phong;
+	delete passThrough;
+
+	currentShader = NULL;
 }
 
 void Renderer::UpdateScene(float msec){
 
 	float debugMsec = msec;
+	camera->UpdateCamera(msec);
+
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P))
 		pause = !pause;
@@ -118,22 +132,26 @@ void Renderer::UpdateScene(float msec){
 		SwitchToToon(toon);
 	}
 
-	camera->UpdateCamera(msec);
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD8))
+		drawBound = !drawBound;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD9))
+		debug = !debug;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2))
 		timeSlowed = !timeSlowed;
 	
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_3))
-		lightTimeSlowed = !lightTimeSlowed;
+		dayTimeSpeedIncrease = !dayTimeSpeedIncrease;
 	
 
 	if (timeSlowed)	msec *= 0.1f;
 
 	if (!pause){
 
-		if (lightTimeSlowed) timeOfDay += msec * 0.0001f;
-		else timeOfDay += msec*0.001f;
+		if (dayTimeSpeedIncrease) timeOfDay += msec * 0.001f;
+		else timeOfDay += msec*0.00001f;
 
 		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD0)){
 			timeOfDay = 0;
@@ -141,7 +159,7 @@ void Renderer::UpdateScene(float msec){
 			tree2->ResetTree();
 		}
 
-
+		//One day is 2 PI (I bet you can't guess why ;) )
 		timeOfDay = std::fmod(timeOfDay, 2 * PI);
 
 		UpdateParticles(msec);
@@ -161,28 +179,26 @@ void Renderer::UpdateScene(float msec){
 
 void Renderer::RenderScene(){
 
-	//Build node lists in order of distance from the light
-	DrawShadowScene(); //First Render pass
+	
+	DrawShadowScene(); //Create our shadow depth tex from the first render pass
 
-	//Build node lists in order of distance from the camera
-	DrawCombinedScene(); //Second render pass
+	DrawCombinedScene(); //Use this value and compute forward lighting
 
-	DrawPointLights();
+	DrawPointLights();	//Apply our pointlights (deferred rendering) lights to
+						//Emissive and specular textures
 
-	CombineBuffers();
+	CombineBuffers();	//Combine all rendering information so far to compute final image
 
-	//Draw our post processing effects
-	DrawPostProcess();
+	DrawPostProcess(); //Draw our post processing effects
 
-	//Render the final image to the screen
-	PresentScene();
+	PresentScene(); //Render the final image to the screen
 
 	//If debugging, overlay the debugging information
 	if (debug){
 		DrawDebugOverlay();
 	}
 
-	SwapBuffers();
+	SwapBuffers(); //Finally swap the buffers and prepare for the next frame!
 }
 
 void Renderer::DrawCombinedScene(){
@@ -193,13 +209,11 @@ void Renderer::DrawCombinedScene(){
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-	//TODO: Sort out drawing the frustum!
-	////Draw the light frustum
-	//DrawFrustum();
-
+	
+	//Draw our skybox first
 	DrawSkybox();
 
+	//Create our view and proj matrices and cull any objects outside our viewing frustum
 	viewMatrix = camera->BuildViewMatrix();
 	projMatrix = cameraProjMat;
 	textureMatrix.ToIdentity();
@@ -209,7 +223,7 @@ void Renderer::DrawCombinedScene(){
 	BuildNodeLists(root, camera->GetPosition());
 	SortNodeLists();
 
-	//Draw the opaque nodes with the specific shader uploads
+	//Draw the opaque nodes first front to back
 	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
 		SetCurrentShader(sceneShader);
 		(*itr)->Draw(*this);
@@ -220,6 +234,7 @@ void Renderer::DrawCombinedScene(){
 		}
 	}
 
+	//Draw the transparent nodes second, back to front
 	glDisable(GL_CULL_FACE);
 	glDepthMask(GL_FALSE);
 	for (auto itr = transparentNodes.rbegin(); itr != transparentNodes.rend(); ++itr){
@@ -236,11 +251,14 @@ void Renderer::DrawCombinedScene(){
 
 	ClearNodeLists();
 
+	//Signify to the PP system that the buffers have been "pinged"
 	PPDrawn();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
 }
 
+//Updates all relevant shaders per frame with uploads that
+//arent specific to an object
 void Renderer::UpdateShadersPerFrame(){
 	UpdateGenericShadersPF();
 	UpdateWaterShaderMatricesPF();
@@ -248,9 +266,9 @@ void Renderer::UpdateShadersPerFrame(){
 	UpdateHeightMapShaderPF(); //NEW
 }
 
+//Draws a supplied string to the screen
 void Renderer::DrawString(const std::string& text, const Vector3& pos, const float size, const bool perspective){
 
-	//TODO: Creation of a text mesh every time!?
 	TextMesh* mesh = new TextMesh(text, *basicFont);
 
 	if (perspective){
@@ -271,6 +289,7 @@ void Renderer::DrawString(const std::string& text, const Vector3& pos, const flo
 
 }
 
+//Update method for the generic shader matrices per frame.
 void Renderer::UpdateGenericShadersPF(){
 	SetCurrentShader(phong);
 
@@ -278,9 +297,9 @@ void Renderer::UpdateGenericShadersPF(){
 		"cameraPos"), 1, (float*) &camera->GetPosition());
 
 	SetShaderLight(*light);
-
 }
 
+//Switches all the relevant objects to their toon texture equivalents
 void Renderer::SwitchToToon(bool toon){
 
 	if (toon){

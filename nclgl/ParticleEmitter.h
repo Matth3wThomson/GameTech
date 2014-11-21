@@ -57,6 +57,12 @@ struct Particle {
 	NOTES
 		-Particle emitters will turn off depth writing when drawing themselves. Be sure to
 		turn it back on afterwards elsewhere!
+		-A few features have been added to this class to improve its functionality. Namely:
+			-Particle postion variance to allow for particles to spawn in random places
+			-A default colour which each particle can deviate from in order to create controlled
+			 colour blends.
+			-a Yoffset for allowing particles to be spawned somewhere other than the centre of the mesh
+
 */
 
 class ParticleEmitter : public Mesh	{

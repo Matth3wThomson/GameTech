@@ -1,7 +1,5 @@
 #include "TreeNode.h"
 
-//TODO: Bounding radi
-
 int TreeNode::instantiatedObjects = 0;
 
 //Branches
@@ -23,7 +21,6 @@ Shader* TreeNode::fruitShader = NULL;
 Shader* TreeNode::particleShader = NULL;
 GLuint TreeNode::particleTex = 0;
 
-#define RAND() ((rand() % 101) / 100.0f)
 
 TreeNode::TreeNode(Shader* pShader, Shader* fruitShad)
 {
@@ -41,18 +38,18 @@ TreeNode::TreeNode(Shader* pShader, Shader* fruitShad)
 
 		cylinder->SetTexture(trunkTex);
 
-		//TODO: Check this is the correct value!
-		GPUBytes += GetLastTextureGPUMem() * 1.33;
+
+		GPUBytes += ((unsigned int) (GetLastTextureGPUMem() * 1.33));
 
 		trunkToonTex = SOIL_load_OGL_texture(TEXTUREDIR"mc wood.jpg",
 			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-		GPUBytes += GetLastTextureGPUMem() * 1.33;
+		GPUBytes += ((unsigned int) (GetLastTextureGPUMem() * 1.33));
 
 		cylinder->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.jpg",
 			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-		GPUBytes += GetLastTextureGPUMem() * 1.33;
+		GPUBytes += ((unsigned int) (GetLastTextureGPUMem() * 1.33));
 
 		if (!cylinder->GetTexture() || !cylinder->GetBumpMap() || !trunkToonTex)
 			return;
@@ -81,16 +78,16 @@ TreeNode::TreeNode(Shader* pShader, Shader* fruitShad)
 		leafTex = SOIL_load_OGL_texture(TEXTUREDIR"leaf6.png",
 			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 		leafQuad->SetTexture(leafTex);
-		GPUBytes += GetLastTextureGPUMem() * 1.33;
+		GPUBytes += ((unsigned int) (GetLastTextureGPUMem() * 1.33));
 
 		//Changed from green.png
 		leafToonTex = SOIL_load_OGL_texture(TEXTUREDIR"darkGreen.png",
 			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-		GPUBytes += GetLastTextureGPUMem() * 1.33;
+		GPUBytes += ((unsigned int) (GetLastTextureGPUMem() * 1.33));
 
 		leafQuad->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"leaf6bump.png",
 			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-		GPUBytes += GetLastTextureGPUMem() * 1.33;
+		GPUBytes += ((unsigned int) (GetLastTextureGPUMem() * 1.33));
 
 		if (!leafQuad->GetTexture() || !leafQuad->GetBumpMap() || !leafToonTex)
 			return;
@@ -105,7 +102,7 @@ TreeNode::TreeNode(Shader* pShader, Shader* fruitShad)
 		GLuint fruitTex = SOIL_load_OGL_texture(TEXTUREDIR"red.jpg",
 			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-		GPUBytes += GetLastTextureGPUMem() * 1.33;
+		GPUBytes += ((unsigned int) (GetLastTextureGPUMem() * 1.33));
 
 		fruitShader = fruitShad;
 
@@ -121,7 +118,7 @@ TreeNode::TreeNode(Shader* pShader, Shader* fruitShad)
 		particleTex = SOIL_load_OGL_texture(TEXTUREDIR"particle.tga",
 			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-		GPUBytes += GetLastTextureGPUMem() * 1.33;
+		GPUBytes += ((unsigned int) (GetLastTextureGPUMem() * 1.33));
 
 	}
 
@@ -168,15 +165,13 @@ TreeNode::~TreeNode(void)
 }
 
 void TreeNode::Update(float msec){
-	timePassed += msec/1000; //Convert to seconds
+	timePassed += msec/1000; //Convert to seconds (For performance on tendToOne equation)
 
 	if (stillGrowing){
 		growthAmount = TendToOne(timePassed);
 
 		if ( (1 - growthAmount) < TOLERANCE){
-			/*if (depth == 1) if (rand() % 2 == 0) AddParticleEmitter();*/
 			if (fruitBearing){
-				//AddParticleEmitter();
 				//Set fruit growing...
 				fruitStartGrowth = timePassed;
 				AddFruit(this);
@@ -208,10 +203,6 @@ void TreeNode::Update(float msec){
 	} else {
 		float baseScale = max(0.1f, growthAmount * (1-position.y) *2 );
 
-		//Else scale it relatively... 
-		//TODO: Use a modifier based on its y position to scale this
-		//more appropriately?
-		//modelScale = Vector3(baseScale, growthAmount, baseScale);
 		modelScale = Vector3(baseScale * 10, growthAmount * MAX_TREE_HEIGHT, baseScale * 10);
 	}
 
@@ -219,11 +210,13 @@ void TreeNode::Update(float msec){
 
 	//Dont endlessly grow the tree....
 	if (depth < MAX_DEPTH){
+		//Add branches if it this node is not at the branch limit
 		if (growthAmount * (depth+1) > lastBranch){
 			lastBranch+= branchInterval;
 			AddRandomBranch();
 		}
 	} else if (depth == MAX_DEPTH) {
+		//Else add leaves!
 		if (numLeaves < MAX_LEAVES){
 			AddRandomLeaf();
 			numLeaves++;
@@ -239,16 +232,19 @@ void TreeNode::Draw(OGLRenderer& r, const bool useShader){
 
 void TreeNode::AddRandomBranch(){
 
+	//Create another tree node with a depth value of this+1
 	TreeNode* branch = new TreeNode(mesh, depth+1);
 
 	branch->SetShader(shader);
 	branch->SetUpdateShaderFunction(updateShaderFunction);
 
+	//Set its relative position and random rotations about us
 	branch->SetPosition(Vector3(0, growthAmount * (depth+1), 0));
 
 	branch->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()- RAND(),0,RAND()-RAND()));
 
-	branch->SetScaleWithParent(false); //NEW
+	//We dont want the object to scale with us, only scale its position
+	branch->SetScaleWithParent(false);
 
 	this->AddChild(branch);
 
@@ -259,6 +255,8 @@ void TreeNode::AddRandomBranch(){
 }
 
 void TreeNode::AddFruit(TreeNode* n){
+
+	//Add a fruit to the branch
 	n->fruitBearing = true;
 	n->fruitGrown = false;
 
@@ -270,18 +268,17 @@ void TreeNode::AddFruit(TreeNode* n){
 	fruit->SetShader(fruitShader);
 	fruit->SetUpdateShaderFunction([this]{ this->FruitShaderUpdate(); });
 
-
+	//Put the fruit at the end of the branch
 	fruit->SetPosition(Vector3(0,1,0));
 
 	fruit->SetScaleWithParent(false);
-
-	//TODO: Bouding radii!
 
 	n->AddChild(fruit);
 }
 
 void TreeNode::AddRandomLeaf(){
 
+	//Add a random transparent leaf
 	float leafScale = (1.0f/60.0f) * MAX_TREE_HEIGHT;
 
 	GrowingNode* leaf = new GrowingNode(Vector3(leafScale, leafScale, leafScale), LEAF_GROW_TIME, Vector4(1,1,1,0.5));
@@ -291,13 +288,11 @@ void TreeNode::AddRandomLeaf(){
 	leaf->SetShader(fruitShader);
 	leaf->SetUpdateShaderFunction([this]{ this->LeafShaderUpdate(); });
 
+	//At a random postion along the branch
 	leaf->SetPosition(Vector3(0, RAND(), 0));
 
-	//leaf->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()-RAND(),RAND()-RAND(),RAND()-RAND()));
 	leaf->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()- (2  * RAND()),0,RAND()- (2 * RAND())));
 
-
-	//TODO: Not perfect!
 	Vector3 axisOfGrowth = Vector3::Cross(leaf->GetPosition(), leaf->GetRotationAxis());
 
 	leaf->SetPosition(leaf->GetPosition() + (axisOfGrowth * (1-leaf->GetPosition().y)));
@@ -311,6 +306,8 @@ void TreeNode::AddRandomLeaf(){
 
 void TreeNode::AddParticleEmitter(){
 
+	//Adds a new particle emitter to the tree, with its own
+	// particle emitter mesh
 	ParticleEmitterNode* pNode = new ParticleEmitterNode();
 	ParticleEmitter* pe = new ParticleEmitter();
 	pe->SetTexture(particleTex);
@@ -352,7 +349,6 @@ unsigned int TreeNode::GetParticleEmitterSizes(){
 	return particleEmitterGPUMem;
 }
 
-//TODO: Review this... timePassed number of multiplications... NOT PERFORMANT!
 float TreeNode::TendToOne(float x){
 	return -pow( growthSpeed, x )+ 1;
 }
@@ -368,13 +364,14 @@ void TreeNode::LeafShaderUpdate(){
 }
 
 void TreeNode::ResetTree(){
-	//Need to delete all nodes below this...
+	//Need to delete all nodes below this
 	for (auto itr = children.begin(); itr != children.end(); ++itr){
 		delete (*itr);
 	}
 
 	children.clear();
 
+	//Then simply reset our values
 	stillGrowing = true;
 
 	depth = 0;
