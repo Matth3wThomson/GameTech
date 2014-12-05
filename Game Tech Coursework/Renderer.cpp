@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 bool Renderer::debug = true;
+Renderer* Renderer::instance = NULL;
 
 /**
 	NOTES:
@@ -13,7 +14,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	timeOfDay = 0.0f;
 	anim = 0;
 	pause = false;
-	toon = false;
 	timeSlowed = false;
 	dayTimeSpeedIncrease = false;
 	rotation = 0.0f;
@@ -72,21 +72,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		(float) width / (float) height, 45.0f);
 	ortho = Matrix4::Orthographic(-1.0f,1.0f,(float)width, 0.0f,(float)height, 0.0f);
 
-	//Add the trees! :D
-	tree1 = new TreeNode(particleShader, phong);
-	tree1->SetShader(sceneShader);
-	tree1->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );
-	tree1->SetPosition(Vector3(700, 35, 800));
-
-	root->AddChild(tree1);
-
-	tree2 = new TreeNode(particleShader, phong);
-	tree2->SetShader(sceneShader);
-	tree2->SetUpdateShaderFunction([this]{ UpdateCombineSceneShaderMatricesPO(); } );
-	tree2->SetPosition(Vector3(0, 35, 1500));
-
-	root->AddChild(tree2);
-
 	//Set our generic openGL values
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -120,17 +105,11 @@ Renderer::~Renderer(void)
 
 void Renderer::UpdateScene(float msec){
 
-	float debugMsec = msec;
 	camera->UpdateCamera(msec);
 
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P))
 		pause = !pause;
-
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_T)){
-		toon = !toon;
-		SwitchToToon(toon);
-	}
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD8))
 		drawBound = !drawBound;
@@ -155,9 +134,9 @@ void Renderer::UpdateScene(float msec){
 
 		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD0)){
 			timeOfDay = 0;
-			tree1->ResetTree();
-			tree2->ResetTree();
 		}
+
+		timeOfDay = 0.5f * PI;
 
 		//One day is 2 PI (I bet you can't guess why ;) )
 		timeOfDay = std::fmod(timeOfDay, 2 * PI);
@@ -173,7 +152,7 @@ void Renderer::UpdateScene(float msec){
 
 	//TEXT
 	UpdatePostProcess(msec);
-	UpdateDebug(debugMsec);
+	UpdateDebug();
 
 }
 
@@ -224,8 +203,11 @@ void Renderer::DrawCombinedScene(){
 	SortNodeLists();
 
 	//Draw the opaque nodes first front to back
+	glDisable(GL_CULL_FACE);
+	
 	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
-		SetCurrentShader(sceneShader);
+		SetCurrentShader(phong);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		(*itr)->Draw(*this);
 
 		if (debug){ 
@@ -239,6 +221,7 @@ void Renderer::DrawCombinedScene(){
 	glDepthMask(GL_FALSE);
 	for (auto itr = transparentNodes.rbegin(); itr != transparentNodes.rend(); ++itr){
 		SetCurrentShader(sceneShader);
+		
 		(*itr)->Draw(*this);
 
 		if (debug){
@@ -248,7 +231,7 @@ void Renderer::DrawCombinedScene(){
 	}
 	glEnable(GL_CULL_FACE);
 	glDepthMask(GL_TRUE);
-
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	ClearNodeLists();
 
 	//Signify to the PP system that the buffers have been "pinged"
@@ -261,9 +244,7 @@ void Renderer::DrawCombinedScene(){
 //arent specific to an object
 void Renderer::UpdateShadersPerFrame(){
 	UpdateGenericShadersPF();
-	UpdateWaterShaderMatricesPF();
 	UpdateCombineSceneShaderMatricesPF();
-	UpdateHeightMapShaderPF(); //NEW
 }
 
 //Draws a supplied string to the screen
@@ -298,20 +279,3 @@ void Renderer::UpdateGenericShadersPF(){
 
 	SetShaderLight(*light);
 }
-
-//Switches all the relevant objects to their toon texture equivalents
-void Renderer::SwitchToToon(bool toon){
-
-	if (toon){
-		heightMap->SetTexture(HMToonTex);
-		heightMap->SetHighgroundTex(HMToonHighTex);
-		tree1->SwitchToToon(toon);
-		tree2->SwitchToToon(toon);
-	} else {
-		heightMap->SetTexture(heightMapTex);
-		heightMap->SetHighgroundTex(heightMapHighTex);
-		tree1->SwitchToToon(toon);
-		tree2->SwitchToToon(toon);
-	}
-}
-

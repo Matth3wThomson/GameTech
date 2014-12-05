@@ -22,6 +22,7 @@ _-_-_-_-_-_-_-""  ""
 
 class Vector3;
 
+//TODO: Might be worth implementing move constructors
 class Matrix4	{
 public:
 	Matrix4(void);
@@ -72,6 +73,8 @@ public:
 	//'up' as the...up axis (pointing towards the top of the screen)
 	static Matrix4 BuildViewMatrix(const Vector3 &from, const Vector3 &lookingAt, const Vector3 up = Vector3(0,1,0));
 
+	float& operator[](const int location){ return values[location]; };
+
 	//Multiplies 'this' matrix by matrix 'a'. Performs the multiplication in 'OpenGL' order (ie, backwards)
 	inline Matrix4 operator*(const Matrix4 &a) const{	
 		Matrix4 out;
@@ -90,22 +93,22 @@ public:
 	inline Vector3 operator*(const Vector3 &v) const {
 		Vector3 vec;
 
-		float temp;
+		//float temp;
 
 		vec.x = v.x*values[0] + v.y*values[4] + v.z*values[8]  + values[12];
 		vec.y = v.x*values[1] + v.y*values[5] + v.z*values[9]  + values[13];
 		vec.z = v.x*values[2] + v.y*values[6] + v.z*values[10] + values[14];
 
-		temp =  v.x*values[3] + v.y*values[7] + v.z*values[11] + values[15];
+		/*temp =  v.x*values[3] + v.y*values[7] + v.z*values[11] + values[15];
 
 		vec.x = vec.x/temp;
 		vec.y = vec.y/temp;
-		vec.z = vec.z/temp;
+		vec.z = vec.z/temp;*/
 
 		return vec;
 	};
 
-		inline Vector4 operator*(const Vector4 &v) const {
+	inline Vector4 operator*(const Vector4 &v) const {
 		return Vector4(
 			v.x*values[0] + v.y*values[4] + v.z*values[8]  +v.w * values[12],
 			v.x*values[1] + v.y*values[5] + v.z*values[9]  +v.w * values[13],
@@ -113,6 +116,8 @@ public:
 			v.x*values[3] + v.y*values[7] + v.z*values[11] +v.w * values[15]
 		);
 	};
+
+
 
 	//Handy string output for the matrix. Can get a bit messy, but better than nothing!
 	inline friend std::ostream& operator<<(std::ostream& o, const Matrix4& m){

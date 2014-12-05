@@ -96,7 +96,7 @@ void	MD5Node::Draw(OGLRenderer &r, bool useShader){
 	//Finally, we draw the mesh, just like the base class Draw function...
 	//m->Draw();
 
-	SceneNode::Draw(r, useShader);
+	SceneNode::Draw(r);
 }
 
 

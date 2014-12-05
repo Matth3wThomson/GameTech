@@ -32,7 +32,7 @@ public:
 	float y;
 	float z;
 
-	void			Normalise() {
+	Vector3		Normalise() {
 		float length = Length();
 
 		if(length != 0.0f)	{
@@ -41,6 +41,8 @@ public:
 			y = y * length;
 			z = z * length;
 		}
+
+		return *this;
 	}
 
 	void		ToZero() {
@@ -49,6 +51,11 @@ public:
 
 	float			Length() const {
 		return sqrt((x*x)+(y*y)+(z*z));	
+	}
+
+	float LengthSq() const{
+		return Vector3::Dot(*this, *this);
+		//return ((x*x) + (y*y) + (z*z));
 	}
 
 	void			Invert() {

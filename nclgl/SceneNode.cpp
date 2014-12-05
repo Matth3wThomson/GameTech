@@ -1,110 +1,78 @@
 #include "SceneNode.h"
 
-SceneNode::SceneNode(Mesh* mesh, Vector4 colour){
-	this->mesh = mesh;
-	this->colour = colour;
-	this->shader = NULL;
-	this->updateShaderFunction = []{};
-
-	boundingRadius = 1.0f;
-	distanceFromCamera = 0.0f;
-
-	textureMatrix.ToIdentity();
-
-	parent = NULL;
-	scaleWithParent = true;
-	modelScale = Vector3(1,1,1);
-	angle = 0;
-	rotationAxis = Vector3(0,1,0);
-
-	specularPower = 33;
-	specularFactor = 0.3f;
+SceneNode::SceneNode(Mesh*mesh, Vector4 colour)	{
+	awake				= true;
+	this->mesh			= mesh;
+	this->colour		= colour;
+	parent				= NULL;
+	boundingRadius		= 100.0f;
+	distanceFromCamera	= 0.0f;
+	
+	modelScale			= Vector3(1,1,1);
 }
 
-SceneNode::~SceneNode(void)
-{
-	for (unsigned int i=0; i<children.size(); ++i){
+SceneNode::~SceneNode(void)	{
+	for(unsigned int i = 0; i < children.size(); ++i) {
 		delete children[i];
 	}
 }
 
-void SceneNode::AddChild(SceneNode* s){
+void SceneNode::AddChild( SceneNode* s )	{
 	children.push_back(s);
 	s->parent = this;
 }
 
-
-void SceneNode::RemoveChild(SceneNode* s){
-	for (auto itr = children.begin(); itr != children.end(); )
-		if ((*itr) == s){
-			itr = children.erase(itr);
-		} else {
-			itr++;
-		}
+bool	SceneNode::CompareByCameraDistance(SceneNode*a,SceneNode*b)  {
+	return (a->distanceFromCamera < b->distanceFromCamera) ? true : false;
 }
 
-void SceneNode::Draw(OGLRenderer& r, const bool useShader){
+bool	SceneNode::CompareByZ(SceneNode*a,SceneNode*b)  {
+	return (a->GetWorldTransform().GetPositionVector().z < b->GetWorldTransform().GetPositionVector().z) ? true : false;
+}
 
-	if (mesh && shader){
-		if (useShader) r.SetCurrentShader(shader);
+void	SceneNode::Update(float msec)	 {
+	if(parent) {
+		worldTransform = parent->worldTransform * transform;
+	}
+	else{
+		worldTransform = transform;
+	}
 
-		r.textureMatrix = textureMatrix;
+	for(vector<SceneNode*>::iterator i = children.begin(); i != children.end(); ++i) {
+		(*i)->Update(msec);
+	}
+}
 
-		r.modelMatrix = worldTransform *  Matrix4::Scale(worldScale * modelScale);
+bool SceneNode::RemoveChild(SceneNode* s,bool recursive) {
 
-		glUniform1i(glGetUniformLocation(r.currentShader->GetProgram(),
-			"specularPower"), specularPower);
+	for(auto i = children.begin(); i != children.end(); ++i) {
+		if((*i) == s) {
+			i = children.erase(i);
+			return true;
+		}
+	}
 
-		glUniform1f(glGetUniformLocation(r.currentShader->GetProgram(),
-			"specFactorMod"), specularFactor);
+	if(recursive) {
+		for(auto i = children.begin(); i != children.end(); ++i) {
+			if((*i)->RemoveChild(s,recursive)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
-		if (useShader) updateShaderFunction();
-
+void SceneNode::Draw(OGLRenderer & r) {
+	if (mesh) {
+		r.modelMatrix = worldTransform * Matrix4::Scale(modelScale);
 		r.UpdateShaderMatrices();
 
+		glUniform3fv(glGetUniformLocation(r.currentShader->GetProgram(),
+			"colour"), 1, (float*) &colour);
+
+		glUniform1i(glGetUniformLocation(r.currentShader->GetProgram(),
+			"useTex"), (int) mesh->GetTexture());
+			
 		mesh->Draw();
-
-		glUseProgram(0);
-	}
-}
-
-void SceneNode::Update(float msec){
-	//If this node has a parent
-	if (parent){
-
-		//We need to work out its parents relative scale. That is, the
-		//scale of its parent
-
-		/*if (scaleWithParent){*/
-			worldScale = parent->modelScale * parent->worldScale;
-
-			//We need to transform ourselves relative to our parent's scale, to maintain
-			//correct distance from it. For example, if a person gets larger, we want the arm
-			//still to be connected to the shoulder!
-			transform =  Matrix4::Translation(position * worldScale) * GetRotationMatrix();
-
-		/*} else {
-			worldScale = Vector3(1,1,1);
-			transform = Matrix4::Translation(position);
-		}*/
-
-		if (!scaleWithParent)
-			worldScale = Vector3(1,1,1);
-
-		//Finally, our world transform is our parents world transform multiplied by ours.
-		worldTransform = parent->worldTransform * transform;
-
-	} else {
-
-		//We are the parent, so we transform based on noone!
-		//We are scaled relative to ourself
-		worldTransform = Matrix4::Translation(position);
-		transform = worldTransform;
-		worldScale = Vector3(1,1,1);
-	}
-
-	for (vector<SceneNode*>::iterator i = children.begin();
-		i!= children.end(); ++i){
-			(*i)->Update(msec);
-	}
+	};
 }

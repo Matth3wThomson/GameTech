@@ -91,6 +91,8 @@ bool Renderer::InitPostProcess(){
 	//Unbind and enable depth testing
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	quad = Mesh::GenerateQuad();
+
 	return true;
 }
 

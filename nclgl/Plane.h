@@ -1,25 +1,33 @@
 #pragma once
-#pragma once
 
 #include "Vector3.h"
+#include "CollisionVolume.h"
 
-class Plane
+class PhysicsSystem;
+
+class Plane : public CollisionVolume
 {
 public:
-	Plane(void){};
-	Plane(const Vector3& normal, float distance, bool normalise =false);
-	~Plane(void){};
 
-	void SetNormal(const Vector3& normal){ this->normal = normal; }
-	Vector3 GetNormal() const { return normal; }
+	friend class PhysicsSystem;
+
+	Plane(void){ type = COLLISION_PLANE; };
+	Plane(const Vector3& normal, float distance, bool normalise =false);
+	virtual ~Plane(void){};
+
+	void SetNormal(const Vector3& normal){ this->m_normal = normal; }
+	Vector3 GetNormal() const { return m_normal; }
 
 	void SetDistance(float dist){ distance = dist; }
 	float GetDistance() const{ return distance; }
 
-	bool SphereInPlane(const Vector3& position, float radius) const;
+	bool SphereInPlane(const Vector3& position, float radius, CollisionData* collisionData = NULL) const;
+
 
 protected:
-	Vector3 normal;
+	Vector3 m_normal;
 	float distance;
+
+	
 };
 

@@ -107,7 +107,7 @@ void Renderer::DrawShadowScene(){
 	//Only draw the opaque nodes
 	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
 		SetCurrentShader(shadowShader);
-		(*itr)->Draw(*this, false);
+		(*itr)->Draw(*this);
 		if (debug) if ((*itr)->GetMesh()) objectsShadowed++;
 	}
 

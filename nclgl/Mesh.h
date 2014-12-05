@@ -6,10 +6,14 @@ enum MeshBuffer {
 	TANGENT_BUFFER, INDEX_BUFFER, MAX_BUFFER
 };
 
+class CollisionAABB;
 
 class Mesh
 {
 public:
+
+	friend class CollisionAABB;
+
 	Mesh(void);
 	virtual ~Mesh(void);
 

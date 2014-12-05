@@ -26,8 +26,12 @@ class OGLRenderer;
 
 class Window	{
 public:
-	Window(std::string title = "OpenGL nclgl", int sizeX = 800, int sizeY = 600, bool fullScreen = false);
-	~Window(void);
+	static bool Initialise(std::string title = "OpenGL Framework", int sizeX = 800, int sizeY = 600, bool fullScreen = false);
+	static void Destroy();
+	static Window& GetWindow() { return *window; }
+
+
+
 
 	bool	UpdateWindow();	
 
@@ -73,4 +77,8 @@ protected:
 	float				elapsedMS;
 
 	bool				mouseLeftWindow;
+
+private:
+	Window(std::string title = "OpenGL Framework", int sizeX = 800, int sizeY = 600, bool fullScreen = false);
+	~Window(void);
 };

@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{909A2CFC-6E55-4776-8B60-93B44103A9CF}</ProjectGuid>
     <RootNamespace>Coursework</RootNamespace>
+    <ProjectName>GameTech</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -69,9 +70,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameClass.cpp" />
+    <ClCompile Include="GameEntity.cpp" />
     <ClCompile Include="GrowingNode.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MyGame.cpp" />
+    <ClCompile Include="PhysicsNode.cpp" />
+    <ClCompile Include="PhysicsSystem.cpp" />
     <ClCompile Include="RendererDeferred.cpp" />
+    <ClCompile Include="Spring.cpp" />
     <ClCompile Include="TreeNode.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererDebug.cpp" />
@@ -83,8 +90,14 @@
     <ClCompile Include="RendererWater.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameClass.h" />
+    <ClInclude Include="GameEntity.h" />
     <ClInclude Include="GrowingNode.h" />
+    <ClInclude Include="MyGame.h" />
     <ClInclude Include="ParticleEmitterNode.h" />
+    <ClInclude Include="PhysicsNode.h" />
+    <ClInclude Include="PhysicsSystem.h" />
+    <ClInclude Include="Spring.h" />
     <ClInclude Include="TreeNode.h" />
     <ClInclude Include="Renderer.h" />
   </ItemGroup>

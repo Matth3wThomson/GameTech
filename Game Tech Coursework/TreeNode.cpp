@@ -201,9 +201,9 @@ void TreeNode::Update(float msec){
 			growthAmount * MAX_TREE_HEIGHT,
 			growthAmount* 0.05f * MAX_TREE_HEIGHT));
 	} else {
-		float baseScale = max(0.1f, growthAmount * (1-position.y) *2 );
+//		float baseScale = max(0.1f, growthAmount * (1-position.y) *2 );
 
-		modelScale = Vector3(baseScale * 10, growthAmount * MAX_TREE_HEIGHT, baseScale * 10);
+//		modelScale = Vector3(baseScale * 10, growthAmount * MAX_TREE_HEIGHT, baseScale * 10);
 	}
 
 	SetBoundingRadius(growthAmount  * MAX_TREE_HEIGHT);
@@ -227,7 +227,7 @@ void TreeNode::Update(float msec){
 }
 
 void TreeNode::Draw(OGLRenderer& r, const bool useShader){
-	SceneNode::Draw(r, useShader);
+//	SceneNode::Draw(r, useShader);
 }
 
 void TreeNode::AddRandomBranch(){
@@ -235,16 +235,16 @@ void TreeNode::AddRandomBranch(){
 	//Create another tree node with a depth value of this+1
 	TreeNode* branch = new TreeNode(mesh, depth+1);
 
-	branch->SetShader(shader);
-	branch->SetUpdateShaderFunction(updateShaderFunction);
+//	branch->SetShader(shader);
+//	branch->SetUpdateShaderFunction(updateShaderFunction);
 
 	//Set its relative position and random rotations about us
-	branch->SetPosition(Vector3(0, growthAmount * (depth+1), 0));
+//	branch->SetPosition(Vector3(0, growthAmount * (depth+1), 0));
 
-	branch->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()- RAND(),0,RAND()-RAND()));
+//	branch->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()- RAND(),0,RAND()-RAND()));
 
 	//We dont want the object to scale with us, only scale its position
-	branch->SetScaleWithParent(false);
+//	branch->SetScaleWithParent(false);
 
 	this->AddChild(branch);
 
@@ -265,13 +265,13 @@ void TreeNode::AddFruit(TreeNode* n){
 	GrowingNode* fruit = new GrowingNode(Vector3(fruitScale,fruitScale,fruitScale), 10000, Vector4(1,1,1,1));
 
 	fruit->SetMesh(fruitMesh);
-	fruit->SetShader(fruitShader);
-	fruit->SetUpdateShaderFunction([this]{ this->FruitShaderUpdate(); });
+//	fruit->SetShader(fruitShader);
+//	fruit->SetUpdateShaderFunction([this]{ this->FruitShaderUpdate(); });
 
 	//Put the fruit at the end of the branch
-	fruit->SetPosition(Vector3(0,1,0));
+//	fruit->SetPosition(Vector3(0,1,0));
 
-	fruit->SetScaleWithParent(false);
+//	fruit->SetScaleWithParent(false);
 
 	n->AddChild(fruit);
 }
@@ -285,21 +285,21 @@ void TreeNode::AddRandomLeaf(){
 
 	leaf->SetMesh(leafQuad);
 
-	leaf->SetShader(fruitShader);
-	leaf->SetUpdateShaderFunction([this]{ this->LeafShaderUpdate(); });
+	//leaf->SetShader(fruitShader);
+	//leaf->SetUpdateShaderFunction([this]{ this->LeafShaderUpdate(); });
 
 	//At a random postion along the branch
-	leaf->SetPosition(Vector3(0, RAND(), 0));
+//	leaf->SetPosition(Vector3(0, RAND(), 0));
 
-	leaf->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()- (2  * RAND()),0,RAND()- (2 * RAND())));
+	//leaf->SetModelRotation((float) 20 +(rand() % 35), Vector3(RAND()- (2  * RAND()),0,RAND()- (2 * RAND())));
 
-	Vector3 axisOfGrowth = Vector3::Cross(leaf->GetPosition(), leaf->GetRotationAxis());
+	//Vector3 axisOfGrowth = Vector3::Cross(leaf->GetPosition(), leaf->GetRotationAxis());
 
-	leaf->SetPosition(leaf->GetPosition() + (axisOfGrowth * (1-leaf->GetPosition().y)));
+//	leaf->SetPosition(leaf->GetPosition() + (axisOfGrowth * (1-leaf->GetPosition().y)));
 
 	leaf->SetBoundingRadius(25);
 
-	leaf->SetScaleWithParent(false);
+	//leaf->SetScaleWithParent(false);
 
 	this->AddChild(leaf);
 }
@@ -317,9 +317,9 @@ void TreeNode::AddParticleEmitter(){
 
 	pNode->SetBoundingRadius(growthAmount * 0.2f * MAX_TREE_HEIGHT);
 	pNode->SetParticleEmitter(pe);
-	pNode->SetShader(particleShader);
+//	pNode->SetShader(particleShader);
 	pNode->SetModelScale(Vector3(1,0.5,1));
-	pNode->SetPosition(Vector3(0,1,0));
+//	pNode->SetPosition(Vector3(0,1,0));
 
 	this->AddChild(pNode);
 }

@@ -35,6 +35,9 @@ void Quaternion::Normalise(){
 	}
 }
 
+Quaternion Quaternion::operator+(const Quaternion& a) const {
+	return Quaternion(x + a.x, y + a.y, z + a.z, w + a.w);
+}
 
 Quaternion Quaternion::operator *(const Quaternion &b) const{
 	Quaternion ans;

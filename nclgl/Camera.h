@@ -23,6 +23,7 @@ public:
 	void UpdateCamera(float msec = 10.0f);
 
 	Matrix4 BuildViewMatrix();
+	Vector3 GetDirectionVector();
 
 	inline Vector3 GetPosition() const { return position; }
 	inline void SetPosition(Vector3 val){ position = val; }

@@ -150,6 +150,10 @@ bool Mouse::ButtonHeld(MouseButtons b)	{
 	return holdButtons[b];
 }
 
+bool Mouse::ButtonTriggered(MouseButtons b){
+	return (ButtonDown(b) && !ButtonHeld(b));
+}
+
 /*
 Returns how much the mouse has moved by since the last frame.
 */

@@ -51,11 +51,11 @@ bool Renderer::InitDeferredRendering(){
 
 		ParticleEmitterNode* fire = new ParticleEmitterNode();
 		fire->SetParticleEmitter(fireEmitter);
-		fire->SetPosition(lightPositions[i]);
+//		fire->SetPosition(lightPositions[i]);
 		fire->SetBoundingRadius(100);
-		fire->SetShader(particleShader);
+//		fire->SetShader(particleShader);
 		/*fire->SetUpdateShaderFunction([this]{UpdateParticleShaderMatricesPO(); });*/
-		fire->SetScaleWithParent(false);
+//		fire->SetScaleWithParent(false);
 		
 		root->AddChild(fire);
 	}
@@ -211,7 +211,7 @@ void Renderer::DrawPointLights(){
 			glCullFace(GL_BACK);
 		}
 
-		sphere->Draw();
+		icoSphere->Draw();
 	}
 
 	//We reset everything to normal

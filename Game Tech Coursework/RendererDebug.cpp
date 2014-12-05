@@ -5,16 +5,19 @@ bool Renderer::InitDebug(){
 	basicFont = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
+	sphere = new OBJMesh("Sphere.obj");
+
 	if (!basicFont->texture)
 		return false;
 
+	gt = GameTimer();
 	frames = 0;
 	fps = 0;
 	timeAcc = 0;
 
 	objectsDrawn = 0;
 	objectsShadowed = 0;
-	drawBound = 0;
+	drawBound = 1;
 
 	return true;
 }
@@ -24,8 +27,8 @@ void Renderer::DeleteDebug(){
 }
 
 //Count our frame rate!
-void Renderer::UpdateDebug(float msec){
-	timeAcc += msec;
+void Renderer::UpdateDebug(){
+	timeAcc += gt.GetTimedMS();
 	frames++;
 	objectsDrawn = 0;
 	objectsShadowed = 0;
@@ -50,14 +53,6 @@ void Renderer::DrawDebugOverlay(){
 	DrawString(buff.str(), Vector3(0,0,0.5f), FONT_SIZE);
 
 	buff = std::ostringstream();
-	buff << "Tree 1 GPUMem used: " << tree1->GetGPUMemUsage() << " bytes. " << std::endl;
-	DrawString(buff.str(), Vector3(0,FONT_SIZE,0.5f), FONT_SIZE);
-
-	buff = std::ostringstream();
-	buff << "Tree 2 GPUMem used: " << tree2->GetGPUMemUsage() << " bytes. " << std::endl;
-	DrawString(buff.str(), Vector3(0,2*FONT_SIZE,0.5f), FONT_SIZE);
-
-	buff = std::ostringstream();
 	if (sobel) buff << "Sobel colour ";
 	if (sobelDepth) buff << "Sobel depth ";
 	if (quantizeCol) buff << "Colour quantize ";
@@ -65,18 +60,21 @@ void Renderer::DrawDebugOverlay(){
 	if (bloom) buff << "Bloom ";
 	if (dubVis) buff << "Double Vision ";
 	if (blur) buff << "Blur ";
-	DrawString(buff.str(), Vector3(0,3*FONT_SIZE,0.5f), FONT_SIZE);
+	DrawString(buff.str(), Vector3(0,2*FONT_SIZE,0.5f), FONT_SIZE);
 	
 	buff = std::ostringstream();
 
-	if (toon) buff << "Toon textures ";
 	if (pause) buff << "Time paused ";
 	if (dayTimeSpeedIncrease) buff << "Day/night cycle speed increased ";
 	if (timeSlowed) buff << "Time slowed ";
 	if (raining) buff << "Rain ";
 	if (snowing) buff << "Snow ";
+	DrawString(buff.str(), Vector3(0,3*FONT_SIZE,0.5f), FONT_SIZE);
 
-	DrawString(buff.str(), Vector3(0,4*FONT_SIZE,0.5f), FONT_SIZE);
+	buff = std::ostringstream();
+	buff << "PUPS: " << PhysicsSystem::GetPhysicsSystem().GetUpdateRate();
+	buff << " No. Cols: " << PhysicsSystem::GetPhysicsSystem().GetCollisionCount();
+	DrawString(buff.str(), Vector3(0, 4*FONT_SIZE, 0.5f), FONT_SIZE);
 
 	glUseProgram(0);
 }

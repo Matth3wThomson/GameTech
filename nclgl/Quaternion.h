@@ -54,8 +54,10 @@ public:
 
 	static float Dot(const Quaternion &a, const Quaternion &b);
 
+	Quaternion operator +(const Quaternion& a) const;
 	Quaternion operator *(const Quaternion &a) const;
 	Quaternion operator *(const Vector3 &a) const;
+	
 
 	inline friend std::ostream& operator<<(std::ostream& o, const Quaternion& q){
 		o << "Quat(" << q.x << "," << q.y << "," << q.z <<  "," << q.w << ")" << std::endl;

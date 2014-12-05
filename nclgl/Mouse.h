@@ -36,6 +36,8 @@ public:
 	bool	ButtonDown(MouseButtons button);
 	//Has this mouse button been held down for multiple frames?
 	bool	ButtonHeld(MouseButtons button);
+
+	bool ButtonTriggered(MouseButtons button);
 	//Has this mouse button been double clicked?
 	bool	DoubleClicked(MouseButtons button);
 

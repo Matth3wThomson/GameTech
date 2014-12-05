@@ -9,6 +9,8 @@
 #include "../nclgl/HeightMap.h"
 #include "../nclgl/OBJMesh.h"
 #include "../nclgl/ParticleEmitter.h"
+#include "PhysicsSystem.h"
+
 #include "ParticleEmitterNode.h"
 #include "TreeNode.h"
 #include <algorithm>
@@ -35,13 +37,31 @@
 class Renderer : public OGLRenderer
 {
 public:
-	Renderer(Window& parent);
-	~Renderer(void);
+	virtual void UpdateScene(float msec);
+	virtual void RenderScene();
 
-	void UpdateScene(float msec);
-	void RenderScene();
+	static bool Initialise(){
+		instance = new Renderer(Window::GetWindow());
+		return instance->HasInitialised();
+	}
+
+	static void Destroy(){
+		delete instance;
+	}
+
+	void SetCamera(Camera* c){ camera = c; }
+
+	void AddNode(SceneNode* n){ root->AddChild(n); };
+	void RemoveNode(SceneNode* n){ root->RemoveChild(n); };
+
+	static Renderer& GetRenderer(){ return *instance; }
 
 protected:
+
+	Renderer(Window& parent);
+	virtual ~Renderer();
+
+	static Renderer* instance;
 
 	//Generic renderer attributes
 	Camera* camera;
@@ -112,10 +132,6 @@ protected:
 	void UpdateSceneObjects(float msec);
 	void DeleteSceneObjects();
 
-	Shader* sunShader;
-
-	bool toon;
-	void SwitchToToon(bool toon);
 
 	Mesh* quad;
 	Mesh* sphere;
@@ -208,13 +224,15 @@ protected:
 
 	//Debugging properties
 	bool InitDebug();
-	void UpdateDebug(float msec);
+	void UpdateDebug();
 	void DeleteDebug();
 
 	void DrawDebugOverlay();
 	void DrawBounds(SceneNode* node);
 
 	static bool debug;
+
+	GameTimer gt;
 
 	float frames;
 	float fps;
@@ -223,10 +241,6 @@ protected:
 	int objectsDrawn;
 	int objectsShadowed;
 	bool drawBound;
-
-	//PLANTS
-	TreeNode* tree1;
-	TreeNode* tree2;
 	
 	//Shadowing
 	bool InitShadowBuffers();

@@ -8,6 +8,20 @@ Keyboard*Window::keyboard	= NULL;
 Mouse*Window::mouse			= NULL;
 //GameTimer*Window::timer		= NULL;
 
+bool Window::Initialise(std::string title, int sizeX, int sizeY, bool fullScreen)	{
+	window = new Window(title, sizeX, sizeY, fullScreen);
+
+	if (!window->HasInitialised()) {
+		return false;
+	}
+	return true;
+}
+
+void Window::Destroy() {
+	delete window;
+	window = NULL;
+}
+
 Window::Window(std::string title, int sizeX, int sizeY, bool fullScreen)	{
 	renderer		= NULL;
 	window			= this;

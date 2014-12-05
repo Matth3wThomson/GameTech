@@ -3,6 +3,7 @@
 uniform sampler2D diffuseTex;
 
 uniform bool useTex;
+uniform vec3 colour;
 
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
@@ -21,7 +22,7 @@ out vec4 gl_FragColor;
 void main(void){
 	
 	//Base diffuse colour of the fragment
-	vec4 diffuse = vec4(1,0,0,1);
+	vec4 diffuse = vec4(colour, 1.0);
 	
 	if (useTex){
 		diffuse = texture(diffuseTex, IN.texCoord);

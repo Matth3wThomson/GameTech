@@ -35,7 +35,7 @@ public:
 	};
 
 	virtual void Draw(OGLRenderer& r, const bool useShader = true){
-		r.SetCurrentShader(shader);
+		//r.SetCurrentShader(shader);
 
 		glUniform1f(glGetUniformLocation(r.currentShader->GetProgram(), "particleSize"), pe->GetParticleSize());
 		
