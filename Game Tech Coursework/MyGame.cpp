@@ -44,7 +44,7 @@ MyGame::MyGame()	{
 	GameEntity* floor = BuildQuadEntity(1000.0f, Vector3(1,0,0), 90.0f);
 	floor->GetPhysicsNode().SetPosition(Vector3(0,-1000.0f, 0));
 	floor->GetPhysicsNode().SetFixed(true);
-	floor->GetPhysicsNode().SetCollisionVolume(new Plane(Vector3(0,1,0), -1000.0f));
+	floor->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,1,0), -1000.0f));
 
 	floor->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	floor->ConnectToSystems();
@@ -53,7 +53,7 @@ MyGame::MyGame()	{
 	GameEntity* wallBack = BuildQuadEntity(1000.0f, Vector3(1,0,0), 0.0f);
 	wallBack->GetPhysicsNode().SetPosition(Vector3(0,0,1000.0f));
 	wallBack->GetPhysicsNode().SetFixed(true);
-	wallBack->GetPhysicsNode().SetCollisionVolume(new Plane(Vector3(0,0,-1), -1000.0f));
+	wallBack->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,0,-1), -1000.0f));
 
 	wallBack->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallBack->ConnectToSystems();
@@ -62,7 +62,7 @@ MyGame::MyGame()	{
 	GameEntity* wallFront = BuildQuadEntity(1000.0f, Vector3(1,0,0), 180.0f);
 	wallFront->GetPhysicsNode().SetPosition(Vector3(0,0,-1000.0f));
 	wallFront->GetPhysicsNode().SetFixed(true);
-	wallFront->GetPhysicsNode().SetCollisionVolume(new Plane(Vector3(0,0,1), -1000.0f));
+	wallFront->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,0,1), -1000.0f));
 
 	wallFront->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallFront->ConnectToSystems();
@@ -71,7 +71,7 @@ MyGame::MyGame()	{
 	GameEntity* wallLeft = BuildQuadEntity(1000.0f, Vector3(0,1,0), 270.0f);
 	wallLeft->GetPhysicsNode().SetPosition(Vector3(-1000.0f,0,0));
 	wallLeft->GetPhysicsNode().SetFixed(true);
-	wallLeft->GetPhysicsNode().SetCollisionVolume(new Plane(Vector3(1,0,0), -1000.0f));
+	wallLeft->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(1,0,0), -1000.0f));
 
 	wallLeft->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallLeft->ConnectToSystems();
@@ -80,7 +80,7 @@ MyGame::MyGame()	{
 	GameEntity* wallRight = BuildQuadEntity(1000.0f, Vector3(0,1,0), 90.0f);
 	wallRight->GetPhysicsNode().SetPosition(Vector3(1000,0,0));
 	wallRight->GetPhysicsNode().SetFixed(true);
-	wallRight->GetPhysicsNode().SetCollisionVolume(new Plane(Vector3(-1,0,0), -1000.0f));
+	wallRight->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(-1,0,0), -1000.0f));
 
 	wallRight->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallRight->ConnectToSystems();
@@ -136,7 +136,7 @@ void MyGame::UpdateGame(float msec) {
 		//ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
 		ge->GetPhysicsNode().SetInvSphereInertiaMatrix(100, 100);
 
-		ge->GetPhysicsNode().SetCollisionVolume(new CollisionSphere(Vector3(0,0,0), 100.0f));
+		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), 100.0f));
 
 		ge->ConnectToSystems();
 

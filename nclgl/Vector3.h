@@ -77,7 +77,7 @@ public:
 	}
 
 	inline friend std::ostream& operator<<(std::ostream& o, const Vector3& v) {
-		o << "Vector3(" << v.x << "," << v.y << "," << v.z <<")" << std::endl;
+		o << "Vector3(" << v.x << "," << v.y << "," << v.z <<")";
 		return o;
 	}
 
@@ -85,8 +85,16 @@ public:
 		return Vector3(x + a.x,y + a.y, z + a.z);
 	}
 
+	inline Vector3 operator+(const float f) const { 
+		return Vector3(x + f, y+f, z+f);
+	}
+
 	inline Vector3  operator-(const Vector3  &a) const{
 		return Vector3(x - a.x,y - a.y, z - a.z);
+	}
+
+	inline Vector3 operator-(const float a) const {
+		return Vector3(x-a, y-a, z-a);
 	}
 
 	inline Vector3  operator-() const{

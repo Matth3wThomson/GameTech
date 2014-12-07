@@ -241,6 +241,16 @@ protected:
 	int objectsDrawn;
 	int objectsShadowed;
 	bool drawBound;
+
+	//PHYSICS DEBUGGING!
+	bool physicsDrawing;
+
+	Mesh* box;
+
+	void DrawPhysics();
+
+	void DrawOctTree();
+	void DrawOctNode(const OctNode& on);
 	
 	//Shadowing
 	bool InitShadowBuffers();

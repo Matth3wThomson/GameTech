@@ -38,6 +38,7 @@ _-_-_-_-_-_-_-""  ""
 #include "../nclgl/Matrix4.h"
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/CollisionVolume.h"
+#include "../nclgl/Plane.h"
 
 #define FORCE_REST_TOLERANCE 0.001f
 #define REST_TOLERANCE 0.01f
@@ -74,6 +75,8 @@ public:
 
 	Vector3		GetAngularVelocity()	{ return m_angularVelocity;}
 
+	bool		AtRest() const			{ return m_rest; };
+
 	bool		GetFixed() const		{ return fixed; }
 	void		SetFixed(bool fix)		{ fixed = fix; if (fixed){ m_linearVelocity = Vector3(0,0,0); m_angularVelocity = Vector3(0,0,0); } };
 
@@ -84,8 +87,14 @@ public:
 
 	void	SetTarget(SceneNode *s) { target = s;}
 
-	void SetCollisionVolume(CollisionVolume* cv){ m_cv = cv; };
-	CollisionVolume* GetCollisionVolume(){ return m_cv; }
+	void SetNarrowPhaseVolume(CollisionVolume* cv){ m_narrowPhase = cv; if (!m_broadPhase) m_broadPhase = cv; };
+	CollisionVolume* GetNarrowPhaseVolume(){ return m_narrowPhase; }
+
+	void SetBroadPhaseVolume(CollisionVolume* cv){ m_broadPhase = cv; if (!m_narrowPhase) m_narrowPhase = cv; };
+	CollisionVolume* GetBroadPhaseVolume(){ return m_broadPhase; }
+
+	void UpdateCollisionSphere(CollisionSphere& cs);
+	void UpdateCollisionPlane(Plane& p);
 
 	void ApplyForce(const Vector3& force, const Vector3& distanceFromCentre = Vector3(0,0,0));
 	void ApplyImpulse(const Vector3& impulse, const Vector3& distanceFromCentre = Vector3(0,0,0));
@@ -110,7 +119,8 @@ protected:
 	Matrix4     m_invInertia;   
 
 	//<----------COLLISION------------->
-	CollisionVolume* m_cv;
+	CollisionVolume* m_broadPhase;
+	CollisionVolume* m_narrowPhase;
 
 	SceneNode*	target;  
 };

@@ -5,7 +5,9 @@ bool Renderer::InitDebug(){
 	basicFont = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
-	sphere = new OBJMesh("Sphere.obj");
+
+
+	sphere = new OBJMesh(MESHDIR"Sphere.obj");
 
 	if (!basicFont->texture)
 		return false;
@@ -18,6 +20,9 @@ bool Renderer::InitDebug(){
 	objectsDrawn = 0;
 	objectsShadowed = 0;
 	drawBound = 1;
+
+	box = new OBJMesh(MESHDIR"centeredcube.obj");
+	physicsDrawing = false;
 
 	return true;
 }
@@ -39,6 +44,13 @@ void Renderer::UpdateDebug(){
 		fps = frames;
 		frames = 0;
 	}
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD8))
+		drawBound = !drawBound;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD7)){
+		physicsDrawing = !physicsDrawing;
+	}
 }
 
 //Method to draw the overlay
@@ -49,6 +61,7 @@ void Renderer::DrawDebugOverlay(){
 	buff << "FPS: " << fps <<std::endl;
 	buff << "Drawn: " << objectsDrawn << std::endl;
 	buff << "Shadowed: " << objectsShadowed << std::endl;
+	if (drawBound) buff << "Bounds Drawn. " << std::endl;
 
 	DrawString(buff.str(), Vector3(0,0,0.5f), FONT_SIZE);
 
@@ -74,6 +87,7 @@ void Renderer::DrawDebugOverlay(){
 	buff = std::ostringstream();
 	buff << "PUPS: " << PhysicsSystem::GetPhysicsSystem().GetUpdateRate();
 	buff << " No. Cols: " << PhysicsSystem::GetPhysicsSystem().GetCollisionCount();
+	if (physicsDrawing) buff << "Physics Draw" << std::endl;
 	DrawString(buff.str(), Vector3(0, 4*FONT_SIZE, 0.5f), FONT_SIZE);
 
 	glUseProgram(0);
@@ -102,3 +116,40 @@ void Renderer::DrawBounds(SceneNode* n){
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_CULL_FACE);
 }
+
+void Renderer::DrawPhysics(){
+	if (physicsDrawing){
+
+		std::lock_guard<std::mutex> lock(PhysicsSystem::instance->nodesMutex);
+		DrawOctTree();
+	}
+}
+
+void Renderer::DrawOctTree(){
+
+	//Obtain a reference to the octree of the physics system
+	OctTree& ot = PhysicsSystem::instance->octTree;
+
+	DrawOctNode(ot.root);
+}
+
+void Renderer::DrawOctNode(const OctNode& on){
+	if (on.octNodes.size() != 0){
+		for (auto itr = on.octNodes.begin(); itr != on.octNodes.end(); ++itr){
+			DrawOctNode(**itr);
+		}
+	} else {
+		modelMatrix = Matrix4::Translation(on.pos) * Matrix4::Scale(Vector3(on.halfSize, on.halfSize, on.halfSize));
+		//modelMatrix = Matrix4::Translation(Vector3(0,0,0)) * Matrix4::Scale(Vector3(10,10,10));;
+		projMatrix = cameraProjMat;
+		UpdateShaderMatrices();
+
+		glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+			"colour"), 1, (float*) &Vector4(0,1,1,1));
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"useTex"), 0);
+
+		box->Draw();
+	}
+}
+

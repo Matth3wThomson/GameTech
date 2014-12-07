@@ -85,6 +85,9 @@
     <ClCompile Include="MyGame.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
+    <ClCompile Include="OctTree.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GrowingNode.h">
@@ -116,6 +119,9 @@
     </ClInclude>
     <ClInclude Include="MyGame.h">
       <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="OctTree.h">
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

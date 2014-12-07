@@ -3,13 +3,16 @@
 PhysicsSystem* PhysicsSystem::instance = 0;
 float PhysicsSystem::timestep = 1.0f/120.0f;
 
-PhysicsSystem::PhysicsSystem(void)	{
+PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(1000, 3, 2)){
 	collisionCount = 0;
 	physTimer = GameTimer();
 	timePassed = 0;
 	updateRate = 0;
 	physFrames = 0;
 	timePassed = 0.0f;
+
+	//Requires world size, max number of objects per node, and max depth of tree
+	//broadPhase = OctTree(Vector3(4000,4000,4000), 6, 2);
 }
 
 PhysicsSystem::~PhysicsSystem(void)	{
@@ -28,8 +31,8 @@ void	PhysicsSystem::Update(float msec){
 		timePassed -= 1000.0f;
 	}
 
-	BroadPhaseCollisions();
-	NarrowPhaseCollisions();
+	BroadPhase();
+	NarrowPhase();
 
 	//ResolveCollisions(); //Resolve after all overlaps have been corrected and intersections found
 	std::lock_guard<std::mutex> lock(nodesMutex);
@@ -38,9 +41,10 @@ void	PhysicsSystem::Update(float msec){
 	}
 }
 
-void	PhysicsSystem::BroadPhaseCollisions() {
+void	PhysicsSystem::BroadPhase() {
 	//Sort all objects into octree based on some sort of collision properties?
-	
+	std::lock_guard<std::mutex> lock(nodesMutex);
+	octTree.Update();
 }
 
 
@@ -52,16 +56,105 @@ void	PhysicsSystem::BroadPhaseCollisions() {
 
 //TODO: Because when 3 entities overlap, how do we resolve correctly? Translate out of collision
 //		as soon as it is found is wrong? Doing collision resolution for an object twice will break it?
-void	PhysicsSystem::NarrowPhaseCollisions(){
+//void	PhysicsSystem::NarrowPhase(){
+//
+//	//Then perform collision detection on each section of the octree recursively
+//	std::lock_guard<mutex> lock(nodesMutex);
+//
+//	for (vector<PhysicsNode*>::iterator i = allNodes.begin(); i != allNodes.end(); ++i){
+//		for (auto j = i+1; j != allNodes.end(); ++j){
+//
+//			CollisionVolume* cv1 = (*i)->GetNarrowPhaseVolume();
+//			CollisionVolume* cv2 = (*j)->GetNarrowPhaseVolume();
+//
+//			if (cv1 && cv2){
+//
+//				CollisionVolumeType cvt1 = cv1->GetType();
+//				CollisionVolumeType cvt2 = cv2->GetType();
+//				CollisionData cd;
+//
+//				switch (cvt1){
+//				case COLLISION_PLANE:
+//					if (cvt2 == COLLISION_SPHERE){
+//						Plane* p = dynamic_cast<Plane*>(cv1);
+//						CollisionSphere* cs = dynamic_cast<CollisionSphere*>(cv2);
+//
+//						//We must update our collision volumes
+//						//UpdateCollisionSphere(**j, *cs);
+//						(*j)->UpdateCollisionSphere(*cs);
+//						(*i)->UpdateCollisionPlane(*p);
+//
+//						//Sphere in plane is the wrong way around...
+//						/*if (p->SphereInPlane(cs->m_pos, cs->m_radius, &cd)){*/
+//						if (SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
+//							//Wrong side of the plane... but what is the limit to the plane?
+//							std::cout << "SP COLLISION\n";
+//							AddCollisionImpulse(*(*j), *(*i), cd);
+//							++collisionCount;
+//							 
+//						}
+//					};
+//
+//					if (cvt2 == COLLISION_AABB){
+//
+//					}; 
+//
+//					break;
+//				case COLLISION_SPHERE:
+//					if (cvt2 == COLLISION_PLANE) break;
+//					if (cvt2 == COLLISION_SPHERE){
+//						CollisionSphere* cs1 = dynamic_cast<CollisionSphere*>(cv1);
+//						CollisionSphere* cs2 = dynamic_cast<CollisionSphere*>(cv2);
+//
+//						(*i)->UpdateCollisionSphere(*cs1);
+//						(*j)->UpdateCollisionSphere(*cs2);
+//
+//						if (SphereSphereCollision(*cs1, *cs2, &cd)){
+//							std::cout << "SS COLLISION\n";
+//							AddCollisionImpulse(*(*i), *(*j), cd);
+//							++collisionCount;
+//						}
+//					};
+//					if (cvt2 == COLLISION_AABB); 
+//
+//					break;
+//				case COLLISION_AABB:
+//					if (cvt2 == COLLISION_PLANE) break;
+//					if (cvt2 == COLLISION_SPHERE);
+//					if (cvt2 == COLLISION_AABB); 
+//
+//					break;
+//				}
+//			}
+//		}
+//	}
+//}
+
+void	PhysicsSystem::NarrowPhase(){
 
 	//Then perform collision detection on each section of the octree recursively
 	std::lock_guard<mutex> lock(nodesMutex);
+	
+	NarrowPhaseTree(octTree.root);
+}
 
-	for (vector<PhysicsNode*>::iterator i = allNodes.begin(); i != allNodes.end(); ++i){
-		for (auto j = i+1; j != allNodes.end(); ++j){
+void PhysicsSystem::NarrowPhaseTree(OctNode& on){
+	if (on.octNodes.size() != 0){
+		for (auto itr = on.octNodes.begin(); itr != on.octNodes.end(); itr++){
+			NarrowPhaseTree(**itr);
+		}
+	} else {
+		NarrowPhaseVector(on.physicsNodes);
+	}
+}
 
-			CollisionVolume* cv1 = (*i)->GetCollisionVolume();
-			CollisionVolume* cv2 = (*j)->GetCollisionVolume();
+void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
+
+	for (vector<PhysicsNode*>::iterator i = np.begin(); i != np.end(); ++i){
+		for (auto j = i+1; j != np.end(); ++j){
+
+			CollisionVolume* cv1 = (*i)->GetNarrowPhaseVolume();
+			CollisionVolume* cv2 = (*j)->GetNarrowPhaseVolume();
 
 			if (cv1 && cv2){
 
@@ -76,8 +169,8 @@ void	PhysicsSystem::NarrowPhaseCollisions(){
 						CollisionSphere* cs = dynamic_cast<CollisionSphere*>(cv2);
 
 						//We must update our collision volumes
-						UpdateCollisionSphere(**j, *cs);
-						UpdateCollisionPlane(**i, *p);
+						(*j)->UpdateCollisionSphere(*cs);
+						(*i)->UpdateCollisionPlane(*p);
 
 						//Sphere in plane is the wrong way around...
 						/*if (p->SphereInPlane(cs->m_pos, cs->m_radius, &cd)){*/
@@ -101,6 +194,9 @@ void	PhysicsSystem::NarrowPhaseCollisions(){
 						CollisionSphere* cs1 = dynamic_cast<CollisionSphere*>(cv1);
 						CollisionSphere* cs2 = dynamic_cast<CollisionSphere*>(cv2);
 
+						(*i)->UpdateCollisionSphere(*cs1);
+						(*j)->UpdateCollisionSphere(*cs2);
+
 						if (SphereSphereCollision(*cs1, *cs2, &cd)){
 							std::cout << "SS COLLISION\n";
 							AddCollisionImpulse(*(*i), *(*j), cd);
@@ -122,6 +218,8 @@ void	PhysicsSystem::NarrowPhaseCollisions(){
 	}
 }
 
+
+
 void PhysicsSystem::ResolveCollisions(){
 
 }
@@ -129,6 +227,7 @@ void PhysicsSystem::ResolveCollisions(){
 void	PhysicsSystem::AddNode(PhysicsNode* n){
 	std::lock_guard<mutex> lock(nodesMutex);
 	allNodes.push_back(n);
+ 	octTree.AddPhysicsNode(n);
 }
 
 void	PhysicsSystem::RemoveNode(PhysicsNode* n) {
@@ -287,17 +386,17 @@ bool PhysicsSystem::PointInConcavePolygon( const Vector3* shapePoints, const int
 	return true;
 }
 
-void PhysicsSystem::UpdateCollisionSphere(const PhysicsNode& pn, CollisionSphere& cs){
-	cs.m_pos = pn.GetPosition();
-}
+//void PhysicsSystem::UpdateCollisionSphere(const PhysicsNode& pn, CollisionSphere& cs){
+//	cs.m_pos = pn.GetPosition();
+//}
 
-void PhysicsSystem::UpdateCollisionPlane(const PhysicsNode& pn, Plane& p){
-
-}
-
-void PhysicsSystem::UpdateCollisionAABB(const PhysicsNode& pn, CollisionAABB& aabb){
-
-}
+//void PhysicsSystem::UpdateCollisionPlane(const PhysicsNode& pn, Plane& p){
+//
+//}
+//
+//void PhysicsSystem::UpdateCollisionAABB(const PhysicsNode& pn, CollisionAABB& aabb){
+//
+//}
 
 //Consider replacing the final 3 parameters with collision data?
 //void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
@@ -461,6 +560,12 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 		/*if (((jn / timestep) + (Vector3::Dot(pn0.m_force, cd.m_normal) < REST_TOLERANCE)) &&*/
 		/*if ((jn / timestep) + (Vector3::Dot(pn1.m_force, cd.m_normal) < REST_TOLERANCE) &&*/
 		Vector3 impulseDirection = cd.m_normal * (jn / timestep);
+
+		//TODO: Output angular velocities and sort out the odd spin issue
+		/*std::cout << "Force:   " << impulseDirection << std::endl;
+		std::cout << "Impulse: " << jn << std::endl;
+		std::cout << "Force O1:" << pn0.m_force << std::endl;
+		std::cout << "Force O2:" << pn1.m_force << std::endl;*/
 
 		if (abs(impulseDirection.x + pn0.m_force.x) < FORCE_REST_TOLERANCE &&
 			abs(impulseDirection.y + pn0.m_force.y) < FORCE_REST_TOLERANCE &&

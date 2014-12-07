@@ -29,6 +29,7 @@ _-_-_-_-_-_-_-""  ""
 #pragma once
 
 #include "PhysicsNode.h"
+#include "OctTree.h"
 #include "../nclgl/Mesh.h"
 #include "../nclgl/Plane.h"
 #include <vector>
@@ -65,42 +66,17 @@ public:
 
 };
 
-class CollisionSphere : public CollisionVolume {
-	public:
-	CollisionSphere(const Vector3& position, float radius):
-		m_pos(position), m_radius(radius){
-			type = COLLISION_SPHERE; };
-	virtual ~CollisionSphere(void){};
-
-	Vector3 m_pos;
-	float m_radius;
-};
-
-class CollisionAABB : public CollisionVolume {
-public:
-
-	CollisionAABB(){ type = COLLISION_AABB; }
-	virtual ~CollisionAABB(){};
-	CollisionAABB(Mesh* m){ GenerateAABB(m); };
-
-	Vector3 m_position;
-	Vector3 m_halfSize;
-
-protected:
-	//Generates an AABB from a mesh
-	void GenerateAABB(Mesh* m);
-};
-
 
 class PhysicsSystem	{
 public:
 	friend class GameClass;
+	friend class Renderer; //This is to allow our renderer to be able to draw our physics entities!
 
 	void		Update(float msec);
 
 	void		UpdateCollisionVolume(PhysicsNode* pn);
-	void		BroadPhaseCollisions();
-	void		NarrowPhaseCollisions();
+	void		BroadPhase();
+	void		NarrowPhase();
 	void		ResolveCollisions();
 
 	//Statics
@@ -127,6 +103,9 @@ protected:
 	PhysicsSystem(void);
 	~PhysicsSystem(void);
 
+	void NarrowPhaseTree(OctNode& on);
+	void NarrowPhaseVector(std::vector<PhysicsNode*>& np);
+
 	bool SphereInColPlane(const Plane& p, const Vector3& position, float radius, CollisionData* colData) const;
 
 	bool SphereSphereCollision(const CollisionSphere &s0, const CollisionSphere &s1, CollisionData *collisionData = NULL) const;
@@ -138,9 +117,9 @@ protected:
 	bool PointInConvexPolygon(const Vector3 testPosition, Vector3 * convexShapePoints, int numPointsL) const;
 	bool PointInConcavePolygon(const Vector3* shapePoints, const int numPoints, const Vector3& testPoint) const;
 
-	void UpdateCollisionSphere(const PhysicsNode& pn, CollisionSphere& cs);
-	void UpdateCollisionPlane(const PhysicsNode& pn, Plane& p); //TODO: Necessary?
-	void UpdateCollisionAABB(const PhysicsNode& pn, CollisionAABB& aabb);
+	/*void UpdateCollisionSphere(const PhysicsNode& pn, CollisionSphere& cs);*/
+	//void UpdateCollisionPlane(const PhysicsNode& pn, Plane& p); //TODO: Necessary?
+	/*void UpdateCollisionAABB(const PhysicsNode& pn, CollisionAABB& aabb);*/
 
 	/*static void AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1, const Vector3& hitPoint, const Vector3& normal, float penetration);*/
 	static void AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1, const CollisionData& cd);
@@ -162,6 +141,9 @@ protected:
 
 	vector<PhysicsNode*> allNodes;
 	mutex nodesMutex;
+
+	//Our broadphase checks!
+	OctTree octTree;
 
 	//This will be used to store all of the nodes that have been detected to collide.
 	//There will then be a collision resolution step.

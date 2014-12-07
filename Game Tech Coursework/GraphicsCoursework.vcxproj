@@ -75,6 +75,7 @@
     <ClCompile Include="GrowingNode.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MyGame.cpp" />
+    <ClCompile Include="OctTree.cpp" />
     <ClCompile Include="PhysicsNode.cpp" />
     <ClCompile Include="PhysicsSystem.cpp" />
     <ClCompile Include="RendererDeferred.cpp" />
@@ -94,6 +95,7 @@
     <ClInclude Include="GameEntity.h" />
     <ClInclude Include="GrowingNode.h" />
     <ClInclude Include="MyGame.h" />
+    <ClInclude Include="OctTree.h" />
     <ClInclude Include="ParticleEmitterNode.h" />
     <ClInclude Include="PhysicsNode.h" />
     <ClInclude Include="PhysicsSystem.h" />

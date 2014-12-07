@@ -111,9 +111,6 @@ void Renderer::UpdateScene(float msec){
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P))
 		pause = !pause;
 
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD8))
-		drawBound = !drawBound;
-
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD9))
 		debug = !debug;
 
@@ -207,6 +204,8 @@ void Renderer::DrawCombinedScene(){
 	
 	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
 		SetCurrentShader(phong);
+		//SetCurrentShader(passThrough);
+
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		(*itr)->Draw(*this);
 
@@ -229,6 +228,11 @@ void Renderer::DrawCombinedScene(){
 			if ((*itr)->GetMesh()) objectsDrawn++;
 		}
 	}
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	SetCurrentShader(phong);
+	DrawPhysics();
+
 	glEnable(GL_CULL_FACE);
 	glDepthMask(GL_TRUE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

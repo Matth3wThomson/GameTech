@@ -6,7 +6,8 @@ PhysicsNode::PhysicsNode(void)	{
 	m_rest = false;
 	m_invMass = 1;
 	m_orientation = Quaternion();
-	m_cv = NULL;
+	m_narrowPhase = NULL;
+	m_broadPhase = NULL;
 }
 
 PhysicsNode::PhysicsNode(const Quaternion& orientation, const Vector3& position) {
@@ -15,7 +16,8 @@ PhysicsNode::PhysicsNode(const Quaternion& orientation, const Vector3& position)
 	m_invMass = 1;
 	fixed = false;
 	m_rest = false;
-	m_cv = NULL;
+	m_narrowPhase = NULL;
+	m_broadPhase = NULL;
 }
 
 PhysicsNode::~PhysicsNode(void)	{
@@ -55,6 +57,14 @@ void	PhysicsNode::Update(float msec){
 	}
 }
 
+void	PhysicsNode::UpdateCollisionSphere(CollisionSphere& cs){
+	cs.m_pos = this->m_position;
+}
+
+void PhysicsNode::UpdateCollisionPlane(Plane& p){
+
+}
+
 void PhysicsNode::ApplyForce(const Vector3& force, const Vector3& distanceFromCentre){
 	m_force += force;
 	m_torque += Vector3::Cross(distanceFromCentre, force);
@@ -89,7 +99,7 @@ Matrix4		PhysicsNode::BuildTransform() {
 }
 
 void PhysicsNode::SetInvSphereInertiaMatrix(float mass, float radius){
-	float inv_inertia = 1 / ((2.0f * mass * (radius * radius)) * 0.2f); //Why divide when we dont need to!?
+	float inv_inertia = 1 / ((2.0f * mass * (radius * radius)) * 0.2f);
 
 	m_invInertia = Matrix4();
 	m_invInertia[0] = inv_inertia;
