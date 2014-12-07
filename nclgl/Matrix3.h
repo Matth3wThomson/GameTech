@@ -58,28 +58,11 @@ public:
 	inline Vector3 operator*(const Vector3 &v) const {
 		Vector3 vec;
 
-		float temp;
-
-		vec.x = v.x*values[0] + v.y*values[4] + v.z*values[8]  + values[12];
-		vec.y = v.x*values[1] + v.y*values[5] + v.z*values[9]  + values[13];
-		vec.z = v.x*values[2] + v.y*values[6] + v.z*values[10] + values[14];
-
-		temp =  v.x*values[3] + v.y*values[7] + v.z*values[11] + values[15];
-
-		vec.x = vec.x/temp;
-		vec.y = vec.y/temp;
-		vec.z = vec.z/temp;
+		vec.x = v.x*values[0] + v.y*values[3] + v.z*values[6];
+		vec.y = v.x*values[1] + v.y*values[4] + v.z*values[7];
+		vec.z = v.x*values[2] + v.y*values[5] + v.z*values[8];
 
 		return vec;
-	};
-
-	inline Vector4 operator*(const Vector4 &v) const {
-		return Vector4(
-			v.x*values[0] + v.y*values[4] + v.z*values[8]  +v.w * values[12],
-			v.x*values[1] + v.y*values[5] + v.z*values[9]  +v.w * values[13],
-			v.x*values[2] + v.y*values[6] + v.z*values[10] +v.w * values[14],
-			v.x*values[3] + v.y*values[7] + v.z*values[11] +v.w * values[15]
-		);
 	};
 
 

@@ -35,7 +35,8 @@ _-_-_-_-_-_-_-""  ""
 
 #include "../nclgl/Quaternion.h"
 #include "../nclgl/Vector3.h"
-#include "../nclgl/Matrix4.h"
+#include "../nclgl/Matrix4.h"	//TODO: Remove this once matrix3 works.
+#include "../nclgl/Matrix3.h"
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/CollisionVolume.h"
 #include "../nclgl/Plane.h"
@@ -45,6 +46,8 @@ _-_-_-_-_-_-_-""  ""
 #define DAMPING_FACTOR 0.99f;
 
 class PhysicsSystem;
+
+//TODO: Clean this class up once matrix 3 conversion works!
 
 class PhysicsNode	{
 public:
@@ -63,8 +66,11 @@ public:
 	Vector3		GetLinearVelocity()		{ return m_linearVelocity;}
 	void		SetLinearVelocity(const Vector3& lv){ m_linearVelocity = lv; m_rest = false; };
 
-	void		SetInverseInertiaMat(const Matrix4& m){ m_invInertia = m; }
-	Matrix4		GetInverseInertiaMat(){ return m_invInertia; };
+	/*void		SetInverseInertiaMat(const Matrix4& m){ m_invInertia = m; }
+	Matrix4		GetInverseInertiaMat(){ return m_invInertia; };*/
+
+	void		SetInverseInertiaMat(const Matrix3& m){ m_invInertia = m; }
+	Matrix3		GetInverseInertiaMat(){ return m_invInertia; }
 	
 	float		GetMass() const			{ return 1 / m_invMass; }
 	void		SetMass(float mass)		{ m_invMass = 1 / mass; }
@@ -116,7 +122,8 @@ protected:
 	Quaternion  m_orientation;
 	Vector3		m_angularVelocity;
 	Vector3		m_torque;
-	Matrix4     m_invInertia;   
+	//Matrix4     m_invInertia;   
+	Matrix3		m_invInertia;
 
 	//<----------COLLISION------------->
 	CollisionVolume* m_broadPhase;

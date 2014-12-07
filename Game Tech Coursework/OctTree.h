@@ -12,6 +12,14 @@ using std::vector;
 using std::set;
 
 //TODO: Consider using a free list of octNodes to improve cache efficiency.
+//TODO: Consider using a boolean to represent whether an octNode has octNodes
+//			or physics nodes. Size() function could be expensive!
+//TODO: Take octNodes off of the heap, why are they on the heap in the first place?
+//			-Possibly due to vectors nullifying pointers to elements when the vector is inserted to 
+//			 or deleted from? Why use a vector for the octNodes, we know there will always be 8!
+
+//TODO: Make deletion of awake nodes occur using a generic delete function which scours the tree
+//		for each node?
 
 //ALWAYS CUBES!
 struct OctNode {
@@ -27,6 +35,8 @@ struct OctNode {
 	//duplicates are not added!!!!!!!!
 	vector<PhysicsNode*> physicsNodes;
 	vector<OctNode*> octNodes;
+
+	//vector<OctNode> octNodes; //TODO: UNCOMMENT THIS AND FIX ALL ERRORS
 
 };
 
@@ -69,9 +79,17 @@ protected:
 	//Creates an individual node based on a node number (8 children per node MAX)
 	OctNode* CreateNode(int nodeNumber, OctNode& parent);
 
+	void CollapseTree();
+
 	//Used to remove all physics nodes from the supplied nodes children, then removes the
 	//children from the node, and then emplaces removed nodes directly into the node supplied
-	void CollapseNode(OctNode& node);
+	/*void CollapseNode(OctNode& node);*/
+	/*bool CollapseNode(OctNode& node);*/
+
+	set<PhysicsNode*> CollapseNode(OctNode& node);
+
+	//Counts the number of unique physics nodes in the node supplied
+	int CountUniquePhysicsNodesInChildren(const OctNode& node);
 
 	//Works out what type of physics node we are dealing with, and calls the correct method
 	//to insert the physicsNode into the octNode suppplied
@@ -83,6 +101,6 @@ protected:
 
 	//Function that removes all nodes not at rest from the supplied node, and returns the number
 	//of physics nodes left in the node (after removal of awake nodes).
-	int RemoveAwake(OctNode& root, set<PhysicsNode*>& removed);
+	void RemoveAwake(OctNode& root, set<PhysicsNode*>& removed);
 };
 

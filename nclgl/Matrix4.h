@@ -93,17 +93,17 @@ public:
 	inline Vector3 operator*(const Vector3 &v) const {
 		Vector3 vec;
 
-		//float temp;
+		float temp;
 
 		vec.x = v.x*values[0] + v.y*values[4] + v.z*values[8]  + values[12];
 		vec.y = v.x*values[1] + v.y*values[5] + v.z*values[9]  + values[13];
 		vec.z = v.x*values[2] + v.y*values[6] + v.z*values[10] + values[14];
 
-		/*temp =  v.x*values[3] + v.y*values[7] + v.z*values[11] + values[15];
+		temp =  v.x*values[3] + v.y*values[7] + v.z*values[11] + values[15];
 
 		vec.x = vec.x/temp;
 		vec.y = vec.y/temp;
-		vec.z = vec.z/temp;*/
+		vec.z = vec.z/temp;
 
 		return vec;
 	};

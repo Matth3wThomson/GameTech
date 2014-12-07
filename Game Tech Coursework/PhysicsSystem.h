@@ -57,6 +57,8 @@ feel comfortable with!).
 //TODO: Possibly use a free list of collision volumes that can be obtained? Would mean
 //		better cache efficiency?
 
+//TODO: Need to make inverse inertia a vector3 and put Matrix4 * Vector3 multiplication back to how it was!
+
 
 class PhysicsSystem	{
 public:
@@ -97,26 +99,10 @@ protected:
 	void NarrowPhaseTree(OctNode& on);
 	void NarrowPhaseVector(std::vector<PhysicsNode*>& np);
 
-	//bool SphereInColPlane(const Plane& p, const Vector3& position, float radius, CollisionData* colData) const;
-
-	//bool SphereSphereCollision(const CollisionSphere &s0, const CollisionSphere &s1, CollisionData *collisionData = NULL) const;
-	//bool AABBCollision(const CollisionAABB &cube0, const CollisionAABB &cube1) const;
-
-	//bool LineLineIntersect(const Line& l1, const Line& l2, float* t1 = NULL, float* t2 = NULL) const;
-	//bool SphereAABBCollision(const CollisionSphere &sphere, const CollisionAABB &cube, CollisionData *collisionData = NULL) const; //Research!!!! :-)
-
-	//bool PointInConvexPolygon(const Vector3 testPosition, Vector3 * convexShapePoints, int numPointsL) const;
-	//bool PointInConcavePolygon(const Vector3* shapePoints, const int numPoints, const Vector3& testPoint) const;
-
-	/*void UpdateCollisionSphere(const PhysicsNode& pn, CollisionSphere& cs);*/
-	//void UpdateCollisionPlane(const PhysicsNode& pn, Plane& p); //TODO: Necessary?
-	/*void UpdateCollisionAABB(const PhysicsNode& pn, CollisionAABB& aabb);*/
-
-	/*static void AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1, const Vector3& hitPoint, const Vector3& normal, float penetration);*/
 	static void AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1, const CollisionData& cd);
 
 
-//Statics
+	//Statics
 	static PhysicsSystem* instance;
 
 	//Awareness of the timestep being used throughout the physics engine

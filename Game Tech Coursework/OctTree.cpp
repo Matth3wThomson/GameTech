@@ -30,6 +30,11 @@ bool OctTree::AddPhysicsNode(PhysicsNode* pn){
 //TODO: SORT OUT THIS PROBLEM!!! :/
 void OctTree::Update(){
 
+	//Currently, I obtain all of the awake nodes in the octree, collapsing nodes as I go,
+	//and then reinsert them. Maybe I should remove them all, then reinsert them, then do
+	//a pass to collapse nodes?
+
+	//NEW: Remove all of the awake nodes from the tree
 	set<PhysicsNode*> awakeNodes;
 
 	RemoveAwake(root, awakeNodes);
@@ -42,9 +47,13 @@ void OctTree::Update(){
 		//std::cout << "We lost track of a node!" << std::endl;
 	}
 
+	//Re insert all of the nodes that were found to be awake
 	for (auto itr = awakeNodes.begin(); itr != awakeNodes.end(); ++itr){
 		InsertPhysicsNode(root, *itr);
 	}
+
+	//Collapse the tree, so that it is as small as possible
+	CollapseTree();
 }
 
 //Method that creates octNode children in the supplied octNode
@@ -55,6 +64,8 @@ void OctTree::CreateNodes(OctNode& node){
 };
 
 OctNode* OctTree::CreateNode(int nodeNumber, OctNode& parent){
+
+	//Our octNodes are stored on the heap... This is bad! :/
 	OctNode* o = new OctNode();
 
 	o->halfSize = parent.halfSize * 0.5f;
@@ -87,35 +98,138 @@ OctNode* OctTree::CreateNode(int nodeNumber, OctNode& parent){
 	return o;
 }
 
-//Collapses a node that has OctNodes for children
-void OctTree::CollapseNode(OctNode& node){
+//Collapses a node that has OctNodes for children...
 
-	set<PhysicsNode*> toBeMoved;
+//This doesnt work because not all children nodes of a node have physics nodes in them...
+//they could have octnodes themselves, and therefore be being split down wrong...
 
-	//For every octNode child
-	for (auto itr = node.octNodes.begin(); itr != node.octNodes.end(); ++itr){
+//This function needs to be re written to work from the root node!
 
-		//Obtain all unique objects in the children of the octNode
-		while ( !(*itr)->physicsNodes.empty() ){
-			toBeMoved.insert( (*itr)->physicsNodes.back() );
-			(*itr)->physicsNodes.pop_back();
+//Then I can remove all awake, then re insert them, then collapse the tree to be as minimal as
+//possible!
+//void OctTree::CollapseNode(OctNode& node){
+//
+//	set<PhysicsNode*> toBeMoved;
+//
+//	//For every octNode child
+//	for (auto itr = node.octNodes.begin(); itr != node.octNodes.end(); ++itr){
+//
+//		//Obtain all unique objects in the children of the octNode
+//		while ( !(*itr)->physicsNodes.empty() ){
+//			toBeMoved.insert( (*itr)->physicsNodes.back() );
+//			(*itr)->physicsNodes.pop_back();
+//		}
+//	}
+//
+//	//Now put all of those collated objects into the current octNode.
+//	for (auto itr = toBeMoved.begin(); itr != toBeMoved.end(); ++itr)
+//		node.physicsNodes.push_back(*itr);
+//
+//	//Then delete all of the octNode children that were attached to this object
+//	while (!(node.octNodes.empty())){
+//		delete node.octNodes.back();
+//		node.octNodes.pop_back();
+//	}
+//}
+
+void OctTree::CollapseTree(){
+	CollapseNode(root);
+}
+
+//set<PhysicsNode*> OctTree::CollapseNode(OctNode& node){
+//
+//	set<PhysicsNode*> allNodes;
+//
+//	//This node has octNodes for children, try and collapse them!	
+//	if (node.octNodes.size() != 0){
+//
+//		for (auto itr = node.octNodes.begin(); itr != node.octNodes.end(); ++itr){
+//			//TODO: Dont think this is going to be legal!
+//			set<PhysicsNode*>& pns = CollapseNode(**itr);
+//			allNodes.insert(pns.begin(), pns.end());
+//		}
+//	}
+//	//This node has physicsNodes in it, collapse it if it has less than a certain amount
+//	else {
+//		
+//	}
+//}
+
+set<PhysicsNode*> OctTree::CollapseNode(OctNode& node){
+
+	//We have octNodes for children, try and collapse our children
+	if (node.octNodes.size() != 0){
+
+		//Work out how many unique physics nodes there are in all of our children.
+		std::set<PhysicsNode*> pns;
+
+		//Loop through all of our octNode children
+		for (auto itr = node.octNodes.begin(); itr != node.octNodes.end(); ++itr){
+
+			//Try to collapse the children in each node, and obtain all of 
+			//the unique nodes in each
+			set<PhysicsNode*>& pn = CollapseNode(**itr);
+			pns.insert(pn.begin(), pn.end());
+
 		}
+		
+		//Once we have tried to collapse all of our children, we then work out if we can
+		//be collapsed. If not we tell our parent that this we aren't collapsable
+		//by returning the set of all of our nodes.
+		if (pns.size() > threshold){ return pns; };
+
+		//If we have reached this point, the sum of our childrens physics nodes must be
+		//less than or equal to the threshold.
+
+		//Loop through all the unique physics nodes we found in our children,
+		//and insert them into ourself if we are lower than the threshold!
+		for (auto itr = pns.begin(); itr != pns.end(); ++itr){
+			node.physicsNodes.push_back(*itr);
+		}
+
+		//Then remove our old octNodes
+		while (!node.octNodes.empty()){
+			delete node.octNodes.back();
+			node.octNodes.pop_back();
+		}
+
+		//Then let our parent know how many physics nodes we contain
+		return pns;
 	}
+	//We have physicsNodes for children, add them all to a set and send them to our parent
+	else {
 
-	//Now put all of those collated objects into the current octNode.
-	for (auto itr = toBeMoved.begin(); itr != toBeMoved.end(); ++itr)
-		node.physicsNodes.push_back(*itr);
+		std::set<PhysicsNode*> pns;
 
-	//Then delete all of the octNode children that were attached to this object
-	while (!(node.octNodes.empty())){
-		delete node.octNodes.back();
-		node.octNodes.pop_back();
+		for (auto itr = node.physicsNodes.begin(); itr != node.physicsNodes.end(); ++itr){
+			pns.insert(*itr);
+		}
+
+		return pns;
 	}
 }
 
+//int OctTree::CountUniquePhysicsNodesInChildren(const OctNode& node){
+//
+//	set<PhysicsNode*> pns;
+//
+//	//This node has oct Nodes for children... start counting the unique nodes in it.
+//	if (node.octNodes.size() != 0){
+//		for (auto itr = node.octNodes.begin(); itr != node.octNodes.end(); ++itr){
+//			for (auto itr2 = (*itr)->physicsNodes.begin(); itr2 != (*itr)->physicsNodes.end(); ++itr2){
+//				pns.insert(*itr2);
+//			}
+//		}
+//
+//		return pns.size();
+//	}
+//
+//	return 0;
+//}
+
 //BROAD PHASE INSERTION
 bool OctTree::InsertPhysicsNode(OctNode& into, PhysicsNode* pn){
-	
+
 	//We use a broad phase volume for storing objects into the octree!
 	CollisionVolume* colVol = pn->GetBroadPhaseVolume();
 
@@ -196,6 +310,8 @@ bool OctTree::InsertColPlaneNode(OctNode& into, const Plane& colPlane, PhysicsNo
 
 	} else {
 		into.physicsNodes.push_back(pn);
+
+		//TODO: Remove
 		if (into.physicsNodes.size() > 8) {
 			std::cout << "THIS SHOULDNT HAVE HAPPENED! " << std::endl;
 		}
@@ -227,7 +343,7 @@ bool OctTree::InsertColSphereNode(OctNode& into, const CollisionSphere& colSpher
 		for (auto itr = into.octNodes.begin(); itr != into.octNodes.end(); ++itr){
 			if (InsertColSphereNode(**itr, colSphere, pn)) inserted = true; 
 		}
-	
+
 		//If the current node was at threshold, and is still below the max depth, then
 		//split it down further and resort all the nodes
 	} else if (into.physicsNodes.size() == threshold && into.depth < maxDepth){
@@ -271,7 +387,7 @@ bool OctTree::InsertColAABBNode(OctNode& into, const CollisionAABB& aabb, Physic
 
 	if (!Collision::AABBCollision(aabb, 
 		CollisionAABB(into.pos, Vector3(into.halfSize, into.halfSize, into.halfSize)))){
-		return false;
+			return false;
 	}
 
 	//TODO: REMOVE THIS FROM FUNCTIONS... ITS A DEBUGGING TOOL!
@@ -286,7 +402,7 @@ bool OctTree::InsertColAABBNode(OctNode& into, const CollisionAABB& aabb, Physic
 
 		if (!inserted)
 			std::cout << "Unable to insert in children, although succesful to insert in parent!" << std::endl;
-	
+
 		//If the current node was at threshold, and is still below the max depth, then
 		//split it down further and resort all the nodes
 	} else if (into.physicsNodes.size() == threshold && into.depth < maxDepth){
@@ -328,13 +444,10 @@ bool OctTree::InsertColAABBNode(OctNode& into, const CollisionAABB& aabb, Physic
 
 
 //BROAD PHASE REMOVAL
-int OctTree::RemoveAwake(OctNode& from, set<PhysicsNode*>& removedPNodes){
+void OctTree::RemoveAwake(OctNode& from, set<PhysicsNode*>& removedPNodes){
 
 	//If the node supplied has physics nodes as children
 	if (from.physicsNodes.size() != 0){
-
-		//Used to count how many unique nodes are left in the children
-		set<PhysicsNode*> notRemoved;
 
 		//Find all nodes not at rest or fixed in place,
 		//and add them to the removed set.
@@ -344,34 +457,26 @@ int OctTree::RemoveAwake(OctNode& from, set<PhysicsNode*>& removedPNodes){
 				removedPNodes.insert(*itr);
 
 				itr = from.physicsNodes.erase(itr);
-			} else {
-				notRemoved.insert(*itr);
-
-				++itr;
-			}
+			} else	++itr;
 		}
-
-		//The number of physics nodes left in this node...
-		return notRemoved.size();
 	}
 	//If the node supplied has octNodes for children.
 	else {
 		//Count the number of nodes left in the children after removing all of the awake ones
 		int x = 0;
-		
+
 		//Remove all of the awake nodes from the octNode children, and count the number of objects
 		//that remain in the children. THIS NUMBER IS NOT REPRESENTITIVE OF UNIQUENESS...
 		for (auto itr = from.octNodes.begin(); itr != from.octNodes.end(); ++itr){
-			x += RemoveAwake((**itr), removedPNodes);
+			RemoveAwake((**itr), removedPNodes);
 		}
 
-		//If the total number of spheres in all of the children is below the threshold,
-		//we can collapse this node!
-		if (x <= threshold || x == 0){
-			CollapseNode(from);
-			return from.physicsNodes.size();
-		}
+		//x = CountUniquePhysicsNodesInChildren(from);
 
-		return x;
+		////If the total number of spheres in all of the children is below the threshold,
+		////we can collapse this node!
+		//if (x <= threshold || x == 0){
+		//	CollapseNode(from);
+		//}
 	}
 }

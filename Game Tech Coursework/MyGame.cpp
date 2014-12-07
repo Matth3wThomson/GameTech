@@ -38,11 +38,8 @@ MyGame::MyGame()	{
 	*/
 	allEntities.push_back(BuildRobotEntity());
 
-	Matrix4 floorMat = Matrix4();
-	floorMat[0] = 0.0f;
-	floorMat[5] = 0.0f;
-	floorMat[10] = 0.0f;
-	floorMat[15] = 0.0f;
+	Matrix3 floorMat = Matrix3();
+	floorMat.ToZero();
 
 	GameEntity* floor = BuildQuadEntity(1000.0f, Vector3(1,0,0), 90.0f);
 	floor->GetPhysicsNode().SetPosition(Vector3(0,-1000.0f, 0));
@@ -135,7 +132,7 @@ void MyGame::UpdateGame(float msec) {
 		GameEntity* ge = BuildSphereEntity(100.0f);
 		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
 		/*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
-			ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * 0.1f);
+			ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * 0.5f);
 		ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
 		ge->GetPhysicsNode().SetMass(100.0f);
 		//ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));

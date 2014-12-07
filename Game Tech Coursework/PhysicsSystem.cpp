@@ -3,7 +3,7 @@
 PhysicsSystem* PhysicsSystem::instance = 0;
 float PhysicsSystem::timestep = 1.0f/120.0f;
 
-PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(1000, 3, 2)){
+PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(1000, 3, 3)){
 	collisionCount = 0;
 	physTimer = GameTimer();
 	timePassed = 0;
@@ -153,6 +153,10 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 	for (vector<PhysicsNode*>::iterator i = np.begin(); i != np.end(); ++i){
 		for (auto j = i+1; j != np.end(); ++j){
 
+			//Both objects are resting... why bother going any further!?
+			if ((*i)->AtRest() && ((*j)->AtRest())) 
+				continue;
+
 			CollisionVolume* cv1 = (*i)->GetNarrowPhaseVolume();
 			CollisionVolume* cv2 = (*j)->GetNarrowPhaseVolume();
 
@@ -176,7 +180,7 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 						/*if (p->SphereInPlane(cs->m_pos, cs->m_radius, &cd)){*/
 						if (Collision::SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
 							//Wrong side of the plane... but what is the limit to the plane?
-							std::cout << "SP COLLISION\n";
+							//std::cout << "SP COLLISION\n";
 							AddCollisionImpulse(*(*j), *(*i), cd);
 							++collisionCount;
 							 
@@ -198,7 +202,7 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 						(*j)->UpdateCollisionSphere(*cs2);
 
 						if (Collision::SphereSphereCollision(*cs1, *cs2, &cd)){
-							std::cout << "SS COLLISION\n";
+							//std::cout << "SS COLLISION\n";
 							AddCollisionImpulse(*(*i), *(*j), cd);
 							++collisionCount;
 						}
@@ -495,8 +499,11 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 	invMass1 = (pn1.fixed)? 0.0f : invMass1;
 
 	//TODO: Since these are const, why not make them references?
-	const Matrix4 worldInvInertia0 = pn0.m_invInertia;
-	const Matrix4 worldInvInertia1 = pn1.m_invInertia;
+	/*const Matrix4 worldInvInertia0 = pn0.m_invInertia;
+	const Matrix4 worldInvInertia1 = pn1.m_invInertia;*/
+
+	const Matrix3 worldInvInertia0 = pn0.m_invInertia;
+	const Matrix3 worldInvInertia1 = pn1.m_invInertia;
 
 	//Both immovable, dont continue
 	if ( (invMass0+invMass1) == 0.0f ) return;

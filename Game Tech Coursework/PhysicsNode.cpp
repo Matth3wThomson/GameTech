@@ -101,11 +101,16 @@ Matrix4		PhysicsNode::BuildTransform() {
 void PhysicsNode::SetInvSphereInertiaMatrix(float mass, float radius){
 	float inv_inertia = 1 / ((2.0f * mass * (radius * radius)) * 0.2f);
 
-	m_invInertia = Matrix4();
+	/*m_invInertia = Matrix4();
 	m_invInertia[0] = inv_inertia;
 	m_invInertia[5] = inv_inertia;
 	m_invInertia[10] = inv_inertia;
-	m_invInertia[15] = 1.0f;
+	m_invInertia[15] = 1.0f;*/
+
+	m_invInertia = Matrix3();
+	m_invInertia[0] = inv_inertia;
+	m_invInertia[4] = inv_inertia;
+	m_invInertia[8] = inv_inertia;
 
 }
 
@@ -115,9 +120,14 @@ void PhysicsNode::SetInvCuboidInertiaMatrix(float mass, float height, float widt
 	float inv_inertiaY = 1 / (0.83333333f * mass * ((length * length) + (width * width)));
 	float inv_inertiaZ = 1 / (0.83333333f * mass * ((height * height) + (length * length)));
 
-	Matrix4 m_invInertia = Matrix4();
+	//Matrix4 m_invInertia = Matrix4();
+	//m_invInertia[0] = inv_inertiaX;
+	//m_invInertia[5] = inv_inertiaY;
+	//m_invInertia[10] = inv_inertiaZ;
+	//m_invInertia[15] = 1.0f; //TODO: What to be done about this?
+
+	m_invInertia = Matrix3();
 	m_invInertia[0] = inv_inertiaX;
-	m_invInertia[5] = inv_inertiaY;
-	m_invInertia[10] = inv_inertiaZ;
-	m_invInertia[15] = 1.0f; //TODO: What to be done about this?
+	m_invInertia[4] = inv_inertiaY;
+	m_invInertia[8] = inv_inertiaZ;
 }
