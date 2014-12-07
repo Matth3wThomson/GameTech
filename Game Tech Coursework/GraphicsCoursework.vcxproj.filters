@@ -123,5 +123,8 @@
     <ClInclude Include="OctTree.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

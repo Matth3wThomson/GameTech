@@ -30,6 +30,7 @@ _-_-_-_-_-_-_-""  ""
 
 #include "PhysicsNode.h"
 #include "OctTree.h"
+#include "Collision.h"
 #include "../nclgl/Mesh.h"
 #include "../nclgl/Plane.h"
 #include <vector>
@@ -55,16 +56,6 @@ feel comfortable with!).
 
 //TODO: Possibly use a free list of collision volumes that can be obtained? Would mean
 //		better cache efficiency?
-
-class Line {
-public:
-	Line(const Vector3& pos1, const Vector3& pos2):
-		m_pos1(pos1), m_pos2(pos2){ };
-
-	Vector3 m_pos1;
-	Vector3 m_pos2;
-
-};
 
 
 class PhysicsSystem	{
@@ -106,16 +97,16 @@ protected:
 	void NarrowPhaseTree(OctNode& on);
 	void NarrowPhaseVector(std::vector<PhysicsNode*>& np);
 
-	bool SphereInColPlane(const Plane& p, const Vector3& position, float radius, CollisionData* colData) const;
+	//bool SphereInColPlane(const Plane& p, const Vector3& position, float radius, CollisionData* colData) const;
 
-	bool SphereSphereCollision(const CollisionSphere &s0, const CollisionSphere &s1, CollisionData *collisionData = NULL) const;
-	bool AABBCollision(const CollisionAABB &cube0, const CollisionAABB &cube1) const;
+	//bool SphereSphereCollision(const CollisionSphere &s0, const CollisionSphere &s1, CollisionData *collisionData = NULL) const;
+	//bool AABBCollision(const CollisionAABB &cube0, const CollisionAABB &cube1) const;
 
-	bool LineLineIntersect(const Line& l1, const Line& l2, float* t1 = NULL, float* t2 = NULL) const;
-	bool SphereAABBCollision(const CollisionSphere &sphere, const CollisionAABB &cube, CollisionData *collisionData = NULL) const; //Research!!!! :-)
+	//bool LineLineIntersect(const Line& l1, const Line& l2, float* t1 = NULL, float* t2 = NULL) const;
+	//bool SphereAABBCollision(const CollisionSphere &sphere, const CollisionAABB &cube, CollisionData *collisionData = NULL) const; //Research!!!! :-)
 
-	bool PointInConvexPolygon(const Vector3 testPosition, Vector3 * convexShapePoints, int numPointsL) const;
-	bool PointInConcavePolygon(const Vector3* shapePoints, const int numPoints, const Vector3& testPoint) const;
+	//bool PointInConvexPolygon(const Vector3 testPosition, Vector3 * convexShapePoints, int numPointsL) const;
+	//bool PointInConcavePolygon(const Vector3* shapePoints, const int numPoints, const Vector3& testPoint) const;
 
 	/*void UpdateCollisionSphere(const PhysicsNode& pn, CollisionSphere& cs);*/
 	//void UpdateCollisionPlane(const PhysicsNode& pn, Plane& p); //TODO: Necessary?

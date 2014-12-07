@@ -174,7 +174,7 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 
 						//Sphere in plane is the wrong way around...
 						/*if (p->SphereInPlane(cs->m_pos, cs->m_radius, &cd)){*/
-						if (SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
+						if (Collision::SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
 							//Wrong side of the plane... but what is the limit to the plane?
 							std::cout << "SP COLLISION\n";
 							AddCollisionImpulse(*(*j), *(*i), cd);
@@ -197,7 +197,7 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 						(*i)->UpdateCollisionSphere(*cs1);
 						(*j)->UpdateCollisionSphere(*cs2);
 
-						if (SphereSphereCollision(*cs1, *cs2, &cd)){
+						if (Collision::SphereSphereCollision(*cs1, *cs2, &cd)){
 							std::cout << "SS COLLISION\n";
 							AddCollisionImpulse(*(*i), *(*j), cd);
 							++collisionCount;
@@ -239,152 +239,152 @@ void	PhysicsSystem::RemoveNode(PhysicsNode* n) {
 	}
 }
 
-bool PhysicsSystem::LineLineIntersect(const Line& l1, const Line& l2, float* t1, float* t2) const {
-	const Vector3& p0 = l1.m_pos1;
-	const Vector3& p1 = l1.m_pos2;
-	const Vector3& p2 = l2.m_pos1;
-	const Vector3& p3 = l2.m_pos2;
-
-	const float div = (p3.y - p2.y) * (p1.x - p0.x)
-		- (p3.x - p2.x) * (p1.y - p0.y);
-
-	//Lines are parallel
-	if (abs(div) < 0.000001f) return false;
-
-	const float ta = ( (p3.x - p2.x) * (p0.y - p2.y)
-		- (p3.y - p2.y) * (p0.x - p2.x) ) / div;
-
-	if (ta < 0 || ta > 1.0f) return false;
-
-	const float tb = ( ( p1.x - p0.x) * (p0.y - p2.y)
-		- (p1.y - p0.y) * (p0.x - p2.x) ) / div;
-
-	if (tb < 0 || tb > 1.0f) return false;
-
-	if (t1) (*t1)=ta;
-	if (t2) (*t2)=tb;
-
-	return true;
-}
-
-//Physics Correct plane collision
-bool PhysicsSystem::SphereInColPlane(const Plane& p, const Vector3& pos, float rad, CollisionData* cd) const {
-	//TODO: Added abs
-	float seperation = Vector3::Dot(pos, p.m_normal) - p.distance;
-
-	//if (Vector3::Dot(pos, p.m_normal) < 0) return false;
-
-	//TODO: Remember, this function will only return true if the sphere and plane intersect
-	if (!(abs(seperation) < rad)) return false;
-
-	if (cd){
-		cd->m_penetration = rad - seperation;
-		cd->m_normal = p.m_normal; //TODO: INVERSE?
-		cd->m_point = pos - (p.m_normal * seperation);
-	}
-
-	return true;
-}
-
-bool PhysicsSystem::SphereSphereCollision(const CollisionSphere &s0, const CollisionSphere &s1, CollisionData *collisionData) const {
-	const float distSq = ( s0.m_pos - s1.m_pos ).LengthSq();
-
-	const float sumRadius = (s0.m_radius + s1.m_radius);
-	//assert(distSq > 0.00001f );
-
-	if (distSq < sumRadius * sumRadius){
-		if (collisionData){
-			collisionData->m_penetration = sumRadius - sqrtf( distSq );
-			collisionData->m_normal	= (s0.m_pos - s1.m_pos).Normalise();
-			collisionData->m_point = s0.m_pos - collisionData->m_normal
-				* (s0.m_radius - collisionData->m_penetration * 0.5f);
-		}
-		return true;
-	}
-
-	return false;
-}
-
-//TODO: implement 
-bool PhysicsSystem::SphereAABBCollision(const CollisionSphere& sphere, const CollisionAABB& cube, CollisionData* collisionData) const {
-	return false;
-}
-
-bool PhysicsSystem::AABBCollision(const CollisionAABB &cube0, const CollisionAABB &cube1) const {
-
-	//Check X Axis
-	float dist = cube0.m_position.x - cube1.m_position.x;
-	float sum = (cube0.m_halfSize.x + cube1.m_halfSize.x);
-
-	if (dist < sum){
-
-		//Check Y Axis
-		dist = cube0.m_position.y - cube1.m_position.y;
-		sum = (cube0.m_halfSize.y + cube1.m_halfSize.y);
-
-		if (dist < sum){
-
-			//Check Z Axis
-			dist = cube0.m_position.z - cube1.m_position.z;
-			sum = (cube0.m_halfSize.z + cube1.m_halfSize.z);
-
-			//Overlapped shapes
-			if (dist < sum) return true;
-		}
-
-	}
-
-	return false;
-}
-
-bool PhysicsSystem::PointInConvexPolygon(const Vector3 testPosition, Vector3 * convexShapePoints, int numPoints) const {
-
-	for (int i=0; i<numPoints; ++i){
-		const int i0 = i;
-		const int i1 = (i+1) % numPoints;
-
-		const Vector3& p0 = convexShapePoints[i0];
-		const Vector3& p1 = convexShapePoints[i1];
-
-		//We need two things for each edge, a point on the edge and the normal
-		const Vector3 norm = Vector3::Cross(Vector3(0,0,1), (p0-p1).Normalise());
-
-		//Use the plane equation to calculate d, and to determine if our point is on
-		//the positive or negative side of the plane
-		const float d = Vector3::Dot(norm, p0);
-
-		//Calculate which side our test point is on
-		//INSIDE: +ve. OUTSIDE: -ve ON PLANE: zero
-		const float s = d - Vector3::Dot( norm, testPosition );
-
-		if (s < 0.0f) return false;
-
-	}
-
-	return true;
-}
-
-bool PhysicsSystem::PointInConcavePolygon( const Vector3* shapePoints, const int numPoints, const Vector3& testPoint) const {
-
-	int intersectionCount = 0;
-
-	for (int i=0; i<numPoints; ++i){
-		const int i0 = i;
-		const int i1 = (i+1)%numPoints;
-
-		const Vector3& p0 = shapePoints[i0];
-		const Vector3& p1 = shapePoints[i1];
-
-		bool intersect = LineLineIntersect( Line(p0, p1),
-			Line(testPoint, testPoint + Vector3(1000,1000,0)) );
-
-		if (intersect) intersectionCount++;
-	}
-
-	if (intersectionCount % 2 == 0) return false;
-
-	return true;
-}
+//bool PhysicsSystem::LineLineIntersect(const Line& l1, const Line& l2, float* t1, float* t2) const {
+//	const Vector3& p0 = l1.m_pos1;
+//	const Vector3& p1 = l1.m_pos2;
+//	const Vector3& p2 = l2.m_pos1;
+//	const Vector3& p3 = l2.m_pos2;
+//
+//	const float div = (p3.y - p2.y) * (p1.x - p0.x)
+//		- (p3.x - p2.x) * (p1.y - p0.y);
+//
+//	//Lines are parallel
+//	if (abs(div) < 0.000001f) return false;
+//
+//	const float ta = ( (p3.x - p2.x) * (p0.y - p2.y)
+//		- (p3.y - p2.y) * (p0.x - p2.x) ) / div;
+//
+//	if (ta < 0 || ta > 1.0f) return false;
+//
+//	const float tb = ( ( p1.x - p0.x) * (p0.y - p2.y)
+//		- (p1.y - p0.y) * (p0.x - p2.x) ) / div;
+//
+//	if (tb < 0 || tb > 1.0f) return false;
+//
+//	if (t1) (*t1)=ta;
+//	if (t2) (*t2)=tb;
+//
+//	return true;
+//}
+//
+////Physics Correct plane collision
+//bool PhysicsSystem::SphereInColPlane(const Plane& p, const Vector3& pos, float rad, CollisionData* cd) const {
+//	//TODO: Added abs
+//	float seperation = Vector3::Dot(pos, p.m_normal) - p.distance;
+//
+//	//if (Vector3::Dot(pos, p.m_normal) < 0) return false;
+//
+//	//TODO: Remember, this function will only return true if the sphere and plane intersect
+//	if (!(abs(seperation) < rad)) return false;
+//
+//	if (cd){
+//		cd->m_penetration = rad - seperation;
+//		cd->m_normal = p.m_normal; //TODO: INVERSE?
+//		cd->m_point = pos - (p.m_normal * seperation);
+//	}
+//
+//	return true;
+//}
+//
+//bool PhysicsSystem::SphereSphereCollision(const CollisionSphere &s0, const CollisionSphere &s1, CollisionData *collisionData) const {
+//	const float distSq = ( s0.m_pos - s1.m_pos ).LengthSq();
+//
+//	const float sumRadius = (s0.m_radius + s1.m_radius);
+//	//assert(distSq > 0.00001f );
+//
+//	if (distSq < sumRadius * sumRadius){
+//		if (collisionData){
+//			collisionData->m_penetration = sumRadius - sqrtf( distSq );
+//			collisionData->m_normal	= (s0.m_pos - s1.m_pos).Normalise();
+//			collisionData->m_point = s0.m_pos - collisionData->m_normal
+//				* (s0.m_radius - collisionData->m_penetration * 0.5f);
+//		}
+//		return true;
+//	}
+//
+//	return false;
+//}
+//
+////TODO: implement 
+//bool PhysicsSystem::SphereAABBCollision(const CollisionSphere& sphere, const CollisionAABB& cube, CollisionData* collisionData) const {
+//	return false;
+//}
+//
+//bool PhysicsSystem::AABBCollision(const CollisionAABB &cube0, const CollisionAABB &cube1) const {
+//
+//	//Check X Axis
+//	float dist = cube0.m_position.x - cube1.m_position.x;
+//	float sum = (cube0.m_halfSize.x + cube1.m_halfSize.x);
+//
+//	if (dist < sum){
+//
+//		//Check Y Axis
+//		dist = cube0.m_position.y - cube1.m_position.y;
+//		sum = (cube0.m_halfSize.y + cube1.m_halfSize.y);
+//
+//		if (dist < sum){
+//
+//			//Check Z Axis
+//			dist = cube0.m_position.z - cube1.m_position.z;
+//			sum = (cube0.m_halfSize.z + cube1.m_halfSize.z);
+//
+//			//Overlapped shapes
+//			if (dist < sum) return true;
+//		}
+//
+//	}
+//
+//	return false;
+//}
+//
+//bool PhysicsSystem::PointInConvexPolygon(const Vector3 testPosition, Vector3 * convexShapePoints, int numPoints) const {
+//
+//	for (int i=0; i<numPoints; ++i){
+//		const int i0 = i;
+//		const int i1 = (i+1) % numPoints;
+//
+//		const Vector3& p0 = convexShapePoints[i0];
+//		const Vector3& p1 = convexShapePoints[i1];
+//
+//		//We need two things for each edge, a point on the edge and the normal
+//		const Vector3 norm = Vector3::Cross(Vector3(0,0,1), (p0-p1).Normalise());
+//
+//		//Use the plane equation to calculate d, and to determine if our point is on
+//		//the positive or negative side of the plane
+//		const float d = Vector3::Dot(norm, p0);
+//
+//		//Calculate which side our test point is on
+//		//INSIDE: +ve. OUTSIDE: -ve ON PLANE: zero
+//		const float s = d - Vector3::Dot( norm, testPosition );
+//
+//		if (s < 0.0f) return false;
+//
+//	}
+//
+//	return true;
+//}
+//
+//bool PhysicsSystem::PointInConcavePolygon( const Vector3* shapePoints, const int numPoints, const Vector3& testPoint) const {
+//
+//	int intersectionCount = 0;
+//
+//	for (int i=0; i<numPoints; ++i){
+//		const int i0 = i;
+//		const int i1 = (i+1)%numPoints;
+//
+//		const Vector3& p0 = shapePoints[i0];
+//		const Vector3& p1 = shapePoints[i1];
+//
+//		bool intersect = LineLineIntersect( Line(p0, p1),
+//			Line(testPoint, testPoint + Vector3(1000,1000,0)) );
+//
+//		if (intersect) intersectionCount++;
+//	}
+//
+//	if (intersectionCount % 2 == 0) return false;
+//
+//	return true;
+//}
 
 //void PhysicsSystem::UpdateCollisionSphere(const PhysicsNode& pn, CollisionSphere& cs){
 //	cs.m_pos = pn.GetPosition();

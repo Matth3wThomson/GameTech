@@ -59,5 +59,6 @@ protected:
 	Mesh* cube;
 	Mesh* quad;
 	Mesh* sphere;
+	GLuint debugTex;
 };
 

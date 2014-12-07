@@ -94,6 +94,7 @@
     <ClInclude Include="GameClass.h" />
     <ClInclude Include="GameEntity.h" />
     <ClInclude Include="GrowingNode.h" />
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="MyGame.h" />
     <ClInclude Include="OctTree.h" />
     <ClInclude Include="ParticleEmitterNode.h" />

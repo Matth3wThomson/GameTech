@@ -10,6 +10,7 @@ class Plane : public CollisionVolume
 public:
 
 	friend class PhysicsSystem;
+	friend class Collision;
 
 	Plane(void){ type = COLLISION_PLANE; };
 	Plane(const Vector3& normal, float distance, bool normalise =false);

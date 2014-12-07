@@ -28,6 +28,9 @@ MyGame::MyGame()	{
 	cube	= new OBJMesh(MESHDIR"cube.obj");
 	quad	= Mesh::GenerateQuad();
 	sphere	= new OBJMesh(MESHDIR"ico.obj");
+	debugTex = SOIL_load_OGL_texture(TEXTUREDIR"debug.png", 
+		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	quad->SetTexture(debugTex);
 
 	/*
 	A more 'robust' system would check the entities vector for duplicates so as
@@ -47,6 +50,7 @@ MyGame::MyGame()	{
 	floor->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,1,0), -1000.0f));
 
 	floor->GetPhysicsNode().SetInverseInertiaMat(floorMat);
+
 	floor->ConnectToSystems();
 	allEntities.push_back(floor);
 
@@ -56,6 +60,7 @@ MyGame::MyGame()	{
 	wallBack->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,0,-1), -1000.0f));
 
 	wallBack->GetPhysicsNode().SetInverseInertiaMat(floorMat);
+
 	wallBack->ConnectToSystems();
 	allEntities.push_back(wallBack);
 

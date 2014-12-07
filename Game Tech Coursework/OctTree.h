@@ -6,6 +6,7 @@
 #include "../nclgl/Vector3.h"
 #include "../nclgl/Plane.h"
 #include "PhysicsNode.h"
+#include "Collision.h"
 
 using std::vector;
 using std::set;
@@ -19,9 +20,11 @@ struct OctNode {
 	int depth;
 
 	float halfSize;
-
 	Vector3 pos;
 
+	//I could cheat and make phyics node a set... But that's extra overhead
+	//when adding to a vector... I should just be able to make sure that
+	//duplicates are not added!!!!!!!!
 	vector<PhysicsNode*> physicsNodes;
 	vector<OctNode*> octNodes;
 
@@ -74,8 +77,9 @@ protected:
 	//to insert the physicsNode into the octNode suppplied
 	bool InsertPhysicsNode(OctNode& into, PhysicsNode* pn);
 
-	bool InsertColSphereNode(OctNode& into, const CollisionSphere& colSphere, PhysicsNode* pn);
 	bool InsertColPlaneNode(OctNode& into, const Plane& colSphere, PhysicsNode* pn);
+	bool InsertColSphereNode(OctNode& into, const CollisionSphere& colSphere, PhysicsNode* pn);
+	bool InsertColAABBNode(OctNode& into, const CollisionAABB& aabb, PhysicsNode* pn);
 
 	//Function that removes all nodes not at rest from the supplied node, and returns the number
 	//of physics nodes left in the node (after removal of awake nodes).

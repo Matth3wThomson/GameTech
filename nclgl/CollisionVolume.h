@@ -17,6 +17,15 @@ enum CollisionVolumeType {
 	
 };
 
+class Line {
+public:
+	Line(const Vector3& pos1, const Vector3& pos2):
+		m_pos1(pos1), m_pos2(pos2){ };
+
+	Vector3 m_pos1;
+	Vector3 m_pos2;
+};
+
 class CollisionVolume {
 public:
 	CollisionVolumeType GetType() { return type;}
@@ -41,6 +50,8 @@ class CollisionAABB : public CollisionVolume {
 public:
 
 	CollisionAABB(){ type = COLLISION_AABB; }
+	CollisionAABB(Vector3& pos, Vector3& halfSize):
+		m_position(pos), m_halfSize(halfSize){ type = COLLISION_AABB; }
 	virtual ~CollisionAABB(){};
 	CollisionAABB(Mesh* m){ GenerateAABB(m); };
 
