@@ -15,6 +15,7 @@ OctTree::OctTree(float halfSize, int threshold, int maxDepth)
 
 	this->threshold = threshold;
 	this->maxDepth = maxDepth;
+	frameCounter = 0;
 }
 
 
@@ -29,6 +30,8 @@ bool OctTree::AddPhysicsNode(PhysicsNode* pn){
 
 //TODO: SORT OUT THIS PROBLEM!!! :/
 void OctTree::Update(){
+
+	frameCounter++;
 
 	//Currently, I obtain all of the awake nodes in the octree, collapsing nodes as I go,
 	//and then reinsert them. Maybe I should remove them all, then reinsert them, then do
@@ -53,7 +56,13 @@ void OctTree::Update(){
 	}
 
 	//Collapse the tree, so that it is as small as possible
-	CollapseTree();
+	//CollapseTree();
+
+	//We dont need to collapse the tree that often!
+	if (frameCounter > NO_FRAMES_TILL_COLLAPSE){
+		CollapseTree();
+		frameCounter = 0;
+	}
 }
 
 //Method that creates octNode children in the supplied octNode

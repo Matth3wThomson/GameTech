@@ -13,6 +13,7 @@ class Mesh
 public:
 
 	friend class CollisionAABB;
+	friend class CollisionConvex;
 
 	Mesh(void);
 	virtual ~Mesh(void);
@@ -39,7 +40,7 @@ protected:
 	void GenerateNormals();
 
 	void GenerateTangents();
-	Vector3 GenerateTangent(const Vector3& a, const Vector3& b, //TODO: static?
+	Vector3 GenerateTangent(const Vector3& a, const Vector3& b,
 		const Vector3& c, const Vector2& ta,
 		const Vector2& tb, const Vector2& tc);
 
@@ -54,7 +55,6 @@ protected:
 	GLuint numIndices;
 	GLuint bumpTexture;
 
-	//TODO: Why dont we just delete this after we upload it?
 	Vector3* vertices;
 	Vector3* normals;
 	Vector3* tangents;

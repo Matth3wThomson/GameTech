@@ -244,13 +244,26 @@ protected:
 
 	//PHYSICS DEBUGGING!
 	bool physicsDrawing;
+	bool octTree;
+	bool broadPhase;
+	bool narrowPhase;
+	bool drawWorld;
 
 	Mesh* box;
+	Mesh* debugQuad;
 
 	void DrawPhysics();
 
 	void DrawOctTree();
 	void DrawOctNode(const OctNode& on);
+
+	
+	void DrawBroadPhase();
+	void DrawNarrowPhase();
+
+	void DrawSphere(const CollisionSphere& sphere, const Quaternion* orientation = NULL);
+	void DrawPlane(const Plane& p, const Quaternion& orientation);
+	void DrawAABB(const CollisionAABB& aabb);
 	
 	//Shadowing
 	bool InitShadowBuffers();

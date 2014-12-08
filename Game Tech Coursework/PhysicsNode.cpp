@@ -8,6 +8,7 @@ PhysicsNode::PhysicsNode(void)	{
 	m_orientation = Quaternion();
 	m_narrowPhase = NULL;
 	m_broadPhase = NULL;
+	lastCollided = NULL;
 }
 
 PhysicsNode::PhysicsNode(const Quaternion& orientation, const Vector3& position) {
@@ -18,6 +19,7 @@ PhysicsNode::PhysicsNode(const Quaternion& orientation, const Vector3& position)
 	m_rest = false;
 	m_narrowPhase = NULL;
 	m_broadPhase = NULL;
+	lastCollided = NULL;
 }
 
 PhysicsNode::~PhysicsNode(void)	{
@@ -40,6 +42,9 @@ void	PhysicsNode::Update(float msec){
 		m_orientation = m_orientation + (m_orientation * (m_angularVelocity * msec * 0.5f));
 		m_orientation.Normalise();
 
+
+		//TODO: Should update collision volumes here if an object gets set to rest...
+		// otherwise they could be mistakenly woken up!
 		if (abs(m_linearVelocity.x) < REST_TOLERANCE &&
 			abs(m_linearVelocity.y) < REST_TOLERANCE &&
 			abs(m_linearVelocity.z) < REST_TOLERANCE &&
@@ -47,12 +52,13 @@ void	PhysicsNode::Update(float msec){
 			abs(m_force.y) < REST_TOLERANCE &&
 			abs(m_force.z) < REST_TOLERANCE)
 			m_rest = true;
+		
 
 	}
 
 	if(target) {
 		target->SetTransform(BuildTransform());
-		if (m_rest) target->SetColour(Vector4(1,0,0,1));
+		if (m_rest) target->SetColour(Vector4(1,0,0,1));	//DEBUGGING STUFF
 		else target->SetColour(Vector4(1,1,1,1));
 	}
 }

@@ -13,7 +13,8 @@ class CollisionData {
 enum CollisionVolumeType {
 	COLLISION_PLANE,
 	COLLISION_SPHERE,
-	COLLISION_AABB
+	COLLISION_AABB,
+	COLLISION_CONVEX
 	
 };
 
@@ -62,3 +63,16 @@ protected:
 	//Generates an AABB from a mesh
 	void GenerateAABB(Mesh* m);
 };
+
+//Collision convex is a mesh of points that represent a shape, stored in any arbitrary order.
+//These can be (and should be for drawing purposes) loaded in from a mesh file.
+class CollisionConvex : public CollisionVolume {
+	CollisionConvex(Mesh* m);
+	CollisionConvex(const Vector3* vertices, const int numVertices);
+
+	Vector3 m_pos;
+	
+	Vector3* m_collisionMesh;
+	int m_numVertices;
+};
+

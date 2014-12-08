@@ -111,6 +111,8 @@ public:
 protected:
 	bool fixed;
 	bool m_rest;
+	
+	PhysicsNode* lastCollided;
 
 	//<---------LINEAR-------------->
 	Vector3		m_position;

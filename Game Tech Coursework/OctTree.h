@@ -11,6 +11,9 @@
 using std::vector;
 using std::set;
 
+//1 means collapse the tree every frame, 100 means collapse the tree once per 100 frames
+#define NO_FRAMES_TILL_COLLAPSE 100
+
 //TODO: Consider using a free list of octNodes to improve cache efficiency.
 //TODO: Consider using a boolean to represent whether an octNode has octNodes
 //			or physics nodes. Size() function could be expensive!
@@ -20,6 +23,15 @@ using std::set;
 
 //TODO: Make deletion of awake nodes occur using a generic delete function which scours the tree
 //		for each node?
+
+//TODO: Look into move constructors as a way to improve the performance of the collapse function.
+//THE ISSUE IS COLLAPSING THE TREE!
+
+//TODO: Make this store pointers to collision volumes, not phyiscs nodes... as not all collision volumes
+//		need a physics node?
+
+//TODO: Make an erase function and then just have the physics system re insert all nodes... Either for 
+//		awake nodes only, or all nodes.
 
 //ALWAYS CUBES!
 struct OctNode {
@@ -69,6 +81,8 @@ protected:
 	OctNode root;
 	int threshold;
 	int maxDepth;
+
+	int frameCounter;
 
 	//TODO: REMOVE THIS:
 	int maxNodesAware;

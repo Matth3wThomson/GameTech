@@ -134,7 +134,7 @@ void	PhysicsSystem::NarrowPhase(){
 
 	//Then perform collision detection on each section of the octree recursively
 	std::lock_guard<mutex> lock(nodesMutex);
-	
+
 	NarrowPhaseTree(octTree.root);
 }
 
@@ -148,6 +148,7 @@ void PhysicsSystem::NarrowPhaseTree(OctNode& on){
 	}
 }
 
+//Include a bounding box check here too, so that entities can be checked!
 void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 
 	for (vector<PhysicsNode*>::iterator i = np.begin(); i != np.end(); ++i){
@@ -183,7 +184,7 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 							//std::cout << "SP COLLISION\n";
 							AddCollisionImpulse(*(*j), *(*i), cd);
 							++collisionCount;
-							 
+
 						}
 					};
 
@@ -231,7 +232,7 @@ void PhysicsSystem::ResolveCollisions(){
 void	PhysicsSystem::AddNode(PhysicsNode* n){
 	std::lock_guard<mutex> lock(nodesMutex);
 	allNodes.push_back(n);
- 	octTree.AddPhysicsNode(n);
+	octTree.AddPhysicsNode(n);
 }
 
 void	PhysicsSystem::RemoveNode(PhysicsNode* n) {
@@ -485,7 +486,7 @@ void	PhysicsSystem::RemoveNode(PhysicsNode* n) {
 //}
 
 void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
-								const CollisionData& cd)
+										const CollisionData& cd)
 {
 	pn0.m_rest = false;
 	pn1.m_rest = false;
@@ -533,19 +534,19 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 
 	//Swap this sign?
 	float relativeMovent = -Vector3::Dot(dv, cd.m_normal);
-	
+
 	//If the objects are moving away from each other then there isnt a need to apply an impulse!
 	if (relativeMovent < -0.01f) return;
 
 	//Normal Impulse
 	{ //TODO: Extra scope?
 		float e = 0.9f; //Elasticity... Needs to be moved to individual physics nodes?
-		
+
 		/*float normDiv = Vector3::Dot(cd.m_normal, cd.m_normal)
-			* ( (invMass0 + invMass1)
-			+ Vector3::Dot(cd.m_normal,
-			Vector3::Cross( worldInvInertia0 * Vector3::Cross( r0, cd.m_normal), r0) 
-			+ Vector3::Cross( worldInvInertia1 * Vector3::Cross(r1, cd.m_normal), r1) ) );*/
+		* ( (invMass0 + invMass1)
+		+ Vector3::Dot(cd.m_normal,
+		Vector3::Cross( worldInvInertia0 * Vector3::Cross( r0, cd.m_normal), r0) 
+		+ Vector3::Cross( worldInvInertia1 * Vector3::Cross(r1, cd.m_normal), r1) ) );*/
 		float normDiv = (invMass0 + invMass1)
 			+ Vector3::Dot(cd.m_normal,
 			Vector3::Cross(worldInvInertia0 * Vector3::Cross(r0, cd.m_normal), r0)
@@ -563,39 +564,46 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 
 		//SO MANY CONDITIONALS... But determined that dot product vector with itself is slower
 		//than all these conditionals, according to a google link.
-		// Vector3::Dot(pn0.m_linearVelocity, pn0.m_linearVelocity) < REST_TOLERANCE;
-		/*if (((jn / timestep) + (Vector3::Dot(pn0.m_force, cd.m_normal) < REST_TOLERANCE)) &&*/
-		/*if ((jn / timestep) + (Vector3::Dot(pn1.m_force, cd.m_normal) < REST_TOLERANCE) &&*/
 		Vector3 impulseDirection = cd.m_normal * (jn / timestep);
 
 		//TODO: Output angular velocities and sort out the odd spin issue
-		/*std::cout << "Force:   " << impulseDirection << std::endl;
-		std::cout << "Impulse: " << jn << std::endl;
-		std::cout << "Force O1:" << pn0.m_force << std::endl;
-		std::cout << "Force O2:" << pn1.m_force << std::endl;*/
 
-		if (abs(impulseDirection.x + pn0.m_force.x) < FORCE_REST_TOLERANCE &&
-			abs(impulseDirection.y + pn0.m_force.y) < FORCE_REST_TOLERANCE &&
-			abs(impulseDirection.z + pn0.m_force.z) < FORCE_REST_TOLERANCE &&
-			abs(pn0.m_linearVelocity.x) < REST_TOLERANCE &&
+		/*abs(impulseDirection.x + pn0.m_force.x) < FORCE_REST_TOLERANCE &&
+		abs(impulseDirection.y + pn0.m_force.y) < FORCE_REST_TOLERANCE &&
+		abs(impulseDirection.z + pn0.m_force.z) < FORCE_REST_TOLERANCE)*/
+
+		if 	(abs(pn0.m_linearVelocity.x) < REST_TOLERANCE &&
 			abs(pn0.m_linearVelocity.y) < REST_TOLERANCE &&
 			abs(pn0.m_linearVelocity.z) < REST_TOLERANCE &&
 			abs(pn0.m_angularVelocity.x) < REST_TOLERANCE &&
 			abs(pn0.m_angularVelocity.y) < REST_TOLERANCE &&
 			abs(pn0.m_angularVelocity.z) < REST_TOLERANCE){
-			pn0.m_rest = true;
+				//Store the last object collided with!
+				if (pn0.lastCollided == &pn1) 
+					pn0.m_rest = true;
+
+				//SHOULD THIS BE THE SITUATION?
+				if (abs(impulseDirection.x + pn0.m_force.x) < FORCE_REST_TOLERANCE &&
+					abs(impulseDirection.y + pn0.m_force.y) < FORCE_REST_TOLERANCE &&
+					abs(impulseDirection.z + pn0.m_force.z) < FORCE_REST_TOLERANCE)
+					pn0.m_rest = true;
 		};
 
-		if (abs(impulseDirection.x + pn1.m_force.x) < FORCE_REST_TOLERANCE &&
-			abs(impulseDirection.y + pn1.m_force.y) < FORCE_REST_TOLERANCE &&
-			abs(impulseDirection.z + pn1.m_force.z) < FORCE_REST_TOLERANCE &&
-			abs(pn1.m_linearVelocity.x) < REST_TOLERANCE &&
+		if (abs(pn1.m_linearVelocity.x) < REST_TOLERANCE &&
 			abs(pn1.m_linearVelocity.y) < REST_TOLERANCE &&
 			abs(pn1.m_linearVelocity.z) < REST_TOLERANCE &&
 			abs(pn1.m_angularVelocity.x) < REST_TOLERANCE &&
 			abs(pn1.m_angularVelocity.y) < REST_TOLERANCE &&
 			abs(pn1.m_angularVelocity.z) < REST_TOLERANCE){
-			pn1.m_rest = true;
+
+				if (pn1.lastCollided = &pn0)
+					pn1.m_rest = true;
+
+				//DO I EVEN NEED THIS?
+				if (abs(impulseDirection.x + pn1.m_force.x) < FORCE_REST_TOLERANCE &&
+					abs(impulseDirection.y + pn1.m_force.y) < FORCE_REST_TOLERANCE &&
+					abs(impulseDirection.z + pn1.m_force.z) < FORCE_REST_TOLERANCE)
+					pn1.m_rest = true;
 		};
 	}
 
@@ -623,7 +631,11 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 
 	pn0.m_angularVelocity = pn0.m_angularVelocity * DAMPING_FACTOR;
 	pn1.m_angularVelocity = pn1.m_angularVelocity * DAMPING_FACTOR;
-	
+
+	//TODO: NOT SURE IF THIS WILL WORK!
+	pn0.lastCollided = &pn1;
+	pn1.lastCollided = &pn0;
+
 }
 
 void CollisionAABB::GenerateAABB(Mesh* m){

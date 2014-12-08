@@ -57,7 +57,7 @@ feel comfortable with!).
 //TODO: Possibly use a free list of collision volumes that can be obtained? Would mean
 //		better cache efficiency?
 
-//TODO: Need to make inverse inertia a vector3 and put Matrix4 * Vector3 multiplication back to how it was!
+//TODO: Remove all TODOS!
 
 
 class PhysicsSystem	{

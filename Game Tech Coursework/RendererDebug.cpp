@@ -8,6 +8,8 @@ bool Renderer::InitDebug(){
 
 
 	sphere = new OBJMesh(MESHDIR"Sphere.obj");
+	box = new OBJMesh(MESHDIR"centeredcube.obj");
+	debugQuad = Mesh::GenerateQuad();
 
 	if (!basicFont->texture)
 		return false;
@@ -19,10 +21,13 @@ bool Renderer::InitDebug(){
 
 	objectsDrawn = 0;
 	objectsShadowed = 0;
-	drawBound = 1;
+	drawBound = 0;
 
-	box = new OBJMesh(MESHDIR"centeredcube.obj");
+	drawWorld = true;
 	physicsDrawing = false;
+	octTree = false;
+	broadPhase = false;
+	narrowPhase = false;
 
 	return true;
 }
@@ -48,9 +53,22 @@ void Renderer::UpdateDebug(){
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD8))
 		drawBound = !drawBound;
 
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD7)){
-		physicsDrawing = !physicsDrawing;
-	}
+	//if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPADP))
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD7))
+		drawWorld = !drawWorld;
+	
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD1))
+		octTree = !octTree;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD2))
+		broadPhase = !broadPhase;
+	
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD3))
+		narrowPhase = !narrowPhase;
+	
+	physicsDrawing = (broadPhase || narrowPhase || octTree);
+
 }
 
 //Method to draw the overlay
@@ -74,7 +92,7 @@ void Renderer::DrawDebugOverlay(){
 	if (dubVis) buff << "Double Vision ";
 	if (blur) buff << "Blur ";
 	DrawString(buff.str(), Vector3(0,2*FONT_SIZE,0.5f), FONT_SIZE);
-	
+
 	buff = std::ostringstream();
 
 	if (pause) buff << "Time paused ";
@@ -86,8 +104,11 @@ void Renderer::DrawDebugOverlay(){
 
 	buff = std::ostringstream();
 	buff << "PUPS: " << PhysicsSystem::GetPhysicsSystem().GetUpdateRate();
-	buff << " No. Cols: " << PhysicsSystem::GetPhysicsSystem().GetCollisionCount();
-	if (physicsDrawing) buff << "Physics Draw" << std::endl;
+	buff << "Collisions: " << PhysicsSystem::GetPhysicsSystem().GetCollisionCount();
+	if (physicsDrawing) buff << "Physics Draw: " << std::endl;
+	if (octTree) buff << "OctTree," << std::endl;
+	if (broadPhase) buff << "Broad phase," << std::endl;
+	if (narrowPhase) buff << "Narrow phase." << std::endl;
 	DrawString(buff.str(), Vector3(0, 4*FONT_SIZE, 0.5f), FONT_SIZE);
 
 	glUseProgram(0);
@@ -95,7 +116,7 @@ void Renderer::DrawDebugOverlay(){
 
 //Method to draw the bounds of a given sceneNode
 void Renderer::DrawBounds(SceneNode* n){
-	
+
 	glDisable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	SetCurrentShader(passThrough);
@@ -121,7 +142,11 @@ void Renderer::DrawPhysics(){
 	if (physicsDrawing){
 
 		std::lock_guard<std::mutex> lock(PhysicsSystem::instance->nodesMutex);
-		DrawOctTree();
+		if (octTree) DrawOctTree();
+		if (broadPhase)	DrawBroadPhase();
+		
+
+		if (narrowPhase) DrawNarrowPhase();
 	}
 }
 
@@ -151,5 +176,87 @@ void Renderer::DrawOctNode(const OctNode& on){
 
 		box->Draw();
 	}
+}
+
+void Renderer::DrawBroadPhase(){
+
+	for (auto itr = PhysicsSystem::instance->allNodes.begin();
+		itr != PhysicsSystem::instance->allNodes.end();
+		++itr){
+
+			if ( (*itr)->GetBroadPhaseVolume()){
+				CollisionVolumeType cvt = (*itr)->GetBroadPhaseVolume()->GetType();
+
+				switch (cvt){
+				case COLLISION_PLANE:
+					DrawPlane( *(Plane*) (*itr)->GetBroadPhaseVolume(), (*itr)->GetOrientation());
+					break;
+				case COLLISION_SPHERE:
+					DrawSphere( *(CollisionSphere*) (*itr)->GetBroadPhaseVolume());
+					break;
+				case COLLISION_AABB:
+					DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume() );
+					break;
+				}
+			}
+	}
+}
+
+void Renderer::DrawNarrowPhase(){
+
+	for (auto itr = PhysicsSystem::instance->allNodes.begin();
+		itr != PhysicsSystem::instance->allNodes.end();
+		++itr){
+
+			if ( (*itr)->GetNarrowPhaseVolume() ){
+				CollisionVolumeType cvt = (*itr)->GetNarrowPhaseVolume()->GetType();
+
+				switch (cvt){
+				case COLLISION_PLANE:
+					DrawPlane( *(Plane*) (*itr)->GetBroadPhaseVolume(), (*itr)->GetOrientation());
+					break;
+				case COLLISION_SPHERE:
+					DrawSphere( *(CollisionSphere*) (*itr)->GetBroadPhaseVolume(), &(*itr)->GetOrientation());
+					break;
+				case COLLISION_AABB:
+					DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume() );
+					break;
+				}
+			}
+
+	}
+
+}
+
+void Renderer::DrawSphere(const CollisionSphere& cs, const Quaternion* orientation){
+	if (orientation)
+		modelMatrix = Matrix4::Translation(cs.m_pos) * 
+		orientation->ToMatrix() * 
+		Matrix4::Scale(Vector3(cs.m_radius, cs.m_radius, cs.m_radius));
+	else 
+		modelMatrix = Matrix4::Translation(cs.m_pos) *
+		Matrix4::Scale(Vector3(cs.m_radius, cs.m_radius, cs.m_radius));
+
+	UpdateShaderMatrices();
+
+	sphere->Draw();
+}
+
+void Renderer::DrawPlane(const Plane& p, const Quaternion& o){
+	modelMatrix = Matrix4::Translation(p.GetNormal() * p.GetDistance()) *
+		o.ToMatrix() *
+		Matrix4::Scale(Vector3(1000,1000,1000));
+	UpdateShaderMatrices();
+
+	debugQuad->Draw();
+}
+
+void Renderer::DrawAABB(const CollisionAABB& aabb){
+
+	modelMatrix = Matrix4::Translation(aabb.m_position) 
+		* Matrix4::Scale(aabb.m_halfSize);
+	UpdateShaderMatrices();
+
+	box->Draw();
 }
 

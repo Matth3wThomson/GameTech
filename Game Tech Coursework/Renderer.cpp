@@ -4,8 +4,8 @@ bool Renderer::debug = true;
 Renderer* Renderer::instance = NULL;
 
 /**
-	NOTES:
-		-This cpp file contains the methods that are too generic to be specialized.
+NOTES:
+-This cpp file contains the methods that are too generic to be specialized.
 */
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent)
@@ -116,11 +116,11 @@ void Renderer::UpdateScene(float msec){
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2))
 		timeSlowed = !timeSlowed;
-	
+
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_3))
 		dayTimeSpeedIncrease = !dayTimeSpeedIncrease;
-	
+
 
 	if (timeSlowed)	msec *= 0.1f;
 
@@ -155,13 +155,13 @@ void Renderer::UpdateScene(float msec){
 
 void Renderer::RenderScene(){
 
-	
+
 	DrawShadowScene(); //Create our shadow depth tex from the first render pass
 
 	DrawCombinedScene(); //Use this value and compute forward lighting
 
 	DrawPointLights();	//Apply our pointlights (deferred rendering) lights to
-						//Emissive and specular textures
+	//Emissive and specular textures
 
 	CombineBuffers();	//Combine all rendering information so far to compute final image
 
@@ -185,7 +185,7 @@ void Renderer::DrawCombinedScene(){
 		GL_TEXTURE_2D, GetDrawTarget(), 0);
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	
+
 	//Draw our skybox first
 	DrawSkybox();
 
@@ -200,38 +200,43 @@ void Renderer::DrawCombinedScene(){
 	SortNodeLists();
 
 	//Draw the opaque nodes first front to back
-	glDisable(GL_CULL_FACE);
-	
-	for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
+	//glDisable(GL_CULL_FACE); //TODO: Turn this on?
+
+	if (drawWorld){
+		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
+			SetCurrentShader(phong);
+			//SetCurrentShader(passThrough);
+
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			(*itr)->Draw(*this);
+
+			if (debug){ 
+				if (drawBound) DrawBounds(*itr);
+				if ((*itr)->GetMesh()) objectsDrawn++;
+			}
+		}
+
+		//Draw the transparent nodes second, back to front
+		glDisable(GL_CULL_FACE);
+		glDepthMask(GL_FALSE);	//TODO: Is this even necessary?
+		for (auto itr = transparentNodes.rbegin(); itr != transparentNodes.rend(); ++itr){
+			SetCurrentShader(sceneShader);
+
+			(*itr)->Draw(*this);
+
+			if (debug){
+				if (drawBound) DrawBounds(*itr);
+				if ((*itr)->GetMesh()) objectsDrawn++;
+			}
+		}
+		glDepthMask(GL_TRUE);
+	}
+
+	if (physicsDrawing){
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		SetCurrentShader(phong);
-		//SetCurrentShader(passThrough);
-
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		(*itr)->Draw(*this);
-
-		if (debug){ 
-			if (drawBound) DrawBounds(*itr);
-			if ((*itr)->GetMesh()) objectsDrawn++;
-		}
+		DrawPhysics();
 	}
-
-	//Draw the transparent nodes second, back to front
-	glDisable(GL_CULL_FACE);
-	glDepthMask(GL_FALSE);
-	for (auto itr = transparentNodes.rbegin(); itr != transparentNodes.rend(); ++itr){
-		SetCurrentShader(sceneShader);
-		
-		(*itr)->Draw(*this);
-
-		if (debug){
-			if (drawBound) DrawBounds(*itr);
-			if ((*itr)->GetMesh()) objectsDrawn++;
-		}
-	}
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	SetCurrentShader(phong);
-	DrawPhysics();
 
 	glEnable(GL_CULL_FACE);
 	glDepthMask(GL_TRUE);
