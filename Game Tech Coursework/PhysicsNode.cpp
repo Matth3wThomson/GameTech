@@ -23,7 +23,14 @@ PhysicsNode::PhysicsNode(const Quaternion& orientation, const Vector3& position)
 }
 
 PhysicsNode::~PhysicsNode(void)	{
-
+	//If these are the same thing!?
+	if (m_broadPhase == m_narrowPhase){
+		delete m_broadPhase;
+	} else {
+		delete m_broadPhase;
+		delete m_narrowPhase;
+	}
+	
 }
 
 //You will perform your per-object physics integration, here!
@@ -63,13 +70,18 @@ void	PhysicsNode::Update(float msec){
 	}
 }
 
+void PhysicsNode::UpdateCollisionPlane(Plane& p){
+
+}
+
 void	PhysicsNode::UpdateCollisionSphere(CollisionSphere& cs){
 	cs.m_pos = this->m_position;
 }
 
-void PhysicsNode::UpdateCollisionPlane(Plane& p){
-
+void PhysicsNode::UpdateCollisionConvex(CollisionConvex& ccv){
+	ccv.Update(m_position, m_orientation, m_scale);
 }
+
 
 void PhysicsNode::ApplyForce(const Vector3& force, const Vector3& distanceFromCentre){
 	m_force += force;

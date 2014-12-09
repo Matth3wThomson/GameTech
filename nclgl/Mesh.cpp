@@ -292,6 +292,19 @@ Mesh* Mesh::GenerateCylinder(int accuracy, float topOffset){
 
 }
 
+//Mesh* Mesh::GenerateCube(){
+//	Mesh* m = new Mesh();
+//
+//	m->numVertices = 8;
+//
+//	m->vertices = new Vector3[m->numVertices];
+//	m->colours = new Vector4[m->numVertices];
+//
+//	m->vertices[0] = Vector3(-1, -1, -1);
+//	m->vertices[1] = Vector3(1, -1, -1);
+//	m->vertices[2] = Vector3(-1, 1, 
+//}
+
 void Mesh::GenerateNormals(){
 	if (!normals)
 		normals = new Vector3[numVertices];

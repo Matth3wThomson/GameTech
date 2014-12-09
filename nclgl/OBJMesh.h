@@ -106,6 +106,9 @@ struct OBJSubMesh {
 
 class OBJMesh : public Mesh, public ChildMeshInterface	{
 public:
+
+	friend class CollisionConvex; //SO I CAN MAKE COLLISION MESHES OUT OF OBJs
+
 	OBJMesh(void){};
 	OBJMesh(std::string filename){LoadOBJMesh(filename);};
 	~OBJMesh(void){};

@@ -26,11 +26,15 @@ MyGame::MyGame()	{
 	something else...
 	*/
 	cube	= new OBJMesh(MESHDIR"cube.obj");
+	centCube = new OBJMesh(MESHDIR"centeredcube.obj");
 	quad	= Mesh::GenerateQuad();
 	sphere	= new OBJMesh(MESHDIR"ico.obj");
 	debugTex = SOIL_load_OGL_texture(TEXTUREDIR"debug.png", 
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	quad->SetTexture(debugTex);
+
+	projectileSize = 100;
+	projectileSpeed = 1;
 
 	/*
 	A more 'robust' system would check the entities vector for duplicates so as
@@ -50,6 +54,15 @@ MyGame::MyGame()	{
 
 	floor->ConnectToSystems();
 	allEntities.push_back(floor);
+
+	/*GameEntity* roof = BuildQuadEntity(1000.0f, Vector3(1,0,0), 270.0f);
+	roof->GetPhysicsNode().SetPosition(Vector3(0, 1000.0f, 0));
+	roof->GetPhysicsNode().SetFixed(true);
+	roof->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,-1,0), -1000.0f));
+
+	roof->GetPhysicsNode().SetInverseInertiaMat(floorMat);
+	roof->ConnectToSystems();
+	allEntities.push_back(roof);
 
 	GameEntity* wallBack = BuildQuadEntity(1000.0f, Vector3(1,0,0), 0.0f);
 	wallBack->GetPhysicsNode().SetPosition(Vector3(0,0,1000.0f));
@@ -86,8 +99,33 @@ MyGame::MyGame()	{
 
 	wallRight->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallRight->ConnectToSystems();
-	allEntities.push_back(wallRight);
+	allEntities.push_back(wallRight);*/
 
+	GameEntity* cubeConvex1 = BuildCubeEntity(100.0f);
+	cubeConvex1->GetPhysicsNode().SetPosition(Vector3(0,0,0));
+	
+	cubeConvex1->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionConvex(centCube));
+	cubeConvex1->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, 100, 100, 100);
+	cubeConvex1->GetPhysicsNode().SetScale(Vector3(100,100,100));
+	cubeConvex1->GetPhysicsNode().UpdateCollisionConvex(
+		*(CollisionConvex*) cubeConvex1->GetPhysicsNode().GetNarrowPhaseVolume() );
+
+	cubeConvex1->ConnectToSystems();
+	allEntities.push_back(cubeConvex1);
+
+	cubeConvex2 = BuildCubeEntity(100.0f);
+	cubeConvex2->GetPhysicsNode().SetPosition(Vector3(-250,0,0));
+	
+	CollisionConvex* ccv2 = new CollisionConvex(centCube);
+
+	cubeConvex2->GetPhysicsNode().SetNarrowPhaseVolume(ccv2);
+	cubeConvex2->GetPhysicsNode().SetScale(Vector3(100,100,100));
+	cubeConvex2->GetPhysicsNode().UpdateCollisionConvex(*ccv2);
+	cubeConvex2->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, 100, 100, 100);
+	cubeConvex2->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+
+	cubeConvex2->ConnectToSystems();
+	allEntities.push_back(cubeConvex2);
 
 }
 
@@ -114,14 +152,44 @@ void MyGame::UpdateGame(float msec) {
 		gameCamera->UpdateCamera(msec);
 	}
 
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_M))
+		projectileSpeed++;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_N))
+		projectileSpeed--;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_K))
+		projectileSize++;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_J))
+		projectileSize--;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_RIGHT))
+		cubeConvex2->GetPhysicsNode().SetPosition( cubeConvex2->GetPhysicsNode().GetPosition() - Vector3(10,0,0));
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_LEFT))
+		cubeConvex2->GetPhysicsNode().SetPosition( cubeConvex2->GetPhysicsNode().GetPosition() + Vector3(10,0,0));
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_UP))
+		cubeConvex2->GetPhysicsNode().SetPosition( cubeConvex2->GetPhysicsNode().GetPosition() + Vector3(0,10,0));
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_DOWN))
+		cubeConvex2->GetPhysicsNode().SetPosition( cubeConvex2->GetPhysicsNode().GetPosition() - Vector3(0,10,0));
+	
 	//Spawn a new object.
 	if (Window::GetMouse()->ButtonTriggered(MOUSE_LEFT)){
-		GameEntity* ge = BuildCubeEntity(10.0f);
+
+		GameEntity* ge = BuildCubeEntity(projectileSize);
 		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
-		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector());
+		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * projectileSpeed);
+
+		//ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f, 0)); //Add Gravity
+		ge->GetPhysicsNode().SetMass(100.0f);
+
+		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionConvex(centCube));
 
 		ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
-		ge->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, 10, 10, 10);
+		ge->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, projectileSize, projectileSize, projectileSize);
 		
 		ge->ConnectToSystems();
 
@@ -129,16 +197,17 @@ void MyGame::UpdateGame(float msec) {
 	}
 
 	if (Window::GetMouse()->ButtonTriggered(MOUSE_RIGHT)){
-		GameEntity* ge = BuildSphereEntity(100.0f);
+
+		GameEntity* ge = BuildSphereEntity(projectileSize);
 		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
 		/*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
-			ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * 0.5f);
+		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * projectileSpeed);
 		ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
 		ge->GetPhysicsNode().SetMass(100.0f);
 		//ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
-		ge->GetPhysicsNode().SetInvSphereInertiaMatrix(100, 100);
+		ge->GetPhysicsNode().SetInvSphereInertiaMatrix(100, projectileSize);
 
-		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), 100.0f));
+		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
 
 		ge->ConnectToSystems();
 
@@ -214,13 +283,13 @@ GameEntity* MyGame::BuildRobotEntity() {
 Makes a cube. Every game has a crate in it somewhere!
 */
 GameEntity* MyGame::BuildCubeEntity(float size) {
-	GameEntity*g = new GameEntity(new SceneNode(cube), new PhysicsNode());
+	GameEntity*g = new GameEntity(new SceneNode(centCube), new PhysicsNode());
 	//g->ConnectToSystems();
 
 	SceneNode &test = g->GetRenderNode();
 
 	test.SetModelScale(Vector3(size,size,size));
-	test.SetBoundingRadius(size);
+	test.SetBoundingRadius(size * 1.5f);
 
 	return g;
 }

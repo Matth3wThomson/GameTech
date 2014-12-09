@@ -264,7 +264,8 @@ protected:
 	void DrawSphere(const CollisionSphere& sphere, const Quaternion* orientation = NULL);
 	void DrawPlane(const Plane& p, const Quaternion& orientation);
 	void DrawAABB(const CollisionAABB& aabb);
-	
+	void DrawCollisionConvex(const CollisionConvex& ccv, const Quaternion& orientation, const Vector3& scale);
+
 	//Shadowing
 	bool InitShadowBuffers();
 	void DeleteShadowBuffers();

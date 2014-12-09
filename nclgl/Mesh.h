@@ -25,6 +25,7 @@ public:
 	static Mesh* GenerateTransQuad();
 	static Mesh* GenerateBAQuad(bool normals);
 	static Mesh* GenerateCylinder(int accuracy, float topOffset = 1.0f);
+	//static Mesh* GenerateCube();
 
 	void SetTexture(GLuint tex){ texture = tex; }
 	GLuint GetTexture() const { return texture; }

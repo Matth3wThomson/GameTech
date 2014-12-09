@@ -60,6 +60,9 @@ public:
 	void SetInvSphereInertiaMatrix(float mass, float radius);
 	void SetInvCuboidInertiaMatrix(float mass, float height, float width, float length);
 
+	Vector3		GetScale() const { return m_scale; };
+	void		SetScale(const Vector3& scale){ m_scale = scale; };
+
 	Vector3		GetPosition()const			{ return m_position;}
 	void		SetPosition(const Vector3& pos){ m_position = pos; }
 
@@ -99,8 +102,10 @@ public:
 	void SetBroadPhaseVolume(CollisionVolume* cv){ m_broadPhase = cv; if (!m_narrowPhase) m_narrowPhase = cv; };
 	CollisionVolume* GetBroadPhaseVolume(){ return m_broadPhase; }
 
-	void UpdateCollisionSphere(CollisionSphere& cs);
 	void UpdateCollisionPlane(Plane& p);
+	void UpdateCollisionSphere(CollisionSphere& cs);
+	void UpdateCollisionAABB(CollisionAABB& aabb);
+	void UpdateCollisionConvex(CollisionConvex& ccv);
 
 	void ApplyForce(const Vector3& force, const Vector3& distanceFromCentre = Vector3(0,0,0));
 	void ApplyImpulse(const Vector3& impulse, const Vector3& distanceFromCentre = Vector3(0,0,0));
@@ -113,6 +118,8 @@ protected:
 	bool m_rest;
 	
 	PhysicsNode* lastCollided;
+
+	Vector3 m_scale;	//NEW. FOR KNOWING THE SCALE OF AN OBJECT!
 
 	//<---------LINEAR-------------->
 	Vector3		m_position;
@@ -132,5 +139,6 @@ protected:
 	CollisionVolume* m_narrowPhase;
 
 	SceneNode*	target;  
+	Vector3 m_targetOffset;
 };
 

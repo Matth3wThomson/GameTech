@@ -211,6 +211,8 @@ void Renderer::DrawNarrowPhase(){
 			if ( (*itr)->GetNarrowPhaseVolume() ){
 				CollisionVolumeType cvt = (*itr)->GetNarrowPhaseVolume()->GetType();
 
+
+				//TODO: Change all of these to narrow phase volume, you fool!
 				switch (cvt){
 				case COLLISION_PLANE:
 					DrawPlane( *(Plane*) (*itr)->GetBroadPhaseVolume(), (*itr)->GetOrientation());
@@ -220,6 +222,10 @@ void Renderer::DrawNarrowPhase(){
 					break;
 				case COLLISION_AABB:
 					DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume() );
+					break;
+				case COLLISION_CONVEX:
+					DrawCollisionConvex( *(CollisionConvex*) (*itr)->GetNarrowPhaseVolume(), 
+						(*itr)->GetOrientation(), (*itr)->GetScale());
 					break;
 				}
 			}
@@ -243,6 +249,8 @@ void Renderer::DrawSphere(const CollisionSphere& cs, const Quaternion* orientati
 }
 
 void Renderer::DrawPlane(const Plane& p, const Quaternion& o){
+	//TODO: Planes are only drawn to have 1000x1000x1000... Possibly include some sort of
+	//scaling?
 	modelMatrix = Matrix4::Translation(p.GetNormal() * p.GetDistance()) *
 		o.ToMatrix() *
 		Matrix4::Scale(Vector3(1000,1000,1000));
@@ -258,5 +266,16 @@ void Renderer::DrawAABB(const CollisionAABB& aabb){
 	UpdateShaderMatrices();
 
 	box->Draw();
+}
+
+void Renderer::DrawCollisionConvex(const CollisionConvex& ccv, const Quaternion& qt, const Vector3& scale){
+	//TODO: Needs scaling factor in here!
+	modelMatrix = Matrix4::Translation(ccv.m_pos) *
+		qt.ToMatrix() *
+		Matrix4::Scale(scale);
+
+	UpdateShaderMatrices();
+
+	ccv.m_mesh->Draw();
 }
 

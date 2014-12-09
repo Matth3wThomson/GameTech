@@ -135,7 +135,8 @@ void	PhysicsSystem::NarrowPhase(){
 	//Then perform collision detection on each section of the octree recursively
 	std::lock_guard<mutex> lock(nodesMutex);
 
-	NarrowPhaseTree(octTree.root);
+	//NarrowPhaseTree(octTree.root);
+	NarrowPhaseVector(allNodes);
 }
 
 void PhysicsSystem::NarrowPhaseTree(OctNode& on){
@@ -155,8 +156,8 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 		for (auto j = i+1; j != np.end(); ++j){
 
 			//Both objects are resting... why bother going any further!?
-			if ((*i)->AtRest() && ((*j)->AtRest())) 
-				continue;
+			if ((*i)->AtRest() && ((*j)->AtRest()));
+				//continue;
 
 			CollisionVolume* cv1 = (*i)->GetNarrowPhaseVolume();
 			CollisionVolume* cv2 = (*j)->GetNarrowPhaseVolume();
@@ -189,7 +190,7 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 					};
 
 					if (cvt2 == COLLISION_AABB){
-
+						break;
 					}; 
 
 					break;
@@ -208,15 +209,41 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 							++collisionCount;
 						}
 					};
-					if (cvt2 == COLLISION_AABB); 
+					if (cvt2 == COLLISION_AABB) break; 
 
 					break;
 				case COLLISION_AABB:
 					if (cvt2 == COLLISION_PLANE) break;
-					if (cvt2 == COLLISION_SPHERE);
-					if (cvt2 == COLLISION_AABB); 
+					if (cvt2 == COLLISION_SPHERE) break;
+					if (cvt2 == COLLISION_AABB) break; 
 
 					break;
+				case COLLISION_CONVEX:
+					if (cvt2 == COLLISION_CONVEX){
+						CollisionConvex* ccv1 = (CollisionConvex*) (*i)->GetNarrowPhaseVolume();
+						CollisionConvex* ccv2 = (CollisionConvex*) (*j)->GetNarrowPhaseVolume();
+
+						(*i)->UpdateCollisionConvex(*ccv1);
+						(*j)->UpdateCollisionConvex(*ccv2);
+
+						if (Collision::GJK(ccv1->m_collisionMesh, ccv1->m_numVertices,
+							ccv2->m_collisionMesh, ccv2->m_numVertices)){
+								std::cout << "COLLISION WHOOPIE! " << std::endl;
+						} else {
+							//std::cout << " " << std::endl;
+						}
+						break;
+					} else if (cvt2 == COLLISION_PLANE){
+						CollisionConvex* ccv1 = (CollisionConvex*) (*i)->GetNarrowPhaseVolume();
+						Plane* p = (Plane*) (*j)->GetNarrowPhaseVolume();
+
+						(*i)->UpdateCollisionConvex(*ccv1);
+						(*j)->UpdateCollisionPlane(*p);
+
+						if (Collision::ConvexInColPlane(*p, ccv1->m_collisionMesh, ccv1->m_numVertices)){
+							std::cout << "CONVEX VS PLANE" << std::endl;
+						}
+					}
 				}
 			}
 		}
@@ -583,7 +610,7 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 					pn0.m_rest = true;
 
 				//SHOULD THIS BE THE SITUATION?
-				if (abs(impulseDirection.x + pn0.m_force.x) < FORCE_REST_TOLERANCE &&
+				else if (abs(impulseDirection.x + pn0.m_force.x) < FORCE_REST_TOLERANCE &&
 					abs(impulseDirection.y + pn0.m_force.y) < FORCE_REST_TOLERANCE &&
 					abs(impulseDirection.z + pn0.m_force.z) < FORCE_REST_TOLERANCE)
 					pn0.m_rest = true;
@@ -600,7 +627,7 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 					pn1.m_rest = true;
 
 				//DO I EVEN NEED THIS?
-				if (abs(impulseDirection.x + pn1.m_force.x) < FORCE_REST_TOLERANCE &&
+				else if (abs(impulseDirection.x + pn1.m_force.x) < FORCE_REST_TOLERANCE &&
 					abs(impulseDirection.y + pn1.m_force.y) < FORCE_REST_TOLERANCE &&
 					abs(impulseDirection.z + pn1.m_force.z) < FORCE_REST_TOLERANCE)
 					pn1.m_rest = true;

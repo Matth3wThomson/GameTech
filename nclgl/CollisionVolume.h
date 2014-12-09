@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mesh.h"
+#include "OBJMesh.h"
 
 class CollisionData {
 	public:
@@ -67,11 +68,15 @@ protected:
 //Collision convex is a mesh of points that represent a shape, stored in any arbitrary order.
 //These can be (and should be for drawing purposes) loaded in from a mesh file.
 class CollisionConvex : public CollisionVolume {
+public:
+
 	CollisionConvex(Mesh* m);
-	CollisionConvex(const Vector3* vertices, const int numVertices);
+
+	void Update(const Vector3& position, const Quaternion& orientation, const Vector3& scale);
 
 	Vector3 m_pos;
 	
+	Mesh* m_mesh;
 	Vector3* m_collisionMesh;
 	int m_numVertices;
 };

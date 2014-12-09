@@ -55,8 +55,13 @@ protected:
 
 	GameEntity* BuildQuadEntity(float size, const Vector3& qt, float angle);
 
+	float projectileSize;
+	float projectileSpeed;
+
+	GameEntity* cubeConvex2;
 
 	Mesh* cube;
+	Mesh* centCube;
 	Mesh* quad;
 	Mesh* sphere;
 	GLuint debugTex;
