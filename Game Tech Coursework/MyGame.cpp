@@ -62,7 +62,7 @@ MyGame::MyGame()	{
 
 	roof->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	roof->ConnectToSystems();
-	allEntities.push_back(roof);
+	allEntities.push_back(roof);*/
 
 	GameEntity* wallBack = BuildQuadEntity(1000.0f, Vector3(1,0,0), 0.0f);
 	wallBack->GetPhysicsNode().SetPosition(Vector3(0,0,1000.0f));
@@ -99,7 +99,7 @@ MyGame::MyGame()	{
 
 	wallRight->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallRight->ConnectToSystems();
-	allEntities.push_back(wallRight);*/
+	allEntities.push_back(wallRight);
 
 	GameEntity* cubeConvex1 = BuildCubeEntity(100.0f);
 	cubeConvex1->GetPhysicsNode().SetPosition(Vector3(0,0,0));
@@ -110,8 +110,8 @@ MyGame::MyGame()	{
 	cubeConvex1->GetPhysicsNode().UpdateCollisionConvex(
 		*(CollisionConvex*) cubeConvex1->GetPhysicsNode().GetNarrowPhaseVolume() );
 
-	cubeConvex1->ConnectToSystems();
-	allEntities.push_back(cubeConvex1);
+	/*cubeConvex1->ConnectToSystems();
+	allEntities.push_back(cubeConvex1);*/
 
 	cubeConvex2 = BuildCubeEntity(100.0f);
 	cubeConvex2->GetPhysicsNode().SetPosition(Vector3(-250,0,0));
@@ -124,8 +124,8 @@ MyGame::MyGame()	{
 	cubeConvex2->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, 100, 100, 100);
 	cubeConvex2->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
 
-	cubeConvex2->ConnectToSystems();
-	allEntities.push_back(cubeConvex2);
+	/*cubeConvex2->ConnectToSystems();
+	allEntities.push_back(cubeConvex2);*/
 
 }
 
@@ -187,6 +187,7 @@ void MyGame::UpdateGame(float msec) {
 		ge->GetPhysicsNode().SetMass(100.0f);
 
 		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionConvex(centCube));
+		ge->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
 		ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
 		ge->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, projectileSize, projectileSize, projectileSize);

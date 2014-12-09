@@ -253,6 +253,8 @@ bool OctTree::InsertPhysicsNode(OctNode& into, PhysicsNode* pn){
 		pn->UpdateCollisionSphere(*cs);
 
 		//return InsertColSphereNode(into, *cs, pn);
+
+		//TODO: Put breakpoint back in
 		if (!InsertColSphereNode(into, *cs, pn)){
 			std::cout << "A sphere failed to be inserted!!!! :(" << std::endl;
 			return false;

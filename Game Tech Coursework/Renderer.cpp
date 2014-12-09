@@ -238,6 +238,8 @@ void Renderer::DrawCombinedScene(){
 		DrawPhysics();
 	}
 
+	//DrawDebugPerspective();
+
 	glEnable(GL_CULL_FACE);
 	glDepthMask(GL_TRUE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
