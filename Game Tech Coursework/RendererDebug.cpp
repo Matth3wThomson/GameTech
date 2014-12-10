@@ -38,6 +38,7 @@ void Renderer::DeleteDebug(){
 
 //Count our frame rate!
 void Renderer::UpdateDebug(){
+
 	timeAcc += gt.GetTimedMS();
 	frames++;
 	objectsDrawn = 0;
@@ -150,18 +151,18 @@ void Renderer::DrawPhysics(){
 	}
 }
 
-void Renderer::DrawOctTree(){
+void Renderer::DrawOctTree(const Vector4& colour){
 
 	//Obtain a reference to the octree of the physics system
 	OctTree& ot = PhysicsSystem::instance->octTree;
 
-	DrawOctNode(ot.root);
+	DrawOctNode(ot.root, colour);
 }
 
-void Renderer::DrawOctNode(const OctNode& on){
+void Renderer::DrawOctNode(const OctNode& on, const Vector4& colour){
 	if (on.octNodes.size() != 0){
 		for (auto itr = on.octNodes.begin(); itr != on.octNodes.end(); ++itr){
-			DrawOctNode(**itr);
+			DrawOctNode(**itr, colour);
 		}
 	} else {
 		modelMatrix = Matrix4::Translation(on.pos) * Matrix4::Scale(Vector3(on.halfSize, on.halfSize, on.halfSize));
@@ -170,7 +171,7 @@ void Renderer::DrawOctNode(const OctNode& on){
 		UpdateShaderMatrices();
 
 		glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-			"colour"), 1, (float*) &Vector4(0,1,1,1));
+			"colour"), 1, (float*) &colour);
 		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 			"useTex"), 0);
 
@@ -189,13 +190,13 @@ void Renderer::DrawBroadPhase(){
 
 				switch (cvt){
 				case COLLISION_PLANE:
-					DrawPlane( *(Plane*) (*itr)->GetBroadPhaseVolume(), (*itr)->GetOrientation());
+					DrawPlane( *(Plane*) (*itr)->GetBroadPhaseVolume(), (*itr)->GetOrientation(), Vector4(0,1,0,1));
 					break;
 				case COLLISION_SPHERE:
-					DrawSphere( *(CollisionSphere*) (*itr)->GetBroadPhaseVolume());
+					DrawSphere( *(CollisionSphere*) (*itr)->GetBroadPhaseVolume(), Vector4(0,1,0,1));
 					break;
 				case COLLISION_AABB:
-					DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume() );
+					DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume(), Vector4(0,1,0,1) );
 					break;
 				}
 			}
@@ -215,17 +216,17 @@ void Renderer::DrawNarrowPhase(){
 				//TODO: Change all of these to narrow phase volume, you fool!
 				switch (cvt){
 				case COLLISION_PLANE:
-					DrawPlane( *(Plane*) (*itr)->GetBroadPhaseVolume(), (*itr)->GetOrientation());
+					DrawPlane( *(Plane*) (*itr)->GetNarrowPhaseVolume(), (*itr)->GetOrientation(), Vector4(0,0,1,1));
 					break;
 				case COLLISION_SPHERE:
-					DrawSphere( *(CollisionSphere*) (*itr)->GetBroadPhaseVolume(), &(*itr)->GetOrientation());
+					DrawSphere( *(CollisionSphere*) (*itr)->GetNarrowPhaseVolume(), Vector4(0,0,1,1), &(*itr)->GetOrientation());
 					break;
 				case COLLISION_AABB:
-					DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume() );
+					DrawAABB( *(CollisionAABB*) (*itr)->GetNarrowPhaseVolume(), Vector4(0,0,1,1) );
 					break;
 				case COLLISION_CONVEX:
 					DrawCollisionConvex( *(CollisionConvex*) (*itr)->GetNarrowPhaseVolume(), 
-						(*itr)->GetOrientation(), (*itr)->GetScale());
+						(*itr)->GetOrientation(), (*itr)->GetScale(), Vector4(0,0,1,1));
 					break;
 				}
 			}
@@ -234,7 +235,7 @@ void Renderer::DrawNarrowPhase(){
 
 }
 
-void Renderer::DrawSphere(const CollisionSphere& cs, const Quaternion* orientation){
+void Renderer::DrawSphere(const CollisionSphere& cs, const Vector4& colour, const Quaternion* orientation){
 	if (orientation)
 		modelMatrix = Matrix4::Translation(cs.m_pos) * 
 		orientation->ToMatrix() * 
@@ -245,10 +246,15 @@ void Renderer::DrawSphere(const CollisionSphere& cs, const Quaternion* orientati
 
 	UpdateShaderMatrices();
 
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+			"colour"), 1, (float*) &colour);
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"useTex"), 0);
+
 	sphere->Draw();
 }
 
-void Renderer::DrawPlane(const Plane& p, const Quaternion& o){
+void Renderer::DrawPlane(const Plane& p, const Quaternion& o, const Vector4& colour){
 	//TODO: Planes are only drawn to have 1000x1000x1000... Possibly include some sort of
 	//scaling?
 	modelMatrix = Matrix4::Translation(p.GetNormal() * p.GetDistance()) *
@@ -256,25 +262,40 @@ void Renderer::DrawPlane(const Plane& p, const Quaternion& o){
 		Matrix4::Scale(Vector3(1000,1000,1000));
 	UpdateShaderMatrices();
 
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+			"colour"), 1, (float*) &colour);
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"useTex"), 0);
+
 	debugQuad->Draw();
 }
 
-void Renderer::DrawAABB(const CollisionAABB& aabb){
+void Renderer::DrawAABB(const CollisionAABB& aabb, const Vector4& colour){
 
 	modelMatrix = Matrix4::Translation(aabb.m_position) 
 		* Matrix4::Scale(aabb.m_halfSize);
 	UpdateShaderMatrices();
 
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+			"colour"), 1, (float*) &colour);
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"useTex"), 0);
+
 	box->Draw();
 }
 
-void Renderer::DrawCollisionConvex(const CollisionConvex& ccv, const Quaternion& qt, const Vector3& scale){
+void Renderer::DrawCollisionConvex(const CollisionConvex& ccv, const Quaternion& qt, const Vector3& scale, const Vector4& colour){
 	//TODO: Needs scaling factor in here!
 	modelMatrix = Matrix4::Translation(ccv.m_pos) *
 		qt.ToMatrix() *
 		Matrix4::Scale(scale);
 
 	UpdateShaderMatrices();
+
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+			"colour"), 1, (float*) &colour);
+		glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+			"useTex"), 0);
 
 	ccv.m_mesh->Draw();
 }

@@ -105,6 +105,7 @@ MyGame::MyGame()	{
 	cubeConvex1->GetPhysicsNode().SetPosition(Vector3(0,0,0));
 	
 	cubeConvex1->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionConvex(centCube));
+	cubeConvex1->GetPhysicsNode().SetBroadPhaseVolume(new CollisionAABB(Vector3(0,0,0), Vector3(150, 150, 150)));
 	cubeConvex1->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, 100, 100, 100);
 	cubeConvex1->GetPhysicsNode().SetScale(Vector3(100,100,100));
 	cubeConvex1->GetPhysicsNode().UpdateCollisionConvex(
@@ -120,6 +121,7 @@ MyGame::MyGame()	{
 
 	cubeConvex2->GetPhysicsNode().SetNarrowPhaseVolume(ccv2);
 	cubeConvex2->GetPhysicsNode().SetScale(Vector3(100,100,100));
+	cubeConvex1->GetPhysicsNode().SetBroadPhaseVolume(new CollisionAABB(Vector3(0,0,0), Vector3(150, 150, 150)));
 	cubeConvex2->GetPhysicsNode().UpdateCollisionConvex(*ccv2);
 	cubeConvex2->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, 100, 100, 100);
 	cubeConvex2->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
@@ -185,9 +187,11 @@ void MyGame::UpdateGame(float msec) {
 
 		//ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f, 0)); //Add Gravity
 		ge->GetPhysicsNode().SetMass(100.0f);
+		ge->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
 		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionConvex(centCube));
-		ge->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
+		ge->GetPhysicsNode().SetBroadPhaseVolume(new CollisionAABB(
+			ge->GetPhysicsNode().GetPosition(), ge->GetPhysicsNode().GetScale() * 10.0f));
 
 		ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
 		ge->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, projectileSize, projectileSize, projectileSize);

@@ -3,7 +3,7 @@
 PhysicsSystem* PhysicsSystem::instance = 0;
 float PhysicsSystem::timestep = 1.0f/120.0f;
 
-PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(1000, 3, 3)){
+PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(1000, 5, 2)){
 	collisionCount = 0;
 	physTimer = GameTimer();
 	timePassed = 0;
@@ -136,16 +136,31 @@ void	PhysicsSystem::NarrowPhase(){
 	std::lock_guard<mutex> lock(nodesMutex);
 
 	//NarrowPhaseTree(octTree.root);
-	NarrowPhaseVector(allNodes);
+	NextPhaseTree(octTree.root, true);
+	NarrowPhasePairs();
+	//NarrowPhaseVector(allNodes);
 }
 
-void PhysicsSystem::NarrowPhaseTree(OctNode& on){
+//void PhysicsSystem::NarrowPhaseTree(OctNode& on){
+//
+//	if (on.octNodes.size() != 0){
+//		for (auto itr = on.octNodes.begin(); itr != on.octNodes.end(); itr++){
+//			NarrowPhaseTree(**itr);
+//		}
+//	} else {
+//		NarrowPhaseVector(on.physicsNodes);
+//	}
+//}
+
+void PhysicsSystem::NextPhaseTree(OctNode& on, bool boundingBox){
+
 	if (on.octNodes.size() != 0){
 		for (auto itr = on.octNodes.begin(); itr != on.octNodes.end(); itr++){
-			NarrowPhaseTree(**itr);
+			NextPhaseTree(**itr, boundingBox);
 		}
 	} else {
-		NarrowPhaseVector(on.physicsNodes);
+		if (boundingBox) BroadPhaseVector(on.physicsNodes);
+		else NarrowPhaseVector(on.physicsNodes);
 	}
 }
 
@@ -216,12 +231,25 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 						(*j)->UpdateCollisionSphere(*cs2);
 
 						if (Collision::SphereSphereCollision(*cs1, *cs2, &cd)){
-							//std::cout << "SS COLLISION\n";
 							AddCollisionImpulse(*(*i), *(*j), cd);
 							++collisionCount;
 						}
 					};
 					if (cvt2 == COLLISION_AABB) break; 
+
+					if (cvt2 == COLLISION_CONVEX){
+						CollisionSphere* cs = (CollisionSphere*) cv1;
+						CollisionConvex* ccv = (CollisionConvex*) cv2;
+
+						(*i)->UpdateCollisionSphere(*cs);
+						(*j)->UpdateCollisionConvex(*ccv);
+
+						if (Collision::GJKSphere(ccv->m_collisionMesh, ccv->m_numVertices,
+							cs->m_pos, cs->m_radius)){
+								(*i)->SetFixed(true);
+								(*j)->SetFixed(true);
+						}
+					}
 
 					break;
 				case COLLISION_AABB:
@@ -243,8 +271,6 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 								std::cout << "COLLISION WHOOPIE! " << std::endl;
 								(*i)->SetFixed(true);
 								(*j)->SetFixed(true);
-						} else {
-							//std::cout << " " << std::endl;
 						}
 						break;
 					} else if (cvt2 == COLLISION_PLANE){
@@ -279,11 +305,309 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 	}
 }
 
+//Performs bounding box check collisions for objects, and adds pairs of objects to
+//the collision pairs set if they are found to overlap
+void PhysicsSystem::BroadPhaseVector(std::vector<PhysicsNode*>& np){
 
+	for (vector<PhysicsNode*>::iterator i = np.begin(); i != np.end(); ++i){
+		for (auto j = i+1; j != np.end(); ++j){
 
-void PhysicsSystem::ResolveCollisions(){
+			//Both objects are resting or fixed in place... WHY GO FURTHER!?
+			if ( ((*i)->AtRest() && ((*j)->AtRest())) || ((*i)->GetFixed() && (*j)->GetFixed()) )
+				continue;
 
+			CollisionVolume* cv1 = (*i)->GetBroadPhaseVolume();
+			CollisionVolume* cv2 = (*j)->GetBroadPhaseVolume();
+
+			//Only continue if they both have collision volumes
+			if (cv1 && cv2){
+
+				//If both of the objects have narrow phase volumes that are equal to their
+				//broad phase volumes, then we may aswell just check them for collision at the narrow
+				//phase stage!
+				if ( (cv1 == (*i)->GetNarrowPhaseVolume()) && (cv2 == (*j)->GetNarrowPhaseVolume()) ){
+					collisionPairs.insert(COLLISION_PAIR(*i, *j));
+					continue;
+				}
+				CollisionVolumeType cvt1 = cv1->GetType();
+				CollisionVolumeType cvt2 = cv2->GetType();
+
+				//Find out what type our first object is, and then cast accordingly
+				//and update its collision volume
+				switch (cvt1){
+
+					//PLANE COLLISIONS
+				case COLLISION_PLANE:
+					{
+
+						Plane* p = dynamic_cast<Plane*>(cv1);
+						(*i)->UpdateCollisionPlane(*p);
+
+						//PLANE VS SPHERE
+						if (cvt2 == COLLISION_SPHERE){
+							CollisionSphere* cs = dynamic_cast<CollisionSphere*>(cv2);
+
+							(*j)->UpdateCollisionSphere(*cs);
+
+							//Sphere in plane is the wrong way around...
+							if (Collision::SphereInColPlane(*p, cs->m_pos, cs->m_radius))
+								collisionPairs.insert(COLLISION_PAIR(*i, *j));
+						}
+
+						//PLANE VS AABB
+						else if (cvt2 == COLLISION_AABB){
+							CollisionAABB* aabb = (CollisionAABB*) cv2;
+
+							(*j)->UpdateCollisionAABB(*aabb);
+
+							if (Collision::AABBInColPlane(*p, aabb->m_position, aabb->m_halfSize))
+								collisionPairs.insert(COLLISION_PAIR(*i, *j));						
+
+						};
+					}
+					break;
+
+					//SPHERE COLLISION
+				case COLLISION_SPHERE:
+					{
+						CollisionSphere* cs1 = dynamic_cast<CollisionSphere*>(cv1);
+						(*i)->UpdateCollisionSphere(*cs1);
+
+						//SPHERE VS PLANE
+						if (cvt2 == COLLISION_PLANE){
+
+							Plane* p = (Plane*) (cv2);
+
+							(*j)->UpdateCollisionPlane(*p);
+
+							if (Collision::SphereInColPlane(*p, cs1->m_pos, cs1->m_radius)){
+								collisionPairs.insert(COLLISION_PAIR(*i, *j));
+							}
+						}
+
+						//SPHERE VS SPHERE
+						else if (cvt2 == COLLISION_SPHERE){
+
+							CollisionSphere* cs2 = dynamic_cast<CollisionSphere*>(cv2);
+
+							(*j)->UpdateCollisionSphere(*cs2);
+
+							if (Collision::SphereSphereCollision(*cs1, *cs2)){
+								collisionPairs.insert(COLLISION_PAIR(*i, *j));
+							}
+						}
+
+						//SPHERE VS AABB
+						else if (cvt2 == COLLISION_AABB){
+
+							CollisionAABB* aabb = (CollisionAABB*) cv2;
+
+							(*j)->UpdateCollisionAABB(*aabb);
+
+							if (Collision::SphereAABBCollision(*cs1, *aabb)){
+								collisionPairs.insert(COLLISION_PAIR(*i, *j));
+							}
+						}
+					}
+					break;
+
+					//AABB COLLISION
+				case COLLISION_AABB:
+					{
+						CollisionAABB* aabb = (CollisionAABB*) cv1;
+						(*i)->UpdateCollisionAABB(*aabb);
+
+						//AABB PLANE
+						if (cvt2 == COLLISION_PLANE){
+
+							Plane* p = (Plane*) cv2;
+							(*j)->UpdateCollisionPlane(*p);
+
+							if (Collision::AABBInColPlane(*p, aabb->m_position, aabb->m_halfSize)){
+								collisionPairs.insert(COLLISION_PAIR(*i, *j));
+							}
+
+						}
+						//AABB VS SPHERE
+						else if (cvt2 == COLLISION_SPHERE){
+
+							CollisionSphere* cs = (CollisionSphere*) cv2;
+							(*j)->UpdateCollisionSphere(*cs);
+
+							if (Collision::SphereAABBCollision(*cs, *aabb)){
+								collisionPairs.insert(COLLISION_PAIR(*i, *j));
+							}
+						}
+						//AABB VS AABB
+						else if (cvt2 == COLLISION_AABB){
+
+							CollisionAABB* aabb2 = (CollisionAABB*) cv2;
+							(*j)->UpdateCollisionAABB(*aabb2);
+
+							if (Collision::AABBCollision(*aabb, *aabb2)){
+								collisionPairs.insert(COLLISION_PAIR(*i, *j));
+							}
+						}
+					}
+					break;
+
+				}
+			}
+		}
+	}
 }
+
+//TODO: Optimization to prevent objects without NP col vols being added.
+void PhysicsSystem::NarrowPhasePairs(){
+
+	for (auto itr = collisionPairs.begin(); itr != collisionPairs.end(); ++itr){
+
+		CollisionVolume* cv1 = (*itr).first->GetNarrowPhaseVolume();
+		CollisionVolume* cv2 = (*itr).second->GetNarrowPhaseVolume();
+
+		//TODO: remove once optimized
+		if ( !(cv1 && cv2) ) continue; //If they dont have NP col vols then skip the pairing...
+
+		CollisionVolumeType cvt1 = cv1->GetType();
+		CollisionVolumeType cvt2 = cv2->GetType();
+
+		CollisionData cd;
+
+		//Currently the exact same thing is done for every collision... If this remains true
+		//after having sorted all the winding issues out then could simply use a boolean?
+
+		switch (cvt1){
+			//PLANE
+		case COLLISION_PLANE:
+			{
+				Plane* p = (Plane*) cv1;
+				(*itr).first->UpdateCollisionPlane(*p);
+
+				//VS SPHERE
+				if (cvt2 == COLLISION_SPHERE){
+					CollisionSphere* cs = (CollisionSphere*) cv2;
+					(*itr).second->UpdateCollisionSphere(*cs);
+
+					//Sphere plane collision data is the wrong way around...
+					if (Collision::SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
+						AddCollisionImpulse(*(*itr).second, *(*itr).first, cd);
+						++collisionCount;
+					}
+				}
+				//VS CONVEX
+				else if (cvt2 == COLLISION_CONVEX){
+					CollisionConvex* ccv = (CollisionConvex*) cv2;
+					(*itr).second->UpdateCollisionConvex(*ccv);
+
+					if (Collision::ConvexInColPlane(*p, ccv->m_collisionMesh, ccv->m_numVertices, &cd)){
+						(*itr).second->SetFixed(true); //TODO: Remove
+						/*AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);*/
+						++collisionCount;
+					}
+				}
+			}
+			break;
+
+			//SPHERE
+		case COLLISION_SPHERE:
+			{
+				CollisionSphere* cs = (CollisionSphere*) cv1;
+				(*itr).first->UpdateCollisionSphere(*cs);
+
+				//VS PLANE
+				if (cvt2 == COLLISION_PLANE){
+					Plane* p = (Plane*) cv2;
+					(*itr).second->UpdateCollisionPlane(*p);
+
+					if (Collision::SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
+						AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
+						++collisionCount;
+					}
+				}
+				//VS SPHERE
+				else if (cvt2 == COLLISION_SPHERE){
+					CollisionSphere* cs2 = (CollisionSphere*) cv2;
+					(*itr).second->UpdateCollisionSphere(*cs2);
+
+					if (Collision::SphereSphereCollision(*cs, *cs2, &cd)){
+						AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
+						++collisionCount;
+					}
+				}
+				//VS CONVEX
+				else if (cvt2 == COLLISION_CONVEX){
+					CollisionConvex* ccv = (CollisionConvex*) cv2;
+					(*itr).second->UpdateCollisionConvex(*ccv);
+
+					if (Collision::GJKSphere(ccv->m_collisionMesh, ccv->m_numVertices, cs->m_pos,
+						cs->m_radius, &cd)){
+							(*itr).first->SetFixed(true);	//TODO: REMOVE THIS ONCE CD IS DONE
+							(*itr).second->SetFixed(true);
+							//AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
+							++collisionCount;
+					}
+				}
+			}
+			break;
+
+			//CONVEX
+		case COLLISION_CONVEX:
+			{
+				CollisionConvex* ccv1 = (CollisionConvex*) cv1;
+				(*itr).first->UpdateCollisionConvex(*ccv1);
+
+				//VS PLANE
+				if (cvt2 == COLLISION_PLANE){
+					Plane* p = (Plane*) cv2;
+					(*itr).second->UpdateCollisionPlane(*p);
+
+					if (Collision::ConvexInColPlane(*p, ccv1->m_collisionMesh, ccv1->m_numVertices,
+						&cd)){
+							(*itr).first->SetFixed(true);	//TODO: Remove this once CD is DONE
+							(*itr).second->SetFixed(true);
+							//AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
+							++collisionCount;
+					}
+				}
+				//VS SPHERE
+				else if (cvt2 == COLLISION_SPHERE){
+					CollisionSphere* cs = (CollisionSphere*) cv2;
+					(*itr).second->UpdateCollisionSphere(*cs);
+
+					if (Collision::GJKSphere(ccv1->m_collisionMesh, ccv1->m_numVertices, cs->m_pos,
+						cs->m_radius, &cd)){
+							(*itr).first->SetFixed(true);	//TODO: Remove this once CD is DONE
+							(*itr).second->SetFixed(true);
+							//AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
+							++collisionCount;
+					}
+				}
+				//VS CONVEX!
+				else if (cvt2 == COLLISION_CONVEX){
+					CollisionConvex* ccv2 = (CollisionConvex*) cv2;
+					(*itr).second->UpdateCollisionConvex(*ccv2);
+
+					if (Collision::GJK(ccv1->m_collisionMesh, ccv1->m_numVertices, 
+						ccv2->m_collisionMesh, ccv2->m_numVertices, &cd)){
+							(*itr).first->SetFixed(true);	//TODO: Remove this once CD is DONE
+							(*itr).second->SetFixed(true);
+							//AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
+							++collisionCount;
+					}
+				}
+			}
+			break;
+		}
+	}
+
+	collisionPairs.clear();
+}
+
+
+
+//void PhysicsSystem::ResolveCollisions(){
+//
+//}
 
 void	PhysicsSystem::AddNode(PhysicsNode* n){
 	std::lock_guard<mutex> lock(nodesMutex);

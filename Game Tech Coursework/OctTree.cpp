@@ -42,6 +42,10 @@ void OctTree::Update(){
 
 	RemoveAwake(root, awakeNodes);
 
+	if (awakeNodes.size() > 0){
+		std::cout << "We are resorting a node! " << std::endl;
+	}
+
 	//TODO: Remove maxNodes aware stuff (resting nodes wont be removed!)
 	if (maxNodesAware < awakeNodes.size()){ 
 		maxNodesAware = awakeNodes.size();
@@ -267,8 +271,11 @@ bool OctTree::InsertPhysicsNode(OctNode& into, PhysicsNode* pn){
 
 		return InsertColPlaneNode(into, *((Plane*) colVol), pn);
 	} else if (cvt == COLLISION_AABB){
-		std::cout << "Unimplemented. ";
-		return false;
+
+		CollisionAABB* aabb = (CollisionAABB*) colVol;
+		pn->UpdateCollisionAABB(*aabb);
+
+		return InsertColAABBNode(root, *aabb, pn);
 	}
 
 	//TODO: PUT A BREAKPOINT BACK HERE
@@ -365,9 +372,8 @@ bool OctTree::InsertColSphereNode(OctNode& into, const CollisionSphere& colSpher
 
 		//Re-sort each physics node into the newly created children
 		while (!into.physicsNodes.empty()){
-			PhysicsNode* pnTemp = into.physicsNodes.back();
 
-			if (!InsertPhysicsNode(into, pnTemp)){ 
+			if (!InsertPhysicsNode(into, into.physicsNodes.back())){ 
 				std::cout << "Putting a physics node back into the tree failed after a reshuffle!";
 			}
 
@@ -424,9 +430,8 @@ bool OctTree::InsertColAABBNode(OctNode& into, const CollisionAABB& aabb, Physic
 
 		//Re-sort each physics node
 		while (!into.physicsNodes.empty()){
-			PhysicsNode* pnTemp = into.physicsNodes.back();
 
-			if (!InsertPhysicsNode(into, pnTemp)){ 
+			if (!InsertPhysicsNode(into, into.physicsNodes.back())){ 
 				std::cout << "Putting a physics node back into the tree failed after a reshuffle!";
 			}
 
@@ -435,7 +440,7 @@ bool OctTree::InsertColAABBNode(OctNode& into, const CollisionAABB& aabb, Physic
 
 		//Finally try inserting our physics node into the newly created children of this node
 		for (auto itr = into.octNodes.begin(); itr != into.octNodes.end(); ++itr){
-			if (InsertColAABBNode(**itr, aabb, pn)) inserted = true;;
+			if (InsertColAABBNode(**itr, aabb, pn)) inserted = true;
 		}
 
 	} else {

@@ -78,6 +78,11 @@ void	PhysicsNode::UpdateCollisionSphere(CollisionSphere& cs){
 	cs.m_pos = this->m_position;
 }
 
+void PhysicsNode::UpdateCollisionAABB(CollisionAABB& aabb){
+	aabb.m_position = m_position;
+	aabb.m_halfSize = m_scale * 2.0f; //TODO: This is very generic and definitely not always suitable
+} 
+
 void PhysicsNode::UpdateCollisionConvex(CollisionConvex& ccv){
 	ccv.Update(m_position, m_orientation, m_scale);
 }

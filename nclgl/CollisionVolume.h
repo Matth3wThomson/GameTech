@@ -48,6 +48,7 @@ class CollisionSphere : public CollisionVolume {
 	float m_radius;
 };
 
+//NOT TO BE USED AS A NARROW PHASE COLLISION VOLUME
 class CollisionAABB : public CollisionVolume {
 public:
 
@@ -66,7 +67,8 @@ protected:
 };
 
 //Collision convex is a mesh of points that represent a shape, stored in any arbitrary order.
-//These can be (and should be for drawing purposes) loaded in from a mesh file.
+//These can be (and should be for drawing purposes) loaded in from a mesh file. 
+//NOT TO BE USED AS A BROAD PHASE VOLUME
 class CollisionConvex : public CollisionVolume {
 public:
 

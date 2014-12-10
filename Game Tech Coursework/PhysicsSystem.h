@@ -59,6 +59,7 @@ feel comfortable with!).
 
 //TODO: Remove all TODOS!
 
+typedef std::pair<PhysicsNode*, PhysicsNode*> COLLISION_PAIR;
 
 class PhysicsSystem	{
 public:
@@ -70,7 +71,7 @@ public:
 	void		UpdateCollisionVolume(PhysicsNode* pn);
 	void		BroadPhase();
 	void		NarrowPhase();
-	void		ResolveCollisions();
+	//void		ResolveCollisions();
 
 	//Statics
 	static void Initialise() {
@@ -96,8 +97,20 @@ protected:
 	PhysicsSystem(void);
 	~PhysicsSystem(void);
 
-	void NarrowPhaseTree(OctNode& on);
+	/*void NarrowPhaseTree(OctNode& on);*/
+	void NextPhaseTree(OctNode& on, bool boundingBox = false);
+
+	//Performs a narrowphase check on the nodes in the supplied vector. This is
+	//mainly here for testing purposes of narrowphase with few objects
 	void NarrowPhaseVector(std::vector<PhysicsNode*>& np);
+
+	//Performs a bounding colvol check on the nodes in the supplied vector,
+	//and adds pairs of objects found to collide to the collisionPairs set
+	void BroadPhaseVector(std::vector<PhysicsNode*>& np);
+
+	//Performs a narrow phase check on all entities in the collision pairs set,
+	//and adds collision response before clearing the set for the next frame
+	void NarrowPhasePairs();
 
 	static void AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1, const CollisionData& cd);
 
@@ -124,6 +137,6 @@ protected:
 
 	//This will be used to store all of the nodes that have been detected to collide.
 	//There will then be a collision resolution step.
-	vector<PhysicsNode*> collided;
+	std::set<std::pair<PhysicsNode*, PhysicsNode*>> collisionPairs;
 };
 

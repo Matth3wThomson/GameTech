@@ -17,6 +17,9 @@
 
 //CONVEX VS CONVEX
 
+//TODO: Sort out collision data obtaining from convex vs shape collision...
+//GJK SPHERE COLLISION DATA NEEDS TO ORDERED CORRECTLY WITH RESPECT TO THE CORRECT OBJECT!
+
 class Collision {
 
 public:
@@ -74,23 +77,24 @@ public:
 	static bool AABBCollision(const CollisionAABB &cube0, const CollisionAABB &cube1) {
 
 		//Check X Axis
-		float dist = cube0.m_position.x - cube1.m_position.x;
+		float dist = abs(cube0.m_position.x - cube1.m_position.x);
 		float sum = (cube0.m_halfSize.x + cube1.m_halfSize.x);
 
 		if (dist < sum){
 
 			//Check Y Axis
-			dist = cube0.m_position.y - cube1.m_position.y;
+			dist = abs(cube0.m_position.y - cube1.m_position.y);
 			sum = (cube0.m_halfSize.y + cube1.m_halfSize.y);
 
 			if (dist < sum){
 
 				//Check Z Axis
-				dist = cube0.m_position.z - cube1.m_position.z;
+				dist = abs(cube0.m_position.z - cube1.m_position.z);
 				sum = (cube0.m_halfSize.z + cube1.m_halfSize.z);
 
 				//Overlapped shapes
-				if (dist < sum) return true;
+				if (dist < sum) 
+					return true;
 			}
 
 		}
@@ -197,7 +201,7 @@ public:
 	}
 
 	//SPHERE VS CONVEX
-	static bool SphereInConvexPolygon(const CollisionSphere& sphere, const Vector3& convexShapeCenter, const Vector3& convexShapePoints, const int numPoints){ };
+	/*static bool SphereInConvexPolygon(const CollisionSphere& sphere, const Vector3& convexShapeCenter, const Vector3& convexShapePoints, const int numPoints){ };*/
 
 	//POINT (PER CONVEX) VS CONVEX
 	static bool PointInConvexPolygon(const Vector3& testPosition, Vector3* convexShapePoints, int numPoints) {
@@ -352,6 +356,7 @@ public:
 
 			std::cout << std::endl;*/
 		}
+		return false;
 	}
 
 	//GJK/SPHERE
@@ -408,6 +413,9 @@ public:
 
 			noIterations++;
 		}
+		//We couldnt determine intersection after a maximum number of iterations,
+		//so we can't say two shapes are intersecting.
+		return false;
 	}
 
 protected:
