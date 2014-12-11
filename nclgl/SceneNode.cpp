@@ -62,8 +62,12 @@ bool SceneNode::RemoveChild(SceneNode* s,bool recursive) {
 	return false;
 }
 
-void SceneNode::Draw(OGLRenderer & r) {
+void SceneNode::Draw(OGLRenderer & r, const bool useShader) {
 	if (mesh) {
+		if (useShader)
+			if (shader)
+				r.SetCurrentShader(shader);
+
 		r.modelMatrix = worldTransform * Matrix4::Scale(modelScale);
 		r.UpdateShaderMatrices();
 
@@ -72,6 +76,8 @@ void SceneNode::Draw(OGLRenderer & r) {
 
 		glUniform1i(glGetUniformLocation(r.currentShader->GetProgram(),
 			"useTex"), (int) mesh->GetTexture());
+
+		if (useShader) updateShaderFunction();
 			
 		mesh->Draw();
 	};

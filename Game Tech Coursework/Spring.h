@@ -2,6 +2,8 @@
 
 #include "PhysicsNode.h"
 
+#define SPRING_VEL_DAMPING 0.9f
+
 class Constraint {
 public:
 	virtual ~Constraint(void){};
@@ -15,11 +17,9 @@ class Spring : public Constraint {
 public:
 	Spring(PhysicsNode* p0, Vector3 localPos0, PhysicsNode* p1, Vector3 localPos1):
 		m_lhs(p0), m_rhs(p1), m_localPosL(localPos0), m_localPosR(localPos1){
-			//0.0001f
-			/*m_ks = 0.005f;
-			m_kd = 0.5f;*/
-			m_ks = 1000.0f;
-			m_kd = 5.0f;
+			/*m_ks = 0.1f;*/
+			m_ks = 0.5f;
+			m_kd = 0.01f;
 
 			//TODO: This will not work until I fix matrix3 stuff!
 			Vector3 pos0 = p0->BuildTransform()*localPos0;

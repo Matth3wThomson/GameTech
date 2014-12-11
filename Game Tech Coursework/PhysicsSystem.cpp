@@ -3,7 +3,7 @@
 PhysicsSystem* PhysicsSystem::instance = 0;
 float PhysicsSystem::timestep = 1.0f/120.0f;
 
-PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(2500, 5, 2, Vector3(0, 2500, 0))){
+PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(4000, 5, 3, Vector3(0, 0, 0))){
 	collisionCount = 0;
 	physTimer = GameTimer();
 	timePassed = 0;

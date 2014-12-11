@@ -39,6 +39,8 @@ _-_-_-_-_-_-_-""  ""
 #include "../nclgl/Camera.h"
 #include "../nclgl/CubeRobot.h"
 #include "TreeEntity.h"
+#include "GridMesh.h"
+#include "Cloth.h"
 
 class MyGame : public GameClass	{
 public:
@@ -64,8 +66,11 @@ protected:
 	//Tree entity
 	GameEntity* Tree;
 
+	Mesh* cylinder;
+
 	//Heightmap entity
 	Mesh* heightMap;
+	Shader* heightMapShader;
 
 	Mesh* cube;
 	Mesh* centCube;

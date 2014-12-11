@@ -46,6 +46,7 @@ protected:
 		const Vector2& tb, const Vector2& tc);
 
 	void BufferData();
+	void RebufferData();
 
 	GLuint arrayObject;
 	GLuint bufferObject[MAX_BUFFER];

@@ -204,6 +204,7 @@ void Renderer::DrawCombinedScene(){
 	//Draw the opaque nodes first front to back
 	//glDisable(GL_CULL_FACE); //TODO: Turn this on?
 
+	if (lineMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	if (drawWorld){
 		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
 			SetCurrentShader(phong);

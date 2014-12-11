@@ -56,6 +56,12 @@ public:
 
 	static Renderer& GetRenderer(){ return *instance; }
 
+	//Per object shader functions moved so game entities can assign shader
+	//functions to their objects without having to be part of the renderer class!
+	void UpdateHeightMapShaderPO();
+	void UpdateWaterShaderMatricesPO();
+	void UpdateCombineSceneShaderMatricesPO();
+
 protected:
 
 	Renderer(Window& parent);
@@ -90,7 +96,6 @@ protected:
 	SceneNode* lightSource;
 
 	//Heightmap multitexturing
-	void UpdateHeightMapShaderPO();
 	void UpdateHeightMapShaderPF();
 
 	Shader* heightMapShader;
@@ -119,7 +124,6 @@ protected:
 	void DeleteWater();
 
 	void UpdateWater(float msec);
-	void UpdateWaterShaderMatricesPO();
 	void UpdateWaterShaderMatricesPF();
 
 	Shader* reflectShader;
@@ -241,6 +245,7 @@ protected:
 	int objectsDrawn;
 	int objectsShadowed;
 	bool drawBound;
+	bool lineMode;
 
 	//PHYSICS DEBUGGING!
 	bool physicsDrawing;
@@ -273,7 +278,6 @@ protected:
 	void DeleteShadowBuffers();
 
 	void UpdateCombineSceneShaderMatricesPF();
-	void UpdateCombineSceneShaderMatricesPO();
 	void DrawShadowScene();
 	void DrawCombinedScene();
 

@@ -27,12 +27,11 @@ void Spring::Update(float msec){
 	//Normalise the direction of the force
 	forceDir.Normalise();
 
-	
 	Vector3& linVelL = m_lhs->GetLinearVelocity();
-	Vector3& linVelR = m_lhs->GetLinearVelocity();
+	Vector3& linVelR = m_rhs->GetLinearVelocity();
 
 	//Calculate the force to be applied
-	Vector3 force = forceDir * (err * m_ks - Vector3::Dot(forceDir, (linVelL, linVelR) * m_kd));
+	Vector3 force = forceDir * (err * m_ks - Vector3::Dot(forceDir, (linVelL - linVelR) * m_kd));
 
 	//Exactly as from the tutorial, the apply force method was never supplied...
 	//m_lhs->ApplyForce(posL, force*0.5f);
@@ -45,4 +44,7 @@ void Spring::Update(float msec){
 	m_lhs->ApplyForce(force*0.5f, Vector3(0,0,0));
 	m_rhs->ApplyForce(-force*0.5f, Vector3(0,0,0));
 
+	//apply some extra damping t
+	/*m_lhs->SetLinearVelocity(m_lhs->GetLinearVelocity() * SPRING_VEL_DAMPING);
+	m_rhs->SetLinearVelocity(m_rhs->GetLinearVelocity() * SPRING_VEL_DAMPING);*/
 }

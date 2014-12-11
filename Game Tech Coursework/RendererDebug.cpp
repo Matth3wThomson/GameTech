@@ -21,10 +21,11 @@ bool Renderer::InitDebug(){
 	objectsShadowed = 0;
 	drawBound = 0;
 
+	lineMode = true;
 	drawWorld = true;
 	physicsDrawing = false;
 	octTree = true;
-	broadPhase = false;
+	broadPhase = true;
 	narrowPhase = true;
 	drawConstraints = false;
 
@@ -49,6 +50,9 @@ void Renderer::UpdateDebug(){
 		fps = frames;
 		frames = 0;
 	}
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_COMMA))
+		lineMode = !lineMode;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD8))
 		drawBound = !drawBound;

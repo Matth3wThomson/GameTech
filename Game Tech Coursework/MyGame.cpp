@@ -9,7 +9,10 @@ through the floor as gravity is added to the scene.
 You can completely change all of this if you want, it's your game!
 
 */
-MyGame::MyGame()	{
+MyGame::MyGame(){
+
+	heightMapShader = NULL;
+
 	gameCamera = new Camera(-30.0f,0.0f,Vector3(0,450,850));
 
 	Renderer::GetRenderer().SetCamera(gameCamera);
@@ -28,10 +31,11 @@ MyGame::MyGame()	{
 	cube	= new OBJMesh(MESHDIR"cube.obj");
 	centCube = new OBJMesh(MESHDIR"centeredcube.obj");
 	quad	= Mesh::GenerateQuad();
+	cylinder = Mesh::GenerateCylinder(20);
 	sphere	= new OBJMesh(MESHDIR"ico.obj");
 	debugTex = SOIL_load_OGL_texture(TEXTUREDIR"debug.png", 
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	//quad->SetTexture(debugTex);
+	quad->SetTexture(debugTex);
 
 	projectileSize = 100;
 	projectileSpeed = 1;
@@ -108,38 +112,63 @@ MyGame::MyGame()	{
 	wallRight->ConnectToSystems();
 	allEntities.push_back(wallRight);
 
-	GameEntity* sphere1 = BuildSphereEntity(projectileSize);
-	sphere1->GetPhysicsNode().SetPosition(Vector3(0,1000,0));
-	sphere1->GetPhysicsNode().SetFixed(true);
-	/*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
-	
-	//sphere1->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
-	//sphere1->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
-	sphere1->GetPhysicsNode().SetMass(100.0f);
-	//sphere1->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
-	sphere1->GetPhysicsNode().SetInvSphereInertiaMatrix(100, projectileSize);
-	sphere1->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
-	sphere1->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
+	//GameEntity* sphere1 = BuildSphereEntity(projectileSize);
+	//sphere1->GetPhysicsNode().SetPosition(Vector3(-500,1000,0));
+	//sphere1->GetPhysicsNode().SetFixed(true);
+	///*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
+	//
+	////sphere1->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
+	////sphere1->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
+	//sphere1->GetPhysicsNode().SetMass(1.0f);
+	////sphere1->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+	//sphere1->GetPhysicsNode().SetInvSphereInertiaMatrix(1, projectileSize);
+	//sphere1->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
+	//sphere1->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
-	sphere1->ConnectToSystems();
+	//sphere1->ConnectToSystems();
 
-	allEntities.push_back(sphere1);
+	//allEntities.push_back(sphere1);
 
-	GameEntity* sphere2 = BuildSphereEntity(projectileSize);
-	sphere2->GetPhysicsNode().SetPosition(Vector3(0,500,0));
-	/*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
-	
-	//sphere2->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
-	sphere2->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
-	sphere2->GetPhysicsNode().SetMass(100.0f);
-	//sphere2->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
-	sphere2->GetPhysicsNode().SetInvSphereInertiaMatrix(100, projectileSize);
-	sphere2->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
-	sphere2->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
+	//GameEntity* sphere2 = BuildSphereEntity(projectileSize);
+	//sphere2->GetPhysicsNode().SetPosition(Vector3(-500,500,0));
+	//
+	////sphere2->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
+	//sphere2->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
+	//sphere2->GetPhysicsNode().SetMass(1.0f);
+	////sphere2->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+	//sphere2->GetPhysicsNode().SetInvSphereInertiaMatrix(1, projectileSize);
+	//sphere2->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
+	//sphere2->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
-	sphere2->ConnectToSystems();
+	//sphere2->ConnectToSystems();
 
-	allEntities.push_back(sphere2);
+	//allEntities.push_back(sphere2);
+
+	//GameEntity* sphere3 = BuildSphereEntity(projectileSize);
+	//sphere3->GetPhysicsNode().SetPosition(Vector3(-500,0,0));
+	//
+	////sphere3->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
+	//sphere3->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
+	//sphere3->GetPhysicsNode().SetMass(1.0f);
+	////sphere3->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+	//sphere3->GetPhysicsNode().SetInvSphereInertiaMatrix(1, projectileSize);
+	//sphere3->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
+	//sphere3->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
+
+	//sphere3->ConnectToSystems();
+
+	//Spring* s = new Spring(&sphere1->GetPhysicsNode(), Vector3(0,0,0),
+	//	&sphere2->GetPhysicsNode(), Vector3(0,0,0));
+
+	//Spring* s2 = new Spring(&sphere2->GetPhysicsNode(), Vector3(0,0,0),
+	//	&sphere3->GetPhysicsNode(), Vector3(0,0,0));
+
+	//PhysicsSystem::GetPhysicsSystem().AddConstraint(s);
+	//PhysicsSystem::GetPhysicsSystem().AddConstraint(s2);
+
+	Cloth * c = new Cloth(5, 8, Vector3(1900,1500,0), Vector3(600,500,1000), 120.0f, TEXTUREDIR"Barren Reds.jpg");
+	c->ConnectToSystems();
+	allEntities.push_back(c);
 
 	TreeEntity* te = new TreeEntity(750.0f);
 	te->GetPhysicsNode().SetPosition(Vector3(700, 35, 800));
@@ -150,10 +179,6 @@ MyGame::MyGame()	{
 	hm->ConnectToSystems();
 	allEntities.push_back(hm);
 
-	Spring* s = new Spring(&sphere1->GetPhysicsNode(), Vector3(0,0,0),
-		&sphere2->GetPhysicsNode(), Vector3(0, -500, 0));
-
-	PhysicsSystem::GetPhysicsSystem().AddConstraint(s);
 }
 
 MyGame::~MyGame(void)	{
@@ -230,6 +255,30 @@ void MyGame::UpdateGame(float msec) {
 
 		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
 
+		ge->ConnectToSystems();
+
+		allEntities.push_back(ge);
+	}
+
+	if (Window::GetMouse()->ButtonTriggered(MOUSE_MIDDLE)){
+
+
+		GameEntity* ge = new GameEntity(new SceneNode(cylinder), new PhysicsNode());
+		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
+		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * projectileSpeed);
+
+		//ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f, 0)); //Add Gravity
+		ge->GetPhysicsNode().SetConstantAccel(Vector3(0,-0.01f, 0));
+		ge->GetPhysicsNode().SetMass(100.0f);
+		ge->GetPhysicsNode().SetScale(Vector3(projectileSize * 0.1f, projectileSize, projectileSize * 0.1f));
+
+		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionConvex(cylinder));
+		ge->GetPhysicsNode().SetBroadPhaseVolume(new CollisionSphere(
+			ge->GetPhysicsNode().GetPosition(), ge->GetPhysicsNode().GetScale().y));
+
+		ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()).Normalise());
+		ge->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, projectileSize, projectileSize, projectileSize);
+		
 		ge->ConnectToSystems();
 
 		allEntities.push_back(ge);
@@ -363,9 +412,21 @@ GameEntity* MyGame::BuildHeightmapEntity(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	if (!heightMapShader){
+		heightMapShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
+			SHADERDIR"heightMapShadowSceneFrag.glsl");
+
+		if (!heightMapShader->LinkProgram())
+			return false;
+	}
+
 	GameEntity* ge = new GameEntity(new SceneNode(heightMap), NULL);
 	ge->GetRenderNode().SetBoundingRadius( 
 		sqrt( pow(RAW_WIDTH * HEIGHTMAP_X * 0.5f, 3)
 		+ pow(RAW_HEIGHT * HEIGHTMAP_Z * 0.5f, 2)));
+
+	ge->GetRenderNode().SetShader(heightMapShader);
+	ge->GetRenderNode().SetShaderUpdateFunc( []{ Renderer::GetRenderer().UpdateHeightMapShaderPO(); });
+
 	return ge;
 }

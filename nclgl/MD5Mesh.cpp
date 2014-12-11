@@ -141,7 +141,7 @@ void	MD5Mesh::SkinVertices(const MD5Skeleton &skel) {
 //It's worth pointing out that the glBufferSubData function never allocates new memory
 //on the graphics card!
 //*/
-void MD5Mesh::RebufferData()	{
+void MD5Mesh::RebufferData(){
 	glBindBuffer(GL_ARRAY_BUFFER, bufferObject[VERTEX_BUFFER]);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, numVertices*sizeof(Vector3), (void*)vertices);
 

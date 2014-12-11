@@ -348,11 +348,12 @@ public:
 			//Begin looking for the origin based on our current simplex shape
 			if (DoSimplex(simplex, searchDirection)){
 				if (cd){
-					const float sumRadius = (shape1size * cd->m_normal).Length() + (shape2Size * cd->m_normal).Length();
 
-					//Spherical Collision response...
+					//Spherical Collision response... NOTE: Not accurate, or advised to use!
 					/*cd->m_normal = (shape1Center - shape2Center).Normalise();*/
 					cd->m_normal = (shape2Center - shape1Center).Normalise();
+
+					const float sumRadius = (shape1size * cd->m_normal).Length() + (shape2Size * cd->m_normal).Length();
 					cd->m_penetration = sumRadius  - (shape1Center - shape2Center).Length();
 					/*cd->m_penetration = sumRadius - sqrtf( distance between them squared );*/
 					cd->m_point = (shape1Center - cd->m_normal

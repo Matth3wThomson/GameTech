@@ -511,6 +511,36 @@ void Mesh::BufferData(){
 
 }
 
+void Mesh::RebufferData(){
+	glBindBuffer(GL_ARRAY_BUFFER, bufferObject[VERTEX_BUFFER]);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, numVertices*sizeof(Vector3), (void*)vertices);
+
+	if(textureCoords) {
+		glBindBuffer(GL_ARRAY_BUFFER, bufferObject[TEXTURE_BUFFER]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, numVertices*sizeof(Vector2), (void*)textureCoords);
+	}
+
+	if (colours)	{
+		glBindBuffer(GL_ARRAY_BUFFER, bufferObject[COLOUR_BUFFER]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, numVertices*sizeof(Vector4), (void*)colours);
+	}
+
+	if(normals) {
+		glBindBuffer(GL_ARRAY_BUFFER, bufferObject[NORMAL_BUFFER]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, numVertices*sizeof(Vector3), (void*)normals);
+	}
+
+	if(tangents) {
+		glBindBuffer(GL_ARRAY_BUFFER, bufferObject[TANGENT_BUFFER]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, numVertices*sizeof(Vector3), (void*)tangents);
+	}
+
+	if(indices) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferObject[INDEX_BUFFER]);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, numVertices*sizeof(unsigned int), (void*)indices);
+	}
+}
+
 void Mesh::Draw(){
 	//Bind the texture before drawing the mesh
 	glActiveTexture(GL_TEXTURE0);

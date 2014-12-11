@@ -53,8 +53,8 @@ public:
 	SceneNode&		GetRenderNode()		{ return *renderNode;}
 	PhysicsNode&	GetPhysicsNode()	{ return *physicsNode;}
 
-	void			ConnectToSystems();
-	void			DisconnectFromSystems();
+	virtual void			ConnectToSystems();
+	virtual void			DisconnectFromSystems();
 
 	void AddChild(GameEntity* ge);
 	void RemoveChild(GameEntity* ge);

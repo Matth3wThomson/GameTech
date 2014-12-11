@@ -43,7 +43,7 @@ void OctTree::Update(){
 	RemoveAwake(root, awakeNodes);
 
 	if (awakeNodes.size() > 0){
-		std::cout << "We are resorting a node! " << std::endl;
+		//std::cout << "We are resorting a node! " << std::endl;
 	}
 
 	//TODO: Remove maxNodes aware stuff (resting nodes wont be removed!)

@@ -23,6 +23,7 @@ _-_-_-_-_-_-_-""  ""
 #include "Vector4.h"
 #include "Mesh.h"
 #include <vector>
+#include <functional>
 
 class SceneNode	{
 public:
@@ -34,7 +35,12 @@ public:
 	Matrix4			GetWorldTransform() const			{ return worldTransform;}
 
 	virtual void	Update(float msec);
-	virtual void	Draw(OGLRenderer & r);
+	virtual void	Draw(OGLRenderer & r, const bool useShader = false);
+
+	Shader*			GetShader(){ return shader; };
+	void			SetShader(Shader* s){ shader = s; };
+
+	void			SetShaderUpdateFunc(std::function<void()> shaderUpdater){ updateShaderFunction = shaderUpdater; };
 
 	Vector4			GetColour()		const			{return colour;}
 	void			SetColour(const Vector4 &c)		{colour = c;}
@@ -61,8 +67,8 @@ public:
 	std::vector<SceneNode*>::const_iterator GetChildIteratorStart()	{return children.begin();}
 	std::vector<SceneNode*>::const_iterator GetChildIteratorEnd()	{return children.end();}
 
-	static bool		CompareByCameraDistance(SceneNode*a,SceneNode*b) ;
-	static bool		CompareByZ(SceneNode*a,SceneNode*b) ;
+	static bool		CompareByCameraDistance(SceneNode*a,SceneNode*b);
+	static bool		CompareByZ(SceneNode*a,SceneNode*b);
 
 protected:
 	Matrix4		worldTransform;
@@ -75,5 +81,13 @@ protected:
 	Mesh*		mesh;
 	bool		awake;
 	std::vector<SceneNode*>		children;
+
+	//Additions to make per object shaders work
+	Shader* shader;
+	std::function<void()> updateShaderFunction;
+
+	//TODO: Come back to this function!
+	//Extra matricies... teehee
+	//Matrix4 textureMatrix;
 };
 

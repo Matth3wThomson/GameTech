@@ -44,15 +44,17 @@ void	PhysicsNode::Update(float msec){
 		//Need to involve inverse mass here...
 		m_linearVelocity += ((m_force * m_invMass * msec) + (m_constantAccel * msec)) * DAMPING_FACTOR;
 
-		m_linearVelocity *= VELOCITY_DAMPING;
-
 		m_position += (m_linearVelocity * msec);
-
-		m_force = Vector3(0,0,0);
 
 		m_angularVelocity += ( (m_invInertia * m_torque) * msec) * DAMPING_FACTOR;
 		m_orientation = m_orientation + (m_orientation * (m_angularVelocity * msec * 0.5f));
 		m_orientation.Normalise();
+
+		m_linearVelocity *= VELOCITY_DAMPING;
+		m_angularVelocity *= VELOCITY_DAMPING;
+
+		m_force = Vector3(0,0,0);
+		m_torque = Vector3(0,0,0);
 
 		//TODO: Should update collision volumes here if an object gets set to rest...
 		// otherwise they could be mistakenly woken up! ... Very unlikely though!
@@ -63,7 +65,6 @@ void	PhysicsNode::Update(float msec){
 			abs(m_force.y) < REST_TOLERANCE &&
 			abs(m_force.z) < REST_TOLERANCE)
 			m_rest = true;
-		
 
 	}
 
@@ -100,7 +101,7 @@ void PhysicsNode::UpdateCollisionConvex(CollisionConvex& ccv){
 
 void PhysicsNode::ApplyForce(const Vector3& force, const Vector3& distanceFromCentre){
 	m_force += force;
-	m_torque += Vector3::Cross(distanceFromCentre, force);
+	//m_torque += Vector3::Cross(distanceFromCentre, force);
 	m_rest = false;
 }
 

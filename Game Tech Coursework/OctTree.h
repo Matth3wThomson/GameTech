@@ -12,7 +12,7 @@ using std::vector;
 using std::set;
 
 //1 means collapse the tree every frame, 100 means collapse the tree once per 100 frames
-#define NO_FRAMES_TILL_COLLAPSE 100
+#define NO_FRAMES_TILL_COLLAPSE 300
 
 //TODO: Consider using a free list of octNodes to improve cache efficiency.
 //TODO: Consider using a boolean to represent whether an octNode has octNodes
