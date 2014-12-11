@@ -22,7 +22,7 @@ float Quaternion::Dot(const Quaternion &a,const Quaternion &b){
 	return (a.x * b.x) + (a.y * b.y) + (a.z * b.z) + (a.w * b.w);
 }
 
-void Quaternion::Normalise(){
+Quaternion& Quaternion::Normalise(){
 	float magnitude = sqrt(Dot(*this,*this));
 
 	if(magnitude > 0.0f){
@@ -33,6 +33,8 @@ void Quaternion::Normalise(){
 		z *= t;
 		w *= t;
 	}
+
+	return *this;
 }
 
 Quaternion Quaternion::operator+(const Quaternion& a) const {

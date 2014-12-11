@@ -32,6 +32,7 @@ _-_-_-_-_-_-_-""  ""
 #define PHYSICS_TIMESTEP (1000.0f / (float)PHYSICS_HZ)
 
 class GameClass	{
+
 public:
 	GameClass();
 	~GameClass(void);

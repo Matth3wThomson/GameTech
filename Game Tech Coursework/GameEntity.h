@@ -56,8 +56,13 @@ public:
 	void			ConnectToSystems();
 	void			DisconnectFromSystems();
 
+	void AddChild(GameEntity* ge);
+	void RemoveChild(GameEntity* ge);
+
 protected:
 	SceneNode*		renderNode;
 	PhysicsNode*	physicsNode;
+
+	vector<GameEntity*> children;
 };
 

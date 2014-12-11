@@ -117,6 +117,10 @@ public:
 		return Vector3(x * a,y * a, z * a);
 	}
 
+	inline Vector3 operator*=(const float a){
+		return *this = *this * a;
+	}
+
 	inline Vector3  operator*(const Vector3  &a) const{
 		return Vector3(x * a.x,y * a.y, z * a.z);
 	}

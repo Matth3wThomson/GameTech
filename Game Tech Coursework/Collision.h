@@ -154,20 +154,20 @@ public:
 		}
 
 		//Check Y Axis
-		if ( (sphere.m_pos.y + sphere.m_radius) < (cube.m_position.y - cube.m_halfSize.x) ){
+		if ( (sphere.m_pos.y + sphere.m_radius) < (cube.m_position.y - cube.m_halfSize.y) ){
 			return false;
 		}
 
-		if ( (sphere.m_pos.y - sphere.m_radius) > (cube.m_position.y + cube.m_halfSize.x) ){
+		if ( (sphere.m_pos.y - sphere.m_radius) > (cube.m_position.y + cube.m_halfSize.y) ){
 			return false;
 		}
 
 		//Check Z Axis
-		if ( (sphere.m_pos.z + sphere.m_radius) < (cube.m_position.z - cube.m_halfSize.x) ){
+		if ( (sphere.m_pos.z + sphere.m_radius) < (cube.m_position.z - cube.m_halfSize.z) ){
 			return false;
 		}
 
-		if ( (sphere.m_pos.z - sphere.m_radius) > (cube.m_position.z + cube.m_halfSize.x) ){
+		if ( (sphere.m_pos.z - sphere.m_radius) > (cube.m_position.z + cube.m_halfSize.z) ){
 			return false;
 		}
 
@@ -284,7 +284,8 @@ public:
 	}
 
 	//CONVEX VS CONVEX MESH/MESH
-	static bool GJK( const Vector3* shape1Points, const int numPoints1, const Vector3* shape2Points, const int numPoints2, CollisionData* cd = NULL){
+	static bool GJK( const Vector3* shape1Points, const int numPoints1, const Vector3& shape1Center, const Vector3& shape1size,
+		const Vector3* shape2Points, const int numPoints2, const Vector3& shape2Center, Vector3& shape2Size, CollisionData* cd = NULL){
 
 		/*std::cout << "Shape 1 points: " << std::endl;
 		for (unsigned int i=0; i<numPoints1; ++i){
@@ -345,8 +346,21 @@ public:
 			std::cout << std::endl;*/
 
 			//Begin looking for the origin based on our current simplex shape
-			if (DoSimplex(simplex, searchDirection))
+			if (DoSimplex(simplex, searchDirection)){
+				if (cd){
+					const float sumRadius = (shape1size * cd->m_normal).Length() + (shape2Size * cd->m_normal).Length();
+
+					//Spherical Collision response...
+					/*cd->m_normal = (shape1Center - shape2Center).Normalise();*/
+					cd->m_normal = (shape2Center - shape1Center).Normalise();
+					cd->m_penetration = sumRadius  - (shape1Center - shape2Center).Length();
+					/*cd->m_penetration = sumRadius - sqrtf( distance between them squared );*/
+					cd->m_point = (shape1Center - cd->m_normal
+						* (shape1size * cd->m_normal) - cd->m_penetration * 0.5f);
+						// * shape 1 radius - collision data penetration * 0.5f);
+				}
 				return true;
+			}
 
 			noIterations++;
 			/*std::cout << "AFTER DOSIMPLEX: " << std::endl;

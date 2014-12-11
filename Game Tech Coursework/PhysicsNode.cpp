@@ -42,16 +42,20 @@ void	PhysicsNode::Update(float msec){
 	if (!m_rest && !fixed){
 
 		//Need to involve inverse mass here...
-		m_linearVelocity += (m_force * m_invMass * msec) * DAMPING_FACTOR;
+		m_linearVelocity += ((m_force * m_invMass * msec) + (m_constantAccel * msec)) * DAMPING_FACTOR;
+
+		m_linearVelocity *= VELOCITY_DAMPING;
+
 		m_position += (m_linearVelocity * msec);
+
+		m_force = Vector3(0,0,0);
 
 		m_angularVelocity += ( (m_invInertia * m_torque) * msec) * DAMPING_FACTOR;
 		m_orientation = m_orientation + (m_orientation * (m_angularVelocity * msec * 0.5f));
 		m_orientation.Normalise();
 
-
 		//TODO: Should update collision volumes here if an object gets set to rest...
-		// otherwise they could be mistakenly woken up!
+		// otherwise they could be mistakenly woken up! ... Very unlikely though!
 		if (abs(m_linearVelocity.x) < REST_TOLERANCE &&
 			abs(m_linearVelocity.y) < REST_TOLERANCE &&
 			abs(m_linearVelocity.z) < REST_TOLERANCE &&
@@ -65,6 +69,7 @@ void	PhysicsNode::Update(float msec){
 
 	if(target) {
 		target->SetTransform(BuildTransform());
+		target->SetModelScale(m_scale);
 		if (m_rest) target->SetColour(Vector4(1,0,0,1));	//DEBUGGING STUFF
 		else target->SetColour(Vector4(1,1,1,1));
 	}
@@ -76,11 +81,16 @@ void PhysicsNode::UpdateCollisionPlane(Plane& p){
 
 void	PhysicsNode::UpdateCollisionSphere(CollisionSphere& cs){
 	cs.m_pos = this->m_position;
+	cs.m_radius = this->m_scale.x;
+
+	if (this->m_scale.y > cs.m_radius) cs.m_radius = this->m_scale.y;
+	if (this->m_scale.z > cs.m_radius) cs.m_radius = this->m_scale.z;
 }
 
 void PhysicsNode::UpdateCollisionAABB(CollisionAABB& aabb){
 	aabb.m_position = m_position;
 	aabb.m_halfSize = m_scale * 2.0f; //TODO: This is very generic and definitely not always suitable
+	//aabb.m_halfSize = m_orientation.ToMatrix() * m_scale * 2.0f; //TODO: This is very generic and definitely not always suitable
 } 
 
 void PhysicsNode::UpdateCollisionConvex(CollisionConvex& ccv){

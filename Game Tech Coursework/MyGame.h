@@ -38,6 +38,7 @@ _-_-_-_-_-_-_-""  ""
 #include "GameClass.h"
 #include "../nclgl/Camera.h"
 #include "../nclgl/CubeRobot.h"
+#include "TreeEntity.h"
 
 class MyGame : public GameClass	{
 public:
@@ -55,10 +56,16 @@ protected:
 
 	GameEntity* BuildQuadEntity(float size, const Vector3& qt, float angle);
 
+	GameEntity* BuildHeightmapEntity();
+
 	float projectileSize;
 	float projectileSpeed;
 
-	GameEntity* cubeConvex2;
+	//Tree entity
+	GameEntity* Tree;
+
+	//Heightmap entity
+	Mesh* heightMap;
 
 	Mesh* cube;
 	Mesh* centCube;

@@ -42,8 +42,9 @@ _-_-_-_-_-_-_-""  ""
 #include "../nclgl/Plane.h"
 
 #define FORCE_REST_TOLERANCE 0.001f
-#define REST_TOLERANCE 0.01f
-#define DAMPING_FACTOR 0.99f;
+#define REST_TOLERANCE 0.003f
+#define DAMPING_FACTOR 0.99f
+#define VELOCITY_DAMPING 0.9999f
 
 class PhysicsSystem;
 
@@ -51,14 +52,19 @@ class PhysicsSystem;
 
 class PhysicsNode	{
 public:
+
+	friend class PhysicsSystem;
+
 	PhysicsNode(void);
 	PhysicsNode(const Quaternion& orientation, const Vector3& position);
 	~PhysicsNode(void);
 
-	friend class PhysicsSystem;
-
 	void SetInvSphereInertiaMatrix(float mass, float radius);
 	void SetInvCuboidInertiaMatrix(float mass, float height, float width, float length);
+
+	//Gravity anyone?
+	Vector3		GetConstantAccel(){ return m_constantAccel; };
+	void		SetConstantAccel(const Vector3& constAccel){ m_constantAccel = constAccel; };
 
 	Vector3		GetScale() const { return m_scale; };
 	void		SetScale(const Vector3& scale){ m_scale = scale; };
@@ -68,9 +74,6 @@ public:
 
 	Vector3		GetLinearVelocity()		{ return m_linearVelocity;}
 	void		SetLinearVelocity(const Vector3& lv){ m_linearVelocity = lv; m_rest = false; };
-
-	/*void		SetInverseInertiaMat(const Matrix4& m){ m_invInertia = m; }
-	Matrix4		GetInverseInertiaMat(){ return m_invInertia; };*/
 
 	void		SetInverseInertiaMat(const Matrix3& m){ m_invInertia = m; }
 	Matrix3		GetInverseInertiaMat(){ return m_invInertia; }
@@ -102,6 +105,9 @@ public:
 	void SetBroadPhaseVolume(CollisionVolume* cv){ m_broadPhase = cv; if (!m_narrowPhase) m_narrowPhase = cv; };
 	CollisionVolume* GetBroadPhaseVolume(){ return m_broadPhase; }
 
+	//Methods for updating collision volumes. This saves having to call
+	//an extra dynamic cast from a generic method. Could use a virtual method,
+	//but then there are wasted parameters!
 	void UpdateCollisionPlane(Plane& p);
 	void UpdateCollisionSphere(CollisionSphere& cs);
 	void UpdateCollisionAABB(CollisionAABB& aabb);
@@ -119,6 +125,8 @@ protected:
 	
 	PhysicsNode* lastCollided;
 
+	Vector3 m_constantAccel;
+
 	Vector3 m_scale;	//NEW. FOR KNOWING THE SCALE OF AN OBJECT!
 
 	//<---------LINEAR-------------->
@@ -131,7 +139,6 @@ protected:
 	Quaternion  m_orientation;
 	Vector3		m_angularVelocity;
 	Vector3		m_torque;
-	//Matrix4     m_invInertia;   
 	Matrix3		m_invInertia;
 
 	//<----------COLLISION------------->

@@ -5,8 +5,6 @@ bool Renderer::InitDebug(){
 	basicFont = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
-
-
 	sphere = new OBJMesh(MESHDIR"Sphere.obj");
 	box = new OBJMesh(MESHDIR"centeredcube.obj");
 	debugQuad = Mesh::GenerateQuad();
@@ -25,9 +23,10 @@ bool Renderer::InitDebug(){
 
 	drawWorld = true;
 	physicsDrawing = false;
-	octTree = false;
+	octTree = true;
 	broadPhase = false;
-	narrowPhase = false;
+	narrowPhase = true;
+	drawConstraints = false;
 
 	return true;
 }
@@ -67,8 +66,11 @@ void Renderer::UpdateDebug(){
 	
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD3))
 		narrowPhase = !narrowPhase;
+
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMLOCK))
+		drawConstraints = !drawConstraints;
 	
-	physicsDrawing = (broadPhase || narrowPhase || octTree);
+	physicsDrawing = (broadPhase || narrowPhase || octTree || drawConstraints);
 
 }
 
@@ -105,12 +107,16 @@ void Renderer::DrawDebugOverlay(){
 
 	buff = std::ostringstream();
 	buff << "PUPS: " << PhysicsSystem::GetPhysicsSystem().GetUpdateRate();
-	buff << "Collisions: " << PhysicsSystem::GetPhysicsSystem().GetCollisionCount();
+	buff << " Collisions: " << PhysicsSystem::GetPhysicsSystem().GetCollisionCount();
+	DrawString(buff.str(), Vector3(0, 4*FONT_SIZE, 0.5f), FONT_SIZE);
+
+	buff = std::ostringstream();
 	if (physicsDrawing) buff << "Physics Draw: " << std::endl;
 	if (octTree) buff << "OctTree," << std::endl;
 	if (broadPhase) buff << "Broad phase," << std::endl;
-	if (narrowPhase) buff << "Narrow phase." << std::endl;
-	DrawString(buff.str(), Vector3(0, 4*FONT_SIZE, 0.5f), FONT_SIZE);
+	if (narrowPhase) buff << "Narrow phase, " << std::endl;
+	if (drawConstraints) buff << "Constraints." << std::endl;
+	DrawString(buff.str(), Vector3(0, 5*FONT_SIZE, 0.5f), FONT_SIZE);
 
 	glUseProgram(0);
 }
@@ -145,7 +151,7 @@ void Renderer::DrawPhysics(){
 		std::lock_guard<std::mutex> lock(PhysicsSystem::instance->nodesMutex);
 		if (octTree) DrawOctTree();
 		if (broadPhase)	DrawBroadPhase();
-		
+		if (drawConstraints) DrawConstraints();
 
 		if (narrowPhase) DrawNarrowPhase();
 	}
@@ -235,6 +241,14 @@ void Renderer::DrawNarrowPhase(){
 
 }
 
+void Renderer::DrawConstraints(){
+	for (auto itr = PhysicsSystem::GetPhysicsSystem().allConstraints.begin();
+		itr != PhysicsSystem::GetPhysicsSystem().allConstraints.end();
+		++itr){
+			DrawConstraint(**itr);
+	}
+}
+
 void Renderer::DrawSphere(const CollisionSphere& cs, const Vector4& colour, const Quaternion* orientation){
 	if (orientation)
 		modelMatrix = Matrix4::Translation(cs.m_pos) * 
@@ -298,5 +312,26 @@ void Renderer::DrawCollisionConvex(const CollisionConvex& ccv, const Quaternion&
 			"useTex"), 0);
 
 	ccv.m_mesh->Draw();
+}
+
+void Renderer::DrawConstraint(const Constraint& c){
+	//If we can cast it to a spring point then we can draw it!
+	if (Spring* s = (Spring*) &c){
+
+		//The line between two objects
+		DrawDebugLine(DEBUGDRAW_PERSPECTIVE, 
+			s->m_lhs->GetPosition(), s->m_rhs->GetPosition(), 
+			Vector3(1,0,0), Vector3(1,0,0));
+
+		//The lines from each object to their respective resting point
+		DrawDebugLine(DEBUGDRAW_PERSPECTIVE,
+			s->m_lhs->GetPosition(), s->m_localPosL,
+			Vector3(0,1,0), Vector3(0,1,0));
+
+		DrawDebugLine(DEBUGDRAW_PERSPECTIVE,
+			s->m_rhs->GetPosition(), s->m_localPosR,
+			Vector3(0,1,0), Vector3(0,1,0));
+
+	}
 }
 

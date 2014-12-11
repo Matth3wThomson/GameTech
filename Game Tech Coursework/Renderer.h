@@ -248,6 +248,7 @@ protected:
 	bool broadPhase;
 	bool narrowPhase;
 	bool drawWorld;
+	bool drawConstraints;
 
 	Mesh* box;
 	Mesh* debugQuad;
@@ -256,15 +257,16 @@ protected:
 
 	void DrawOctTree(const Vector4& colour = Vector4(1,1,1,1));
 	void DrawOctNode(const OctNode& on, const Vector4& colour);
-
 	
 	void DrawBroadPhase();
 	void DrawNarrowPhase();
+	void DrawConstraints();
 
 	void DrawSphere(const CollisionSphere& sphere, const Vector4& colour, const Quaternion* orientation = NULL);
 	void DrawPlane(const Plane& p, const Quaternion& orientation, const Vector4& colour);
 	void DrawAABB(const CollisionAABB& aabb, const Vector4& colour);
 	void DrawCollisionConvex(const CollisionConvex& ccv, const Quaternion& orientation, const Vector3& scale, const Vector4& colour);
+	void DrawConstraint(const Constraint& c);
 
 	//Shadowing
 	bool InitShadowBuffers();

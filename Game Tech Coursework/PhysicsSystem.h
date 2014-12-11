@@ -31,6 +31,7 @@ _-_-_-_-_-_-_-""  ""
 #include "PhysicsNode.h"
 #include "OctTree.h"
 #include "Collision.h"
+#include "Spring.h"
 #include "../nclgl/Mesh.h"
 #include "../nclgl/Plane.h"
 #include <vector>
@@ -68,7 +69,6 @@ public:
 
 	void		Update(float msec);
 
-	void		UpdateCollisionVolume(PhysicsNode* pn);
 	void		BroadPhase();
 	void		NarrowPhase();
 	//void		ResolveCollisions();
@@ -87,8 +87,10 @@ public:
 	}
 
 	void	AddNode(PhysicsNode* n);
-
 	void	RemoveNode(PhysicsNode* n);
+
+	void	AddConstraint(Constraint* c);
+	void	RemoveConstraint(Constraint* c);
 
 	int		GetUpdateRate(){ return updateRate; };
 	int		GetCollisionCount(){ return collisionCount; };
@@ -101,12 +103,17 @@ protected:
 	void NextPhaseTree(OctNode& on, bool boundingBox = false);
 
 	//Performs a narrowphase check on the nodes in the supplied vector. This is
-	//mainly here for testing purposes of narrowphase with few objects
+	//mainly here for testing purposes of narrowphase with few objects, but can be used
+	//if you wish to skip the bounding box object / object checks.
 	void NarrowPhaseVector(std::vector<PhysicsNode*>& np);
 
 	//Performs a bounding colvol check on the nodes in the supplied vector,
 	//and adds pairs of objects found to collide to the collisionPairs set
 	void BroadPhaseVector(std::vector<PhysicsNode*>& np);
+
+	//Method for updating all of the broad phase collision volumes of all
+	//physics nodes in the system.
+	void		UpdateBroadPhaseCollisionVolumes();
 
 	//Performs a narrow phase check on all entities in the collision pairs set,
 	//and adds collision response before clearing the set for the next frame
@@ -131,6 +138,8 @@ protected:
 
 	vector<PhysicsNode*> allNodes;
 	mutex nodesMutex;
+
+	vector<Constraint*> allConstraints;
 
 	//Our broadphase checks!
 	OctTree octTree;

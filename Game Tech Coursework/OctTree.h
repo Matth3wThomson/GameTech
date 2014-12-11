@@ -63,7 +63,7 @@ public:
 
 	//The octree will encompass -halfsize -> +halfSize, Allow up to threshold number of
 	//objects in each partition, and will only recurse down to maxDepth
-	OctTree(float halfSize, int threshold, int maxDepth);
+	OctTree(float halfSize, int threshold, int maxDepth, const Vector3& worldCenter = Vector3(0,0,0));
 	~OctTree(void);
 
 	//Adds a physics node to the octree. A reference to this node will be kept

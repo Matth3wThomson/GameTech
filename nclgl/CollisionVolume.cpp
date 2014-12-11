@@ -6,7 +6,7 @@
 CollisionConvex::CollisionConvex(Mesh* m){
 	type = COLLISION_CONVEX;
 
-	if (OBJMesh* om =  (OBJMesh*) m){
+	if (OBJMesh* om =  dynamic_cast<OBJMesh*>(m)){
 
 		//Then we only care about the first child of the obj mesh... sorry!
 		m_numVertices = om->children[0]->numVertices;
@@ -26,11 +26,15 @@ CollisionConvex::CollisionConvex(Mesh* m){
 
 		//TODO: This doesnt work if the mesh itself is an OBJMesh -.-
 		m_numVertices = m->numVertices;
-		memcpy(m_collisionMesh, m->vertices, m_numVertices*sizeof(Vector3));
+
+		m_collisionMesh = new Vector3[m->numVertices];
+		for (int i=0; i<m_numVertices; ++i){
+			m_collisionMesh[i] = m->vertices[i];
+		}
 
 		m_mesh = m;
 	}
-	
+
 }
 
 //This method updates a collision convex's vertices relative to the supplied
@@ -39,9 +43,9 @@ void CollisionConvex::Update(const Vector3& position, const Quaternion& orientat
 	m_pos = position;
 
 	Matrix4 Transform = Matrix4::Translation(position) *
-			orientation.ToMatrix() *
-			Matrix4::Scale(scale);
-	
+		orientation.ToMatrix() *
+		Matrix4::Scale(scale);
+
 	//DO we have to use matrices here?
 	for (int i=0; i<m_numVertices; ++i){
 		m_collisionMesh[i] = Transform * m_mesh->vertices[i];

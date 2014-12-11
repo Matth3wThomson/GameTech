@@ -35,7 +35,6 @@ void GrowingNode::Update(float msec){
 
 		//Set the bounding radius to be whatever has the greatest axis on the scale matrix!
 		this->SetBoundingRadius(greatest);
-
 	}
 
 	//Do the rest of our updating as per usual.

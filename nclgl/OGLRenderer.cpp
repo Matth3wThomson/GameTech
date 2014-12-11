@@ -411,7 +411,7 @@ DebugDrawData::DebugDrawData() {
 	glGenBuffers(2, buffers);	
 }
 
-void DebugDrawData::Draw() {
+void DebugDrawData::Draw(){
 	if(lines.empty()) {
 		return;
 	}

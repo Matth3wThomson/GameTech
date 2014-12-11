@@ -21,6 +21,23 @@ GameEntity::~GameEntity(void)	{
 
 void	GameEntity::Update(float msec) {
 
+	for (auto itr = children.begin(); itr != children.end(); ++itr){
+		(*itr)->Update(msec);
+	}
+}
+
+void GameEntity::AddChild(GameEntity* ge){
+	children.push_back(ge);
+}
+
+//TODO: Implement this
+void GameEntity::RemoveChild(GameEntity* ge){
+	for (auto itr = children.begin(); itr != children.end(); ++itr){
+		if ((*itr) == ge){
+			children.erase(itr);
+			return;
+		}
+	}
 }
 
 void	GameEntity::ConnectToSystems() {

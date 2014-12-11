@@ -9,7 +9,7 @@ Quaternions aren't really discussed much in the graphics module, but the
 MD5Mesh class uses them internally, as MD5 files store their rotations
 as quaternions.
 
-I hate Quaternions. <- lol.
+I hate Quaternions.
 
 -_-_-_-_-_-_-_,------,   
 _-_-_-_-_-_-_-|   /\_/\   NYANYANYAN
@@ -38,7 +38,7 @@ public:
 	float z;
 	float w;
 
-	void	Normalise();
+	Quaternion&	Normalise();
 	Matrix4 ToMatrix() const;
 
 

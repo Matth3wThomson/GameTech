@@ -31,104 +31,129 @@ MyGame::MyGame()	{
 	sphere	= new OBJMesh(MESHDIR"ico.obj");
 	debugTex = SOIL_load_OGL_texture(TEXTUREDIR"debug.png", 
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	quad->SetTexture(debugTex);
+	//quad->SetTexture(debugTex);
 
 	projectileSize = 100;
 	projectileSpeed = 1;
 
-	/*
-	A more 'robust' system would check the entities vector for duplicates so as
-	to not cause problems...why not give it a go?
-	*/
-	allEntities.push_back(BuildRobotEntity());
+	//allEntities.push_back(BuildRobotEntity());
 
 	Matrix3 floorMat = Matrix3();
 	floorMat.ToZero();
 
-	GameEntity* floor = BuildQuadEntity(1000.0f, Vector3(1,0,0), 90.0f);
-	floor->GetPhysicsNode().SetPosition(Vector3(0,-1000.0f, 0));
+	GameEntity* floor = BuildQuadEntity(4000.0f, Vector3(1,0,0), 90.0f);
+	floor->GetPhysicsNode().SetPosition(Vector3(0,0.0f, 0));
 	floor->GetPhysicsNode().SetFixed(true);
-	floor->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,1,0), -1000.0f));
+	floor->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,1,0), 0.0f));
 
+	floor->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
 	floor->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 
 	floor->ConnectToSystems();
 	allEntities.push_back(floor);
 
-	/*GameEntity* roof = BuildQuadEntity(1000.0f, Vector3(1,0,0), 270.0f);
-	roof->GetPhysicsNode().SetPosition(Vector3(0, 1000.0f, 0));
+	GameEntity* roof = BuildQuadEntity(1000.0f, Vector3(1,0,0), 270.0f);
+	roof->GetPhysicsNode().SetPosition(Vector3(0, 4000.0f, 0));
 	roof->GetPhysicsNode().SetFixed(true);
-	roof->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,-1,0), -1000.0f));
+	roof->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,-1,0), -4000.0f));
 
+	roof->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
 	roof->GetPhysicsNode().SetInverseInertiaMat(floorMat);
+
 	roof->ConnectToSystems();
-	allEntities.push_back(roof);*/
+	allEntities.push_back(roof);
 
-	GameEntity* wallBack = BuildQuadEntity(1000.0f, Vector3(1,0,0), 0.0f);
-	wallBack->GetPhysicsNode().SetPosition(Vector3(0,0,1000.0f));
+	GameEntity* wallBack = BuildQuadEntity(4000.0f, Vector3(1,0,0), 0.0f);
+	wallBack->GetPhysicsNode().SetPosition(Vector3(0,0,4000.0f));
 	wallBack->GetPhysicsNode().SetFixed(true);
-	wallBack->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,0,-1), -1000.0f));
+	wallBack->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
 
+	wallBack->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,0,-1), -4000.0f));
+	
 	wallBack->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 
 	wallBack->ConnectToSystems();
 	allEntities.push_back(wallBack);
 
-	GameEntity* wallFront = BuildQuadEntity(1000.0f, Vector3(1,0,0), 180.0f);
-	wallFront->GetPhysicsNode().SetPosition(Vector3(0,0,-1000.0f));
+	GameEntity* wallFront = BuildQuadEntity(4000.0f, Vector3(1,0,0), 180.0f);
+	wallFront->GetPhysicsNode().SetPosition(Vector3(0,0,-4000.0f));
 	wallFront->GetPhysicsNode().SetFixed(true);
-	wallFront->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,0,1), -1000.0f));
+	wallFront->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
+
+	wallFront->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,0,1), -4000.0f));
 
 	wallFront->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallFront->ConnectToSystems();
 	allEntities.push_back(wallFront);
 
-	GameEntity* wallLeft = BuildQuadEntity(1000.0f, Vector3(0,1,0), 270.0f);
-	wallLeft->GetPhysicsNode().SetPosition(Vector3(-1000.0f,0,0));
+	GameEntity* wallLeft = BuildQuadEntity(4000.0f, Vector3(0,1,0), 270.0f);
+	wallLeft->GetPhysicsNode().SetPosition(Vector3(-4000.0f,0,0));
 	wallLeft->GetPhysicsNode().SetFixed(true);
-	wallLeft->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(1,0,0), -1000.0f));
+	wallLeft->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
+
+	wallLeft->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(1,0,0), -4000.0f));
 
 	wallLeft->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallLeft->ConnectToSystems();
 	allEntities.push_back(wallLeft);
 
-	GameEntity* wallRight = BuildQuadEntity(1000.0f, Vector3(0,1,0), 90.0f);
-	wallRight->GetPhysicsNode().SetPosition(Vector3(1000,0,0));
+	GameEntity* wallRight = BuildQuadEntity(4000.0f, Vector3(0,1,0), 90.0f);
+	wallRight->GetPhysicsNode().SetPosition(Vector3(4000,0,0));
 	wallRight->GetPhysicsNode().SetFixed(true);
-	wallRight->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(-1,0,0), -1000.0f));
+	wallRight->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
+
+	wallRight->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(-1,0,0), -4000.0f));
 
 	wallRight->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 	wallRight->ConnectToSystems();
 	allEntities.push_back(wallRight);
 
-	GameEntity* cubeConvex1 = BuildCubeEntity(100.0f);
-	cubeConvex1->GetPhysicsNode().SetPosition(Vector3(0,0,0));
+	GameEntity* sphere1 = BuildSphereEntity(projectileSize);
+	sphere1->GetPhysicsNode().SetPosition(Vector3(0,1000,0));
+	sphere1->GetPhysicsNode().SetFixed(true);
+	/*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
 	
-	cubeConvex1->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionConvex(centCube));
-	cubeConvex1->GetPhysicsNode().SetBroadPhaseVolume(new CollisionAABB(Vector3(0,0,0), Vector3(150, 150, 150)));
-	cubeConvex1->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, 100, 100, 100);
-	cubeConvex1->GetPhysicsNode().SetScale(Vector3(100,100,100));
-	cubeConvex1->GetPhysicsNode().UpdateCollisionConvex(
-		*(CollisionConvex*) cubeConvex1->GetPhysicsNode().GetNarrowPhaseVolume() );
+	//sphere1->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
+	//sphere1->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
+	sphere1->GetPhysicsNode().SetMass(100.0f);
+	//sphere1->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+	sphere1->GetPhysicsNode().SetInvSphereInertiaMatrix(100, projectileSize);
+	sphere1->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
+	sphere1->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
-	/*cubeConvex1->ConnectToSystems();
-	allEntities.push_back(cubeConvex1);*/
+	sphere1->ConnectToSystems();
 
-	cubeConvex2 = BuildCubeEntity(100.0f);
-	cubeConvex2->GetPhysicsNode().SetPosition(Vector3(-250,0,0));
+	allEntities.push_back(sphere1);
+
+	GameEntity* sphere2 = BuildSphereEntity(projectileSize);
+	sphere2->GetPhysicsNode().SetPosition(Vector3(0,500,0));
+	/*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
 	
-	CollisionConvex* ccv2 = new CollisionConvex(centCube);
+	//sphere2->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
+	sphere2->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
+	sphere2->GetPhysicsNode().SetMass(100.0f);
+	//sphere2->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+	sphere2->GetPhysicsNode().SetInvSphereInertiaMatrix(100, projectileSize);
+	sphere2->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
+	sphere2->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
-	cubeConvex2->GetPhysicsNode().SetNarrowPhaseVolume(ccv2);
-	cubeConvex2->GetPhysicsNode().SetScale(Vector3(100,100,100));
-	cubeConvex1->GetPhysicsNode().SetBroadPhaseVolume(new CollisionAABB(Vector3(0,0,0), Vector3(150, 150, 150)));
-	cubeConvex2->GetPhysicsNode().UpdateCollisionConvex(*ccv2);
-	cubeConvex2->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, 100, 100, 100);
-	cubeConvex2->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+	sphere2->ConnectToSystems();
 
-	/*cubeConvex2->ConnectToSystems();
-	allEntities.push_back(cubeConvex2);*/
+	allEntities.push_back(sphere2);
 
+	TreeEntity* te = new TreeEntity(750.0f);
+	te->GetPhysicsNode().SetPosition(Vector3(700, 35, 800));
+	te->ConnectToSystems();
+	allEntities.push_back(te);
+
+	GameEntity* hm = BuildHeightmapEntity();
+	hm->ConnectToSystems();
+	allEntities.push_back(hm);
+
+	Spring* s = new Spring(&sphere1->GetPhysicsNode(), Vector3(0,0,0),
+		&sphere2->GetPhysicsNode(), Vector3(0, -500, 0));
+
+	PhysicsSystem::GetPhysicsSystem().AddConstraint(s);
 }
 
 MyGame::~MyGame(void)	{
@@ -165,18 +190,6 @@ void MyGame::UpdateGame(float msec) {
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_J))
 		projectileSize--;
-
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_RIGHT))
-		cubeConvex2->GetPhysicsNode().SetPosition( cubeConvex2->GetPhysicsNode().GetPosition() - Vector3(10,0,0));
-
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_LEFT))
-		cubeConvex2->GetPhysicsNode().SetPosition( cubeConvex2->GetPhysicsNode().GetPosition() + Vector3(10,0,0));
-
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_UP))
-		cubeConvex2->GetPhysicsNode().SetPosition( cubeConvex2->GetPhysicsNode().GetPosition() + Vector3(0,10,0));
-
-	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_DOWN))
-		cubeConvex2->GetPhysicsNode().SetPosition( cubeConvex2->GetPhysicsNode().GetPosition() - Vector3(0,10,0));
 	
 	//Spawn a new object.
 	if (Window::GetMouse()->ButtonTriggered(MOUSE_LEFT)){
@@ -186,6 +199,7 @@ void MyGame::UpdateGame(float msec) {
 		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * projectileSpeed);
 
 		//ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f, 0)); //Add Gravity
+		ge->GetPhysicsNode().SetConstantAccel(Vector3(0,-0.01f, 0));
 		ge->GetPhysicsNode().SetMass(100.0f);
 		ge->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
@@ -193,7 +207,7 @@ void MyGame::UpdateGame(float msec) {
 		ge->GetPhysicsNode().SetBroadPhaseVolume(new CollisionAABB(
 			ge->GetPhysicsNode().GetPosition(), ge->GetPhysicsNode().GetScale() * 10.0f));
 
-		ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+		ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()).Normalise());
 		ge->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, projectileSize, projectileSize, projectileSize);
 		
 		ge->ConnectToSystems();
@@ -207,10 +221,12 @@ void MyGame::UpdateGame(float msec) {
 		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
 		/*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
 		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * projectileSpeed);
-		ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
+		//ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
+		ge->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
 		ge->GetPhysicsNode().SetMass(100.0f);
 		//ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
 		ge->GetPhysicsNode().SetInvSphereInertiaMatrix(100, projectileSize);
+		ge->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
 		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
 
@@ -222,8 +238,6 @@ void MyGame::UpdateGame(float msec) {
 	for(vector<GameEntity*>::iterator i = allEntities.begin(); i != allEntities.end(); ++i) {
 		(*i)->Update(msec);
 	}
-
-
 
 	/*
 	Here's how we can use OGLRenderer's inbuilt debug-drawing functions! 
@@ -316,7 +330,8 @@ GameEntity* MyGame::BuildSphereEntity(float radius) {
 Makes a flat quad, initially oriented such that we can use it as a simple
 floor. 
 */
-GameEntity* MyGame::BuildQuadEntity(float size, const Vector3& orientation, float angle) {
+GameEntity* MyGame::BuildQuadEntity(float size, const Vector3& orientation, float angle){
+
 	SceneNode* s = new SceneNode(quad);
 
 	s->SetModelScale(Vector3(size,size,size));
@@ -330,4 +345,27 @@ GameEntity* MyGame::BuildQuadEntity(float size, const Vector3& orientation, floa
 	GameEntity*g = new GameEntity(s, p);
 	//g->ConnectToSystems();
 	return g;
+}
+
+GameEntity* MyGame::BuildHeightmapEntity(){
+	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
+
+	heightMap->SetTexture(SOIL_load_OGL_texture(
+		TEXTUREDIR"Barren reds.jpg", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	heightMap->SetBumpMap(SOIL_load_OGL_texture(
+		TEXTUREDIR"Barren redsDOT3.jpg", SOIL_LOAD_AUTO, 
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+
+	glBindTexture(GL_TEXTURE_2D, heightMap->GetTexture());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	GameEntity* ge = new GameEntity(new SceneNode(heightMap), NULL);
+	ge->GetRenderNode().SetBoundingRadius( 
+		sqrt( pow(RAW_WIDTH * HEIGHTMAP_X * 0.5f, 3)
+		+ pow(RAW_HEIGHT * HEIGHTMAP_Z * 0.5f, 2)));
+	return ge;
 }

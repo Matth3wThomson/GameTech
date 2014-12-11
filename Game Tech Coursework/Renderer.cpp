@@ -174,6 +174,8 @@ void Renderer::RenderScene(){
 		DrawDebugOverlay();
 	}
 
+	projMatrix = cameraProjMat;
+
 	SwapBuffers(); //Finally swap the buffers and prepare for the next frame!
 }
 
@@ -238,12 +240,15 @@ void Renderer::DrawCombinedScene(){
 		DrawPhysics();
 	}
 
-	//DrawDebugPerspective();
-
 	glEnable(GL_CULL_FACE);
 	glDepthMask(GL_TRUE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	ClearNodeLists();
+
+	Renderer::GetRenderer().DrawDebugCross(DEBUGDRAW_PERSPECTIVE,
+		Vector3(0,0,0), Vector3(300, 300, 300), Vector3(1,1,1));
+
+	DrawDebugPerspective();
 
 	//Signify to the PP system that the buffers have been "pinged"
 	PPDrawn();

@@ -88,6 +88,9 @@
     <ClCompile Include="OctTree.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="TreeEntity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GrowingNode.h">
@@ -125,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="Collision.h">
       <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeEntity.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

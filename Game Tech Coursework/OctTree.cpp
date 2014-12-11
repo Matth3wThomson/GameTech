@@ -2,10 +2,10 @@
 
 //TODO: Work out why a sphere fell through the floor... and work out why the octree is being
 //split down further than is necessary
-OctTree::OctTree(float halfSize, int threshold, int maxDepth)
+OctTree::OctTree(float halfSize, int threshold, int maxDepth, const Vector3& worldCenter)
 {
 	root.halfSize = halfSize;
-	root.pos = Vector3(0,0,0); //Changed from located about center to origin
+	root.pos = worldCenter;
 	root.parent = NULL;
 	root.depth = 0;
 
@@ -278,7 +278,6 @@ bool OctTree::InsertPhysicsNode(OctNode& into, PhysicsNode* pn){
 		return InsertColAABBNode(root, *aabb, pn);
 	}
 
-	//TODO: PUT A BREAKPOINT BACK HERE
 	std::cout << "Broad phase type was unknown. ";
 	return false;
 }
