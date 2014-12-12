@@ -28,7 +28,6 @@ Cloth::Cloth(int width, int height, const Vector3& pos, const Vector3& scale, fl
 		nodes.back()->SetTarget(NULL);
 
 		nodes.back()->SetConstantAccel(Vector3(0, -0.01f, 0));
-		//nodes.back()->SetFixed(true);
 	}
 
 	for (auto itr = nodes.begin(); itr != nodes.end(); ++itr){
@@ -62,19 +61,17 @@ Cloth::Cloth(int width, int height, const Vector3& pos, const Vector3& scale, fl
 	cloth = new SceneNode(gridMesh);
 	cloth->SetBoundingRadius(scale.Length() * 2.0f);
 	cloth->SetShader(Renderer::GetRenderer().phong);
-	///*cloth->SetShader(Renderer::GetRenderer().sceneNoBumpShader);
-	//cloth->SetShaderUpdateFunc( []{ Renderer::GetRenderer().UpdateCombineSceneShaderMatricesPO(); });*/
 }
 
 
 Cloth::~Cloth(void)
 {
-
+	delete gridMesh;
 }
 
 void Cloth::Update(float msec){
 	
-	for (int i=0; i<gridMesh->numVertices; ++i){
+	for (unsigned int i=0; i<gridMesh->numVertices; ++i){
 		gridMesh->vertices[i] = nodes[i]->GetPosition();
 	}
 	gridMesh->RebufferData();

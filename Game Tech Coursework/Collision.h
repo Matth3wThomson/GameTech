@@ -3,23 +3,27 @@
 #include "../nclgl/CollisionVolume.h"
 #include "../nclgl/Plane.h"
 
-//Possible collision detections:
-//LINE VS LINE
 
-//SPHERE VS SPHERE
-//SPHERE VS PLANE
-//SPHERE VS AABB
-//SPHERE VS CONVEX -> TO IMPLEMENT
+/*
+	A class that contains all of the collision detection methods for 
+	all collision volumes. Possible collision pairs are as follows:
+		PLANE V SPHERE
+		PLANE V AABB
+		SPHERE V SPHERE
+		SPHERE V AABB
+		CONVEX V SPHERE
+		CONVEX V PLANE
+		CONVEX V CONVEX
 
-//AABB VS PLANE
+	It should be noted that the AABB collision detection methods do not
+	return collision data, as AABB are not intended as anything other than
+	a bounding volume for shapes.
 
-//AABB VS CONVEX MESH HAS NOT BEEN IMPLEMENTED!!!
-
-//CONVEX VS CONVEX
-
-//TODO: Sort out collision data obtaining from convex vs shape collision...
-//GJK SPHERE COLLISION DATA NEEDS TO ORDERED CORRECTLY WITH RESPECT TO THE CORRECT OBJECT!
-
+	It should also be noted that GJK has been implemented for convex mesh v mesh
+	collision. These collisions do not return collision data though, as due to
+	time constraints EPA was not possible to implement. There is a spherical estimation,
+	however this does not work well and is far from advised to be used.
+*/
 class Collision {
 
 public:
@@ -58,7 +62,6 @@ public:
 		const float distSq = ( s0.m_pos - s1.m_pos ).LengthSq();
 
 		const float sumRadius = (s0.m_radius + s1.m_radius);
-		//assert(distSq > 0.00001f );
 
 		if (distSq < sumRadius * sumRadius){
 			if (collisionData){
@@ -104,19 +107,16 @@ public:
 
 	//SPHERE VS PLANE
 	static bool SphereInColPlane(const Plane& p, const Vector3& pos, float rad, CollisionData* cd = NULL){
-		//TODO: Added abs
+		
 		float seperation = Vector3::Dot(pos, p.m_normal) - p.distance;
 
-		//if (Vector3::Dot(pos, p.m_normal) < 0) return false;
-
-		//TODO: Remember, this function will only return true if the sphere and plane intersect
-		//Remove abs if you want anything on the wrong side of the plane to instantly be found to
-		//be colliding
+		//Note: Intersection will only occur when the plane and the sphere
+		// are genuinely intersecting.
 		if (!(abs(seperation) < rad)) return false;
 
 		if (cd){
 			cd->m_penetration = rad - seperation;
-			cd->m_normal = p.m_normal; //TODO: INVERSE?
+			cd->m_normal = p.m_normal; 
 			cd->m_point = pos - (p.m_normal * seperation);
 		}
 
@@ -170,38 +170,13 @@ public:
 		if ( (sphere.m_pos.z - sphere.m_radius) > (cube.m_position.z + cube.m_halfSize.z) ){
 			return false;
 		}
-
-		//TODO: Spherical check is expensive... I could just omit this? Would mean it possible
-		//for spheres to be within the bounds even though they arent (in rare cases...)
-		//Is that a big deal for a broad phase cull though?
-
-		//Passed "bounding box". Do a spherical check:
-		//Distance between the center of the node and the centre of the colSphere
-		//const float distSq = (colSphere.m_pos - into.pos).LengthSq();
-		//	const float distSq = (into.pos - colSphere.m_pos).LengthSq();
-		//	/*const float distSq = ((colSphere.m_pos.x - into.pos.x) * (colSphere.m_pos.x - into.pos.x)) +
-		//		((colSphere.m_pos.y - into.pos.y) * (colSphere.m_pos.y - into.pos.y)) +
-		//		((colSphere.m_pos.z - into.pos.z) * (colSphere.m_pos.z - into.pos.z));
-		//*/
-		//	const float cubeDiagonalSq = Vector3(into.halfSize, into.halfSize, into.halfSize).LengthSq();
-		//	//const float cubeDiagonal = sqrtf((into.halfSize * into.halfSize) + (into.halfSize * into.halfSize) + (into.halfSize * into.halfSize));
-		//
-		//	//const float sumRadius = (colSphere.m_radius + (into.pos + into.halfSize).Length());
-		//	//const float sumRadius = (colSphere.m_radius + (into.pos + cubeDiagonal).Length());
-		//	const float sumRadiusSq = (colSphere.m_radius * colSphere.m_radius) + cubeDiagonalSq;
-		//
-		//	//Check that the colSphere is within range.
-		//	/*if ( distSq > sumRadius * sumRadius)
-		//		return false;*/
-		//
-		//	if ( distSq > sumRadiusSq)
-		//		return false;
+		
+		//Note: AABB V SPHERE collision does not do the sphere v sphere check after the bounds
+		//have passed. This is due to the fact that AABB's are simply for bounding volumes,
+		//and so a few incorrect answers are better than a lot of unecessary checks.
 
 		return true;
 	}
-
-	//SPHERE VS CONVEX
-	/*static bool SphereInConvexPolygon(const CollisionSphere& sphere, const Vector3& convexShapeCenter, const Vector3& convexShapePoints, const int numPoints){ };*/
 
 	//POINT (PER CONVEX) VS CONVEX
 	static bool PointInConvexPolygon(const Vector3& testPosition, Vector3* convexShapePoints, int numPoints) {
@@ -234,10 +209,6 @@ public:
 	//POINT VS PLANE
 	static bool PointInPlane(const Plane& p, const Vector3& point){
 
-		//TODO: Go through this and determine if its actually correct...
-		/*const float d = Vector3::Dot(p.m_normal, point);*/
-
-		/*const float s = d - vector3::dot( p.m_normal, point);*/
 		const float s = Vector3::Dot(p.m_normal, point) - p.distance;
 
 		if (s > 0.0f) return false;
@@ -269,8 +240,6 @@ public:
 	}
 
 	//PLANE VS CONVEX
-
-	//TODO: Determine if this is correct!!!
 	static bool ConvexInColPlane(const Plane& p, const Vector3* shapePoints, const int numPoints, CollisionData* cd = NULL){
 
 		//If any of the points are below the plane, 
@@ -287,20 +256,6 @@ public:
 	static bool GJK( const Vector3* shape1Points, const int numPoints1, const Vector3& shape1Center, const Vector3& shape1size,
 		const Vector3* shape2Points, const int numPoints2, const Vector3& shape2Center, Vector3& shape2Size, CollisionData* cd = NULL){
 
-		/*std::cout << "Shape 1 points: " << std::endl;
-		for (unsigned int i=0; i<numPoints1; ++i){
-			std::cout << "V" << i << ": " << shape1Points[i] << std::endl;
-		}
-
-		std::cout << std::endl;
-
-		std::cout << "Shape 2 points: " << std::endl;
-		for (unsigned int i=0; i<numPoints2; ++i){
-			std::cout << "V" << i << ": " << shape2Points[i] << std::endl;
-		}*/
-
-		/*std::cout << std::endl;*/
-
 		vector<Vector3> simplex;
 		simplex.reserve(4); //It will have at most 4 sides! TODO: Set max size if that is actually true
 
@@ -309,12 +264,6 @@ public:
 
 		simplex.push_back(searchDirection);
 
-		/*std::cout << "INITIAL SIMPLEX: " << std::endl;
-
-		for (unsigned int i=0; i<simplex.size(); ++i)
-			std::cout << "V" << i << ": " << simplex[i] << std::endl;
-
-		std::cout << std::endl;*/
 		//Search in the opposite direction to the random point we found
 		searchDirection.Invert();
 
@@ -332,66 +281,40 @@ public:
 			if (Vector3::Dot(newPoint, searchDirection) < 0)
 				return false; 
 
-			/*std::cout << "NEW POINT: " << newPoint << std::endl;
-			std::cout << "Past the origin from the point: " << searchDirection << std::endl;*/
-
 			//Else push this new point into the simplex shape
 			simplex.push_back(newPoint);
-
-			/*std::cout << "ITERATION SIMPLEX: " << std::endl;
-
-			for (unsigned int i=0; i<simplex.size(); ++i)
-				std::cout << "V" << i << ": " << simplex[i] << std::endl;
-
-			std::cout << std::endl;*/
 
 			//Begin looking for the origin based on our current simplex shape
 			if (DoSimplex(simplex, searchDirection)){
 				if (cd){
 
 					//Spherical Collision response... NOTE: Not accurate, or advised to use!
-					/*cd->m_normal = (shape1Center - shape2Center).Normalise();*/
 					cd->m_normal = (shape2Center - shape1Center).Normalise();
 
 					const float sumRadius = (shape1size * cd->m_normal).Length() + (shape2Size * cd->m_normal).Length();
 					cd->m_penetration = sumRadius  - (shape1Center - shape2Center).Length();
-					/*cd->m_penetration = sumRadius - sqrtf( distance between them squared );*/
 					cd->m_point = (shape1Center - cd->m_normal
 						* (shape1size * cd->m_normal) - cd->m_penetration * 0.5f);
-						// * shape 1 radius - collision data penetration * 0.5f);
 				}
 				return true;
 			}
 
 			noIterations++;
-			/*std::cout << "AFTER DOSIMPLEX: " << std::endl;
-
-			for (unsigned int i=0; i<simplex.size(); ++i)
-				std::cout << "V" << i << ": " << simplex[i] << std::endl;
-
-			std::cout << std::endl;*/
 		}
 		return false;
 	}
 
 	//GJK/SPHERE
 	static bool GJKSphere(const Vector3* shape1Points, const int numPoints1, const Vector3& spherePos, const float radius, CollisionData* cd = NULL){
-		/*std::cout << std::endl;*/
 
 		vector<Vector3> simplex;
-		simplex.reserve(4); //It will have at most 4 sides! TODO: Set max size if that is actually true
+		simplex.reserve(4); //It will have at most 4 sides!
 
 		//Get a random point from the convex hull of the minkowski difference
 		Vector3 searchDirection = Support(shape1Points, numPoints1, spherePos, radius, Vector3(0,1,0));
 
 		simplex.push_back(searchDirection);
 
-		/*std::cout << "INITIAL SIMPLEX: " << std::endl;
-
-		for (unsigned int i=0; i<simplex.size(); ++i)
-			std::cout << "V" << i << ": " << simplex[i] << std::endl;
-
-		std::cout << std::endl;*/
 		//Search in the opposite direction to the random point we found
 		searchDirection.Invert();
 
@@ -409,18 +332,8 @@ public:
 			if (Vector3::Dot(newPoint, searchDirection) < 0)
 				return false; 
 
-			/*std::cout << "NEW POINT: " << newPoint << std::endl;
-			std::cout << "Past the origin from the point: " << searchDirection << std::endl;*/
-
 			//Else push this new point into the simplex shape
 			simplex.push_back(newPoint);
-
-			/*std::cout << "ITERATION SIMPLEX: " << std::endl;
-
-			for (unsigned int i=0; i<simplex.size(); ++i)
-				std::cout << "V" << i << ": " << simplex[i] << std::endl;
-
-			std::cout << std::endl;*/
 
 			//Begin looking for the origin based on our current simplex shape
 			if (DoSimplex(simplex, searchDirection))
@@ -472,14 +385,6 @@ protected:
 
 		//Return the minkowski difference between the two. (The point on the
 		//minkowski sum that is the furthest in a given direction)
-
-		/*std::cout << "DIRECTION: " << d << std::endl;
-		std::cout << "MAXINDIR: " << maxInDir << std::endl;
-
-		std::cout << "OPPDIR: " << oppDir << std::endl;
-		std::cout << "MAXINOPP: " << maxInOppDir << std::endl;
-		std::cout << std::endl;*/
-
 		return maxInDir - maxInOppDir;
 	}
 
@@ -497,7 +402,7 @@ protected:
 
 			if (maxDot1 < newMax){
 				maxDot1 = newMax;
-				maxInDir = shape1Points[i]; //TODO: Could just store the integer location
+				maxInDir = shape1Points[i];
 			}
 		}
 
@@ -506,11 +411,6 @@ protected:
 		Vector3 maxInOppDir =  position + (oppDir * radius);
 
 		return maxInDir - maxInOppDir;
-	}
-
-	//Support function for CONVEX VS AABB
-	static Vector3 Support(const Vector3* shape1Points, const int numPoints1, const Vector3& m_position, const Vector3& halfSize){
-
 	}
 
 	//Attempts to encompass the origin in a tetrahedron, or modifies the simplex
@@ -770,7 +670,6 @@ check_face:
 
 			d = Vector3::Cross( Vector3::Cross(AB, AO), AB );
 
-			//n = 2 !?
 			simplex.erase(simplex.begin()+3);
 			simplex.erase(simplex.begin()+2);
 
@@ -785,7 +684,6 @@ check_face:
 
 			d = Vector3::Cross( Vector3::Cross( AC, AO), AC );
 
-			//n = 2!?
 			simplex.erase(simplex.begin()+3);
 			simplex.erase(simplex.begin()+2);
 
@@ -798,77 +696,9 @@ check_face:
 
 		d = ABC;
 
-		//n = 3?
 		simplex.erase(simplex.begin()+3);
 
 		return false;
-
-		/*THEY SHOULD START WITH A
-		They should be ADC, ACB, and ABD*/
-
-		//ADC
-		//vector<Vector3> newSimplex;
-		//newSimplex[0] = A;
-		//newSimplex[1] = D;
-		//newSimplex[2] = C;
-
-		//Vector3 newDistance = d;
-
-		////The point is not below the triangle ADC
-		//if (!DoSimplexTriangle(newSimplex, newDistance)){
-
-		//	//Then the triangle we are interested in is ADC, with the
-		//	//next direction vector being the vector between the newest point
-		//	//and the origin?
-		//	d = newDistance; //Is this right
-
-		//	//DCBA -> CDBA -> BDCA -> ADCB -> ADC
-		//	std::swap(simplex[0], simplex[1]);
-		//	std::swap(simplex[0], simplex[2]);
-		//	std::swap(simplex[0], simplex[3]);
-
-		//	simplex.erase(simplex.begin()+3);
-		//	
-		//}
-
-		////ACB
-		//newSimplex[0] = A;
-		//newSimplex[1] = C;
-		//newSimplex[2] = B;
-
-		//newDistance = d;
-
-		////The point is not below the triangle ACB
-		//if (DoSimplexTriangle(newSimplex, newDistance)){
-
-		//	d = newDistance;
-		//	//DCBA ->  -> ACB
-
-		//	//Then the triangle we are interested in is CBA, with the
-		//	//next direction vector being ACB
-		//}
-
-		////ABD
-		//newSimplex[0] = A;
-		//newSimplex[1] = B;
-		//newSimplex[2] = D;
-
-		//newDistance = d;
-
-		////The point is not below the triangle ABD
-		//if (DoSimplexTriangle(newSimplex, newDistance)){
-		//	d = newDistance;
-
-		//	//DCBA -> -> ABD
-
-		//	//The the triangle we are interested in is ABD, with the
-		//	//next direction vector being ABD
-		//}
-
-		//THE POINT IS BELOW ALL TRIANGLES, REJOICE, FOR THOU HAST FOUND
-		//THE COLLISION!
-		return true;
-
 
 	}
 };

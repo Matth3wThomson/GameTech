@@ -3,8 +3,8 @@
 #include "gameentity.h"
 #include "Renderer.h"
 
-//Entity that will break down into multiple smaller versions of itself upon taking too many
-//collisions
+//Entity that will break down into multiple smaller versions of itself upon experiencing too many
+//collisions.
 class DestructibleSphere :
 	public GameEntity
 {
@@ -17,11 +17,10 @@ protected:
 
 	GameEntity* CreateSphereComponent(int totalParts);
 
+	bool destroyed;
 	int m_collisionsToDie;
 	
 	float radius;
-
-	std::vector<GameEntity*> parts;
 
 	static Mesh* sphereMesh;
 };

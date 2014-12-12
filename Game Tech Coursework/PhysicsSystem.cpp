@@ -10,9 +10,6 @@ PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(4000, 5, 3, Vector3(0, 4000
 	updateRate = 0;
 	physFrames = 0;
 	timePassed = 0.0f;
-
-	//Requires world size, max number of objects per node, and max depth of tree
-	//broadPhase = OctTree(Vector3(4000,4000,4000), 6, 2);
 }
 
 PhysicsSystem::~PhysicsSystem(void)	{
@@ -83,88 +80,6 @@ void PhysicsSystem::UpdateBroadPhaseCollisionVolumes(){
 	}
 }
 
-//HOW do we use an enum to denote collision volume type and call the correct functions
-//when the pointers are still of the incorrect type? Dynamic cast post enum check?
-
-//TODO: Because iterators get invalidated when an element is added to a vector elsewhere,
-//		we need concurrency protection on our vector of physics nodes.
-
-//TODO: Because when 3 entities overlap, how do we resolve correctly? Translate out of collision
-//		as soon as it is found is wrong? Doing collision resolution for an object twice will break it?
-//void	PhysicsSystem::NarrowPhase(){
-//
-//	//Then perform collision detection on each section of the octree recursively
-//	std::lock_guard<mutex> lock(nodesMutex);
-//
-//	for (vector<PhysicsNode*>::iterator i = allNodes.begin(); i != allNodes.end(); ++i){
-//		for (auto j = i+1; j != allNodes.end(); ++j){
-//
-//			CollisionVolume* cv1 = (*i)->GetNarrowPhaseVolume();
-//			CollisionVolume* cv2 = (*j)->GetNarrowPhaseVolume();
-//
-//			if (cv1 && cv2){
-//
-//				CollisionVolumeType cvt1 = cv1->GetType();
-//				CollisionVolumeType cvt2 = cv2->GetType();
-//				CollisionData cd;
-//
-//				switch (cvt1){
-//				case COLLISION_PLANE:
-//					if (cvt2 == COLLISION_SPHERE){
-//						Plane* p = dynamic_cast<Plane*>(cv1);
-//						CollisionSphere* cs = dynamic_cast<CollisionSphere*>(cv2);
-//
-//						//We must update our collision volumes
-//						//UpdateCollisionSphere(**j, *cs);
-//						(*j)->UpdateCollisionSphere(*cs);
-//						(*i)->UpdateCollisionPlane(*p);
-//
-//						//Sphere in plane is the wrong way around...
-//						/*if (p->SphereInPlane(cs->m_pos, cs->m_radius, &cd)){*/
-//						if (SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
-//							//Wrong side of the plane... but what is the limit to the plane?
-//							std::cout << "SP COLLISION\n";
-//							AddCollisionImpulse(*(*j), *(*i), cd);
-//							++collisionCount;
-//							 
-//						}
-//					};
-//
-//					if (cvt2 == COLLISION_AABB){
-//
-//					}; 
-//
-//					break;
-//				case COLLISION_SPHERE:
-//					if (cvt2 == COLLISION_PLANE) break;
-//					if (cvt2 == COLLISION_SPHERE){
-//						CollisionSphere* cs1 = dynamic_cast<CollisionSphere*>(cv1);
-//						CollisionSphere* cs2 = dynamic_cast<CollisionSphere*>(cv2);
-//
-//						(*i)->UpdateCollisionSphere(*cs1);
-//						(*j)->UpdateCollisionSphere(*cs2);
-//
-//						if (SphereSphereCollision(*cs1, *cs2, &cd)){
-//							std::cout << "SS COLLISION\n";
-//							AddCollisionImpulse(*(*i), *(*j), cd);
-//							++collisionCount;
-//						}
-//					};
-//					if (cvt2 == COLLISION_AABB); 
-//
-//					break;
-//				case COLLISION_AABB:
-//					if (cvt2 == COLLISION_PLANE) break;
-//					if (cvt2 == COLLISION_SPHERE);
-//					if (cvt2 == COLLISION_AABB); 
-//
-//					break;
-//				}
-//			}
-//		}
-//	}
-//}
-
 void	PhysicsSystem::NarrowPhase(){
 
 	//Then perform collision detection on each section of the octree recursively
@@ -175,17 +90,6 @@ void	PhysicsSystem::NarrowPhase(){
 	NarrowPhasePairs();		//Then detect narrow phase and resolve.
 	//NarrowPhaseVector(allNodes);
 }
-
-//void PhysicsSystem::NarrowPhaseTree(OctNode& on){
-//
-//	if (on.octNodes.size() != 0){
-//		for (auto itr = on.octNodes.begin(); itr != on.octNodes.end(); itr++){
-//			NarrowPhaseTree(**itr);
-//		}
-//	} else {
-//		NarrowPhaseVector(on.physicsNodes);
-//	}
-//}
 
 void PhysicsSystem::NextPhaseTree(OctNode& on, bool boundingBox){
 
@@ -227,8 +131,6 @@ void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 						(*j)->UpdateCollisionSphere(*cs);
 						(*i)->UpdateCollisionPlane(*p);
 
-						//Sphere in plane is the wrong way around...
-						/*if (p->SphereInPlane(cs->m_pos, cs->m_radius, &cd)){*/
 						if (Collision::SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
 							//Wrong side of the plane... but what is the limit to the plane?
 							//std::cout << "SP COLLISION\n";
@@ -530,7 +432,7 @@ void PhysicsSystem::NarrowPhasePairs(){
 						++collisionCount;
 						(*itr).first->noOfCollisions++;
 						(*itr).second->noOfCollisions++;
-						
+
 					}
 				}
 				//VS CONVEX
@@ -657,8 +559,6 @@ void PhysicsSystem::NarrowPhasePairs(){
 	collisionPairs.clear();
 }
 
-
-
 void PhysicsSystem::WakeAllNodes(){
 	std::lock_guard<std::mutex> lock(nodesMutex);
 	for (auto itr = allNodes.begin(); itr != allNodes.end(); ++itr){
@@ -712,10 +612,6 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 	invMass0 = (pn0.fixed)? 0.0f : invMass0;
 	invMass1 = (pn1.fixed)? 0.0f : invMass1;
 
-	//TODO: Since these are const, why not make them references?
-	/*const Matrix4 worldInvInertia0 = pn0.m_invInertia;
-	const Matrix4 worldInvInertia1 = pn1.m_invInertia;*/
-
 	const Matrix3 worldInvInertia0 = pn0.m_invInertia;
 	const Matrix3 worldInvInertia1 = pn1.m_invInertia;
 
@@ -735,10 +631,8 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 
 	//Move each object in the direction of the normal, based on their relative weighting
 	pn0.m_position += cd.m_normal * cd.m_penetration * (invMass0 / totalInvMass);
-	//pn0.m_position += cd.m_normal * 0.00001f;
 
 	pn1.m_position -= cd.m_normal * cd.m_penetration * (invMass1 / totalInvMass);
-	//pn1.m_position -= cd.m_normal * 0.00001f;
 
 	Vector3 v0 = pn0.m_linearVelocity + Vector3::Cross(pn0.m_angularVelocity, r0);
 	Vector3 v1 = pn1.m_linearVelocity + Vector3::Cross(pn1.m_angularVelocity, r1);
@@ -770,10 +664,10 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 
 		//Corrections to linear velocity changes to take into account relative momentum change.
 		//That is, a heavy object will affect a light object much more so than vice versa
-		pn0.m_linearVelocity += cd.m_normal * (invMass0 * jn /** (2 - (invMass1 / totalInvMass))*/ );
+		pn0.m_linearVelocity += cd.m_normal * (invMass0 * jn);
 		pn0.m_angularVelocity += worldInvInertia0 * Vector3::Cross(r0, cd.m_normal * jn);
 
-		pn1.m_linearVelocity -= cd.m_normal * (invMass1 * jn /**(2 - (invMass0 / totalInvMass))*/ );
+		pn1.m_linearVelocity -= cd.m_normal * (invMass1 * jn);
 		pn1.m_angularVelocity -= worldInvInertia1 * Vector3::Cross(r1, cd.m_normal * jn);
 
 		//SO MANY CONDITIONALS... But determined that dot product vector with itself is slower
@@ -781,47 +675,6 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 		Vector3 impulseDirection = cd.m_normal * (jn / timestep);
 
 	}
-
-	//TODO: Output angular velocities and sort out the odd spin issue
-
-	/*abs(impulseDirection.x + pn0.m_force.x) < FORCE_REST_TOLERANCE &&
-	abs(impulseDirection.y + pn0.m_force.y) < FORCE_REST_TOLERANCE &&
-	abs(impulseDirection.z + pn0.m_force.z) < FORCE_REST_TOLERANCE)*/
-
-	//if 	(abs(pn0.m_linearVelocity.x + (pn0.m_constantAccel.x * timestep)) < REST_TOLERANCE &&
-	//	abs(pn0.m_linearVelocity.y + (pn0.m_constantAccel.y * timestep)) < REST_TOLERANCE &&
-	//	abs(pn0.m_linearVelocity.z + (pn0.m_constantAccel.z * timestep)) < REST_TOLERANCE &&
-	//	abs(pn0.m_angularVelocity.x) < REST_TOLERANCE &&
-	//	abs(pn0.m_angularVelocity.y) < REST_TOLERANCE &&
-	//	abs(pn0.m_angularVelocity.z) < REST_TOLERANCE){
-	//		//Store the last object collided with!
-	//		if (pn0.lastCollided == &pn1) 
-	//			pn0.m_rest = true;
-
-	//		//SHOULD THIS BE THE SITUATION?
-	//		else if (abs(impulseDirection.x + pn0.m_force.x) < FORCE_REST_TOLERANCE &&
-	//			abs(impulseDirection.y + pn0.m_force.y) < FORCE_REST_TOLERANCE &&
-	//			abs(impulseDirection.z + pn0.m_force.z) < FORCE_REST_TOLERANCE)
-	//			pn0.m_rest = true;
-	//};
-
-	//	if (abs(pn1.m_linearVelocity.x - (pn1.m_constantAccel.x * timestep)) < REST_TOLERANCE &&
-	//		abs(pn1.m_linearVelocity.y - (pn1.m_constantAccel.y * timestep)) < REST_TOLERANCE &&
-	//		abs(pn1.m_linearVelocity.z - (pn1.m_constantAccel.z * timestep)) < REST_TOLERANCE &&
-	//		abs(pn1.m_angularVelocity.x) < REST_TOLERANCE &&
-	//		abs(pn1.m_angularVelocity.y) < REST_TOLERANCE &&
-	//		abs(pn1.m_angularVelocity.z) < REST_TOLERANCE){
-
-	//			if (pn1.lastCollided = &pn0)
-	//				pn1.m_rest = true;
-
-	//			//DO I EVEN NEED THIS?
-	//			else if (abs(impulseDirection.x + pn1.m_force.x) < FORCE_REST_TOLERANCE &&
-	//				abs(impulseDirection.y + pn1.m_force.y) < FORCE_REST_TOLERANCE &&
-	//				abs(impulseDirection.z + pn1.m_force.z) < FORCE_REST_TOLERANCE)
-	//				pn1.m_rest = true;
-	//	};
-	//}
 
 	//TANGENT IMPULSE
 	{
@@ -834,8 +687,6 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 			+ Vector3::Cross(pn1.m_invInertia * Vector3::Cross(r1, tangent) , r1) );
 
 		float jt = -1 * Vector3::Dot(dv, tangent) / tangDiv;
-
-		//TODO: Clamping here?
 
 		//Apply contact impulse
 		pn0.m_linearVelocity += tangent * (jt * invMass0);
@@ -860,7 +711,6 @@ void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 					pn1.m_rest = true;
 			}
 
-			//TODO: NOT SURE IF THIS WILL WORK!
 			pn0.lastCollided = &pn1;
 			pn1.lastCollided = &pn0;
 

@@ -40,6 +40,7 @@ _-_-_-_-_-_-_-""  ""
 #include "../nclgl/CubeRobot.h"
 #include "TreeEntity.h"
 #include "RespawnableEntity.h"
+#include "DestructibleSphere.h"
 #include "GridMesh.h"
 #include "Cloth.h"
 
@@ -47,6 +48,7 @@ _-_-_-_-_-_-_-""  ""
 #define BALLS_Z 10.0f
 #define WORLD_SIZE 3500.0f
 
+//The class for my physics game.
 class MyGame : public GameClass	{
 public:
 	MyGame();

@@ -14,6 +14,8 @@ MyGame::MyGame(){
 	gameCamera = new Camera(-30.0f,0.0f,Vector3(0,450,850));
 
 	Renderer::GetRenderer().SetCamera(gameCamera);
+	gameCamera->SetPosition(Vector3(0, 1500, 0));
+	gameCamera->SetPitch(-90);
 
 	CubeRobot::CreateCube();
 
@@ -38,12 +40,9 @@ MyGame::MyGame(){
 	projectileSize = 100;
 	projectileSpeed = 1;
 
-	//allEntities.push_back(BuildRobotEntity());
-
 	Matrix3 floorMat = Matrix3();
 	floorMat.ToZero();
 
-	/*GameEntity* floor = BuildQuadEntity(4000.0f, Vector3(1,0,0), 90.0f);*/
 	GameEntity* floor = new GameEntity(NULL, new PhysicsNode());
 	floor->GetPhysicsNode().SetPosition(Vector3(0,0.0f, 0));
 	floor->GetPhysicsNode().SetFixed(true);
@@ -59,7 +58,6 @@ MyGame::MyGame(){
 	allEntities.push_back(floor);
 
 	GameEntity* roof = new GameEntity(NULL, new PhysicsNode());
-	/*GameEntity* roof = BuildQuadEntity(4000.0f, Vector3(1,0,0), 270.0f);*/
 	roof->GetPhysicsNode().SetPosition(Vector3(0, 8000.0f, 0));
 	roof->GetPhysicsNode().SetFixed(true);
 	roof->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,-1,0), -8000.0f));
@@ -70,7 +68,6 @@ MyGame::MyGame(){
 	roof->ConnectToSystems();
 	allEntities.push_back(roof);
 
-	/*GameEntity* wallBack = BuildQuadEntity(4000.0f, Vector3(1,0,0), 0.0f);*/
 	GameEntity* wallBack = new GameEntity(NULL, new PhysicsNode());
 	wallBack->GetPhysicsNode().SetPosition(Vector3(0,0,4000.0f));
 	wallBack->GetPhysicsNode().SetFixed(true);
@@ -83,7 +80,6 @@ MyGame::MyGame(){
 	wallBack->ConnectToSystems();
 	allEntities.push_back(wallBack);
 
-	/*GameEntity* wallFront = BuildQuadEntity(4000.0f, Vector3(1,0,0), 180.0f);*/
 	GameEntity* wallFront = new GameEntity(NULL, new PhysicsNode());
 	wallFront->GetPhysicsNode().SetPosition(Vector3(0,0,-4000.0f));
 	wallFront->GetPhysicsNode().SetFixed(true);
@@ -95,7 +91,6 @@ MyGame::MyGame(){
 	wallFront->ConnectToSystems();
 	allEntities.push_back(wallFront);
 
-	/*GameEntity* wallLeft = BuildQuadEntity(4000.0f, Vector3(0,1,0), 270.0f);*/
 	GameEntity* wallLeft = new GameEntity(NULL, new PhysicsNode());
 	wallLeft->GetPhysicsNode().SetPosition(Vector3(-4000.0f,0,0));
 	wallLeft->GetPhysicsNode().SetFixed(true);
@@ -107,7 +102,6 @@ MyGame::MyGame(){
 	wallLeft->ConnectToSystems();
 	allEntities.push_back(wallLeft);
 
-	/*GameEntity* wallRight = BuildQuadEntity(4000.0f, Vector3(0,1,0), 90.0f);*/
 	GameEntity* wallRight = new GameEntity(NULL, new PhysicsNode());
 	wallRight->GetPhysicsNode().SetPosition(Vector3(4000,0,0));
 	wallRight->GetPhysicsNode().SetFixed(true);
@@ -119,7 +113,7 @@ MyGame::MyGame(){
 	wallRight->ConnectToSystems();
 	allEntities.push_back(wallRight);
 
-	Cloth * c = new Cloth(5, 8, Vector3(1900,1500,0), Vector3(600,500,1000), 120.0f, TEXTUREDIR"Barren Reds.jpg");
+	Cloth * c = new Cloth(5, 8, Vector3(1900,1500,0), Vector3(600,500,1000), 120.0f, TEXTUREDIR"unionjack.png");
 	c->ConnectToSystems();
 	allEntities.push_back(c);
 
@@ -132,8 +126,11 @@ MyGame::MyGame(){
 	te->ConnectToSystems();
 	allEntities.push_back(te);
 
+	//Randomly creates half respawnable entities and half destructable entities
 	for (int i=0; i<BALLS_X; ++i){
 		for (int j=0; j<BALLS_Z; ++j){
+			if (rand() % 2 == 0){
+
 			RespawnableEntity* ball = BuildRespawnableSphere(100.0f, 
 				Vector3(((i/BALLS_X) - 0.5f)
 				* WORLD_SIZE, WORLD_SIZE,
@@ -151,35 +148,21 @@ MyGame::MyGame(){
 			pn.Sleep();
 
 			ball->GetRenderNode().SetShader(Renderer::GetRenderer().phong);
-			ball->GetRenderNode().SetColour(Vector4(RAND(), RAND(), RAND(), RAND()));
+			ball->GetRenderNode().SetColour(Vector4(1, 0, 1, 1.0f));
 
 			ball->ConnectToSystems();
 			allEntities.push_back(ball);
+
+			} else {
+				DestructibleSphere* ds = new DestructibleSphere(100, sphere, 100,
+					Vector3(((i/BALLS_X) - 0.5f)
+				* WORLD_SIZE, WORLD_SIZE,
+				((j/BALLS_Z) - 0.5f) * WORLD_SIZE), 5);
+				ds->ConnectToSystems();
+				allEntities.push_back(ds);
+			}
 		}
 	}
-
-	/*for (int i=0; i<BALLS_X; ++i){
-		for (int j=0; j<BALLS_Z; ++j){
-			GameEntity* ball = BuildSphereEntity(100.0f);
-			PhysicsNode& pn = ball->GetPhysicsNode();
-
-			pn.SetConstantAccel(Vector3(0, -0.01f, 0));
-			pn.SetPosition(Vector3( ((i/BALLS_X) - 0.5f)
-				* WORLD_SIZE, WORLD_SIZE,
-				((j/BALLS_Z) - 0.5f) * WORLD_SIZE));
-			pn.SetBroadPhaseVolume(new CollisionSphere(pn.GetPosition(), 100.0f));
-			pn.SetInvSphereInertiaMatrix(100, 100.0f);
-			pn.SetMass(100.0f);
-			pn.SetScale(Vector3(100, 100, 100));
-			pn.Sleep();
-
-			ball->GetRenderNode().SetShader(Renderer::GetRenderer().phong);
-			ball->GetRenderNode().SetColour(Vector4(RAND(), RAND(), RAND(), RAND()));
-
-			ball->ConnectToSystems();
-			allEntities.push_back(ball);
-		}
-	}*/
 }
 
 MyGame::~MyGame(void)	{
@@ -224,7 +207,6 @@ void MyGame::UpdateGame(float msec) {
 		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
 		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * projectileSpeed);
 
-		//ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f, 0)); //Add Gravity
 		ge->GetPhysicsNode().SetConstantAccel(Vector3(0,-0.01f, 0));
 		ge->GetPhysicsNode().SetMass(100.0f);
 		ge->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
@@ -249,12 +231,12 @@ void MyGame::UpdateGame(float msec) {
 
 		GameEntity* ge = BuildSphereEntity(projectileSize);
 		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
-		/*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
+
 		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * projectileSpeed);
-		//ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
+		
 		ge->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
 		ge->GetPhysicsNode().SetMass(100.0f);
-		//ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
+		
 		ge->GetPhysicsNode().SetInvSphereInertiaMatrix(100, projectileSize);
 		ge->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
 
@@ -262,7 +244,6 @@ void MyGame::UpdateGame(float msec) {
 
 		ge->GetRenderNode().SetShader(Renderer::GetRenderer().phong);
 		ge->GetRenderNode().SetColour(Vector4(RAND(), RAND(), RAND(), 1.0f));
-		//ge->GetRenderNode().SetShaderUpdateFunc([]{ Renderer::GetRenderer().UpdateCombineSceneShaderMatricesPO(); });
 
 		ge->ConnectToSystems();
 
@@ -275,7 +256,6 @@ void MyGame::UpdateGame(float msec) {
 		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
 		ge->GetPhysicsNode().SetLinearVelocity(gameCamera->GetDirectionVector() * projectileSpeed);
 
-		//ge->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f, 0)); //Add Gravity
 		ge->GetPhysicsNode().SetConstantAccel(Vector3(0,-0.01f, 0));
 		ge->GetPhysicsNode().SetMass(100.0f);
 		ge->GetPhysicsNode().SetScale(Vector3(projectileSize * 0.1f, projectileSize, projectileSize * 0.1f));

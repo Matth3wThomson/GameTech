@@ -5,7 +5,6 @@ bool Renderer::InitDebug(){
 	basicFont = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
-	//sphere = new OBJMesh(MESHDIR"Sphere.obj");
 	box = new OBJMesh(MESHDIR"centeredcube.obj");
 	debugQuad = Mesh::GenerateQuad();
 
@@ -24,7 +23,7 @@ bool Renderer::InitDebug(){
 	lineMode = false;
 	drawWorld = true;
 	physicsDrawing = false;
-	octTree = true;
+	octTree = false;
 	broadPhase = false;
 	narrowPhase = false;
 	drawConstraints = false;
@@ -206,10 +205,17 @@ void Renderer::DrawBroadPhase(){
 					DrawPlane( *(Plane*) (*itr)->GetBroadPhaseVolume(), (*itr)->GetOrientation(), Vector4(0,1,0,1));
 					break;
 				case COLLISION_SPHERE:
-					DrawSphere( *(CollisionSphere*) (*itr)->GetBroadPhaseVolume(), Vector4(0,1,0,1));
+					if ((*itr)->AtRest()) 
+						DrawSphere( *(CollisionSphere*) (*itr)->GetBroadPhaseVolume(), Vector4(1,0,0,1));
+					else
+						DrawSphere( *(CollisionSphere*) (*itr)->GetBroadPhaseVolume(), Vector4(0,1,0,1));
+
 					break;
 				case COLLISION_AABB:
-					DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume(), Vector4(0,1,0,1) );
+					if ((*itr)->AtRest()) 
+						DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume(), Vector4(1,0,0,1) );
+					else 
+						DrawAABB( *(CollisionAABB*) (*itr)->GetBroadPhaseVolume(), Vector4(0,1,0,1) );
 					break;
 				}
 			}

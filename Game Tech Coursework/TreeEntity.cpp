@@ -232,10 +232,7 @@ void TreeEntity::AddRandomBranch(){
 
 	Quaternion& parentOrientation = this->GetPhysicsNode().GetOrientation();
 
-	//branchPos = parentOrientation.ToMatrix() * (branchPos + Vector3(0,growthAmount * maxTreeHeight,0));
 	branchPos = branchPos + parentOrientation.ToMatrix() * Vector3(0, growthAmount * maxTreeHeight, 0);
-
-	//branchPos.y += growthAmount * maxTreeHeight;
 
 	//Set its relative position and random rotations about us
 	branch->GetPhysicsNode().SetPosition(branchPos);
@@ -249,15 +246,10 @@ void TreeEntity::AddRandomBranch(){
 		Matrix4::Rotation((float) 20 +(rand() % 35), Vector3(RAND()- RAND(),0,RAND()-RAND()))));
 
 	//We dont want the object to scale with us, only scale its position
-	/*branch->SetScaleWithParent(false);*/
 	branch->GetPhysicsNode().SetFixed(true);
 	branch->ConnectToSystems();
 	this->AddChild(branch);
 
-	//Will this branch bear fruit?
-	/*if (rand()% ONE_OVER_FRUIT == 0 && branch->depth == MAX_DEPTH){
-		branch->fruitBearing = true;
-	}*/
 }
 
 void TreeEntity::AddRandomLeaf(){

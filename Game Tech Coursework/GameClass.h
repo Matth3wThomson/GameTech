@@ -42,7 +42,7 @@ public:
 
 	virtual void UpdateGame(float msec) = 0;
 
-	static GameClass& GetGameClass() { return *instance;}
+	static GameClass& GetGameClass() { return *instance; }
 
 protected:
 	float renderCounter;

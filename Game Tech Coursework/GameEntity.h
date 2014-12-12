@@ -40,6 +40,13 @@ _-_-_-_-_-_-_-""  ""
 #include "../nclgl/SceneNode.h"
 #include "PhysicsNode.h"
 
+/*
+	Notes:
+		-Changes to this class include virtualization of the connect to systems
+		 and disconnect from systems functions. Children of the class have also been
+		 added, as this helped to migrate from the tree Node used in the previous coursework.
+
+*/
 class GameEntity	{
 public:
 	friend class GameClass;

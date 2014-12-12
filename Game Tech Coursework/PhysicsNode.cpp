@@ -78,8 +78,6 @@ void	PhysicsNode::Update(float msec){
 	if(target) {
 		target->SetTransform(BuildTransform());
 		target->SetModelScale(m_scale);
-		if (m_rest) target->SetColour(Vector4(1,0,0,1));	//DEBUGGING STUFF
-		/*else target->SetColour(Vector4(1,1,1,1));*/
 	}
 }
 
@@ -98,7 +96,6 @@ void	PhysicsNode::UpdateCollisionSphere(CollisionSphere& cs){
 void PhysicsNode::UpdateCollisionAABB(CollisionAABB& aabb){
 	aabb.m_position = m_position;
 	aabb.m_halfSize = m_scale * 2.0f; //TODO: This is very generic and definitely not always suitable
-	//aabb.m_halfSize = m_orientation.ToMatrix() * m_scale * 2.0f; //TODO: This is very generic and definitely not always suitable
 } 
 
 void PhysicsNode::UpdateCollisionConvex(CollisionConvex& ccv){
@@ -108,11 +105,10 @@ void PhysicsNode::UpdateCollisionConvex(CollisionConvex& ccv){
 
 void PhysicsNode::ApplyForce(const Vector3& force, const Vector3& distanceFromCentre){
 	m_force += force;
-	//m_torque += Vector3::Cross(distanceFromCentre, force);
+	m_torque += Vector3::Cross(distanceFromCentre, force);
 	m_rest = false;
 }
 
-//TODO: Determine if this is correct!
 void PhysicsNode::ApplyImpulse(const Vector3& impulse, const Vector3& distanceFromCentre){
 	m_linearVelocity += impulse * m_invMass;
 	m_angularVelocity += m_invInertia * Vector3::Cross(impulse, distanceFromCentre);

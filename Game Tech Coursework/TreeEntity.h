@@ -12,6 +12,10 @@
 #define LEAF_GROW_TIME 10000 //The time it takes for a leaf to get to full size
 #define FRUIT_GROW_TIME 10000	//The time it takes for a fruit to get to full size
 
+/*
+	Adapted from the TreeNode class from the previouos coursework. A
+	few changes have been made to make it suitable for the physics system.
+*/
 class TreeEntity : public GameEntity
 {
 public:
