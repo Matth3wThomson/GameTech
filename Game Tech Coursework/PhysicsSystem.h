@@ -71,7 +71,6 @@ public:
 
 	void		BroadPhase();
 	void		NarrowPhase();
-	//void		ResolveCollisions();
 
 	//Statics
 	static void Initialise() {
@@ -86,6 +85,8 @@ public:
 		return *instance;
 	}
 
+	void WakeAllNodes();
+
 	void	AddNode(PhysicsNode* n);
 	void	RemoveNode(PhysicsNode* n);
 
@@ -94,6 +95,7 @@ public:
 
 	int		GetUpdateRate(){ return updateRate; };
 	int		GetCollisionCount(){ return collisionCount; };
+	unsigned int GetNumberOfObjects(){ return allNodes.size(); };
 
 protected:
 	PhysicsSystem(void);

@@ -16,18 +16,12 @@ Plane::Plane(const Vector3& normal, float distance, bool normalise){
 	}
 }
 
-bool Plane::SphereInPlane(const Vector3& position, float radius, CollisionData* collisionData) const {
+bool Plane::SphereInPlane(const Vector3& position, float radius) const {
 
 	float seperation = Vector3::Dot(position, m_normal) + distance; //OLD NOTES
 
 	//TODO: Negative radius?
 	if (seperation < -radius) return false; //OLD NOTES
-
-	if (collisionData){
-		collisionData->m_penetration = radius - seperation;
-		collisionData->m_normal = m_normal; //TODO: INVERSE?
-		collisionData->m_point = position - (m_normal * seperation);
-	}
 
 	return true;
 }

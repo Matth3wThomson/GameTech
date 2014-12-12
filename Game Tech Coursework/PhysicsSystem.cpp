@@ -3,7 +3,7 @@
 PhysicsSystem* PhysicsSystem::instance = 0;
 float PhysicsSystem::timestep = 1.0f/120.0f;
 
-PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(4000, 5, 3, Vector3(0, 0, 0))){
+PhysicsSystem::PhysicsSystem(void) : octTree(OctTree(4000, 5, 3, Vector3(0, 4000, 0))){
 	collisionCount = 0;
 	physTimer = GameTimer();
 	timePassed = 0;
@@ -199,7 +199,6 @@ void PhysicsSystem::NextPhaseTree(OctNode& on, bool boundingBox){
 	}
 }
 
-//Include a bounding box check here too, so that entities can be checked!
 void PhysicsSystem::NarrowPhaseVector(std::vector<PhysicsNode*>& np){
 
 	for (vector<PhysicsNode*>::iterator i = np.begin(); i != np.end(); ++i){
@@ -349,7 +348,8 @@ void PhysicsSystem::BroadPhaseVector(std::vector<PhysicsNode*>& np){
 		for (auto j = i+1; j != np.end(); ++j){
 
 			//Both objects are resting or fixed in place... WHY GO FURTHER!?
-			if ( ((*i)->AtRest() && ((*j)->AtRest())) || ((*i)->GetFixed() && (*j)->GetFixed()) )
+			/*if ( ((*i)->AtRest() && ((*j)->AtRest())) || ((*i)->GetFixed() && (*j)->GetFixed()) )*/
+			if ( ((*i)->AtRest() || (*i)->GetFixed()) && ((*j)->AtRest() || (*j)->GetFixed() ) )
 				continue;
 
 			CollisionVolume* cv1 = (*i)->GetBroadPhaseVolume();
@@ -493,7 +493,6 @@ void PhysicsSystem::BroadPhaseVector(std::vector<PhysicsNode*>& np){
 	}
 }
 
-//TODO: Optimization to prevent objects without NP col vols being added.
 void PhysicsSystem::NarrowPhasePairs(){
 
 	for (auto itr = collisionPairs.begin(); itr != collisionPairs.end(); ++itr){
@@ -501,7 +500,8 @@ void PhysicsSystem::NarrowPhasePairs(){
 		CollisionVolume* cv1 = (*itr).first->GetNarrowPhaseVolume();
 		CollisionVolume* cv2 = (*itr).second->GetNarrowPhaseVolume();
 
-		//TODO: remove once optimized
+		//If an object has no narrow phase volume then we cant determine a collision
+		//between them
 		if ( !(cv1 && cv2) ) continue; //If they dont have NP col vols then skip the pairing...
 
 		CollisionVolumeType cvt1 = cv1->GetType();
@@ -528,6 +528,9 @@ void PhysicsSystem::NarrowPhasePairs(){
 					if (Collision::SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
 						AddCollisionImpulse(*(*itr).second, *(*itr).first, cd);
 						++collisionCount;
+						(*itr).first->noOfCollisions++;
+						(*itr).second->noOfCollisions++;
+						
 					}
 				}
 				//VS CONVEX
@@ -539,6 +542,8 @@ void PhysicsSystem::NarrowPhasePairs(){
 						(*itr).second->SetFixed(true); //TODO: Remove
 						/*AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);*/
 						++collisionCount;
+						(*itr).first->noOfCollisions++;
+						(*itr).second->noOfCollisions++;
 					}
 				}
 			}
@@ -558,6 +563,8 @@ void PhysicsSystem::NarrowPhasePairs(){
 					if (Collision::SphereInColPlane(*p, cs->m_pos, cs->m_radius, &cd)){
 						AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
 						++collisionCount;
+						(*itr).first->noOfCollisions++;
+						(*itr).second->noOfCollisions++;
 					}
 				}
 				//VS SPHERE
@@ -568,6 +575,8 @@ void PhysicsSystem::NarrowPhasePairs(){
 					if (Collision::SphereSphereCollision(*cs, *cs2, &cd)){
 						AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
 						++collisionCount;
+						(*itr).first->noOfCollisions++;
+						(*itr).second->noOfCollisions++;
 					}
 				}
 				//VS CONVEX
@@ -581,6 +590,8 @@ void PhysicsSystem::NarrowPhasePairs(){
 							(*itr).second->SetFixed(true);
 							//AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
 							++collisionCount;
+							(*itr).first->noOfCollisions++;
+							(*itr).second->noOfCollisions++;
 					}
 				}
 			}
@@ -603,6 +614,8 @@ void PhysicsSystem::NarrowPhasePairs(){
 							(*itr).second->SetFixed(true);
 							//AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
 							++collisionCount;
+							(*itr).first->noOfCollisions++;
+							(*itr).second->noOfCollisions++;
 					}
 				}
 				//VS SPHERE
@@ -616,6 +629,8 @@ void PhysicsSystem::NarrowPhasePairs(){
 							(*itr).second->SetFixed(true);
 							//AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);
 							++collisionCount;
+							(*itr).first->noOfCollisions++;
+							(*itr).second->noOfCollisions++;
 					}
 				}
 				//VS CONVEX!
@@ -630,6 +645,8 @@ void PhysicsSystem::NarrowPhasePairs(){
 							(*itr).second->SetFixed(true);
 							/*AddCollisionImpulse(*(*itr).first, *(*itr).second, cd);*/
 							++collisionCount;
+							(*itr).first->noOfCollisions++;
+							(*itr).second->noOfCollisions++;
 					}
 				}
 			}
@@ -642,9 +659,12 @@ void PhysicsSystem::NarrowPhasePairs(){
 
 
 
-//void PhysicsSystem::ResolveCollisions(){
-//
-//}
+void PhysicsSystem::WakeAllNodes(){
+	std::lock_guard<std::mutex> lock(nodesMutex);
+	for (auto itr = allNodes.begin(); itr != allNodes.end(); ++itr){
+		(*itr)->Wake();
+	}
+}
 
 void	PhysicsSystem::AddNode(PhysicsNode* n){
 	std::lock_guard<mutex> lock(nodesMutex);
@@ -677,246 +697,6 @@ void PhysicsSystem::RemoveConstraint(Constraint* c){
 	}
 }
 
-//bool PhysicsSystem::LineLineIntersect(const Line& l1, const Line& l2, float* t1, float* t2) const {
-//	const Vector3& p0 = l1.m_pos1;
-//	const Vector3& p1 = l1.m_pos2;
-//	const Vector3& p2 = l2.m_pos1;
-//	const Vector3& p3 = l2.m_pos2;
-//
-//	const float div = (p3.y - p2.y) * (p1.x - p0.x)
-//		- (p3.x - p2.x) * (p1.y - p0.y);
-//
-//	//Lines are parallel
-//	if (abs(div) < 0.000001f) return false;
-//
-//	const float ta = ( (p3.x - p2.x) * (p0.y - p2.y)
-//		- (p3.y - p2.y) * (p0.x - p2.x) ) / div;
-//
-//	if (ta < 0 || ta > 1.0f) return false;
-//
-//	const float tb = ( ( p1.x - p0.x) * (p0.y - p2.y)
-//		- (p1.y - p0.y) * (p0.x - p2.x) ) / div;
-//
-//	if (tb < 0 || tb > 1.0f) return false;
-//
-//	if (t1) (*t1)=ta;
-//	if (t2) (*t2)=tb;
-//
-//	return true;
-//}
-//
-////Physics Correct plane collision
-//bool PhysicsSystem::SphereInColPlane(const Plane& p, const Vector3& pos, float rad, CollisionData* cd) const {
-//	//TODO: Added abs
-//	float seperation = Vector3::Dot(pos, p.m_normal) - p.distance;
-//
-//	//if (Vector3::Dot(pos, p.m_normal) < 0) return false;
-//
-//	//TODO: Remember, this function will only return true if the sphere and plane intersect
-//	if (!(abs(seperation) < rad)) return false;
-//
-//	if (cd){
-//		cd->m_penetration = rad - seperation;
-//		cd->m_normal = p.m_normal; //TODO: INVERSE?
-//		cd->m_point = pos - (p.m_normal * seperation);
-//	}
-//
-//	return true;
-//}
-//
-//bool PhysicsSystem::SphereSphereCollision(const CollisionSphere &s0, const CollisionSphere &s1, CollisionData *collisionData) const {
-//	const float distSq = ( s0.m_pos - s1.m_pos ).LengthSq();
-//
-//	const float sumRadius = (s0.m_radius + s1.m_radius);
-//	//assert(distSq > 0.00001f );
-//
-//	if (distSq < sumRadius * sumRadius){
-//		if (collisionData){
-//			collisionData->m_penetration = sumRadius - sqrtf( distSq );
-//			collisionData->m_normal	= (s0.m_pos - s1.m_pos).Normalise();
-//			collisionData->m_point = s0.m_pos - collisionData->m_normal
-//				* (s0.m_radius - collisionData->m_penetration * 0.5f);
-//		}
-//		return true;
-//	}
-//
-//	return false;
-//}
-//
-////TODO: implement 
-//bool PhysicsSystem::SphereAABBCollision(const CollisionSphere& sphere, const CollisionAABB& cube, CollisionData* collisionData) const {
-//	return false;
-//}
-//
-//bool PhysicsSystem::AABBCollision(const CollisionAABB &cube0, const CollisionAABB &cube1) const {
-//
-//	//Check X Axis
-//	float dist = cube0.m_position.x - cube1.m_position.x;
-//	float sum = (cube0.m_halfSize.x + cube1.m_halfSize.x);
-//
-//	if (dist < sum){
-//
-//		//Check Y Axis
-//		dist = cube0.m_position.y - cube1.m_position.y;
-//		sum = (cube0.m_halfSize.y + cube1.m_halfSize.y);
-//
-//		if (dist < sum){
-//
-//			//Check Z Axis
-//			dist = cube0.m_position.z - cube1.m_position.z;
-//			sum = (cube0.m_halfSize.z + cube1.m_halfSize.z);
-//
-//			//Overlapped shapes
-//			if (dist < sum) return true;
-//		}
-//
-//	}
-//
-//	return false;
-//}
-//
-//bool PhysicsSystem::PointInConvexPolygon(const Vector3 testPosition, Vector3 * convexShapePoints, int numPoints) const {
-//
-//	for (int i=0; i<numPoints; ++i){
-//		const int i0 = i;
-//		const int i1 = (i+1) % numPoints;
-//
-//		const Vector3& p0 = convexShapePoints[i0];
-//		const Vector3& p1 = convexShapePoints[i1];
-//
-//		//We need two things for each edge, a point on the edge and the normal
-//		const Vector3 norm = Vector3::Cross(Vector3(0,0,1), (p0-p1).Normalise());
-//
-//		//Use the plane equation to calculate d, and to determine if our point is on
-//		//the positive or negative side of the plane
-//		const float d = Vector3::Dot(norm, p0);
-//
-//		//Calculate which side our test point is on
-//		//INSIDE: +ve. OUTSIDE: -ve ON PLANE: zero
-//		const float s = d - Vector3::Dot( norm, testPosition );
-//
-//		if (s < 0.0f) return false;
-//
-//	}
-//
-//	return true;
-//}
-//
-//bool PhysicsSystem::PointInConcavePolygon( const Vector3* shapePoints, const int numPoints, const Vector3& testPoint) const {
-//
-//	int intersectionCount = 0;
-//
-//	for (int i=0; i<numPoints; ++i){
-//		const int i0 = i;
-//		const int i1 = (i+1)%numPoints;
-//
-//		const Vector3& p0 = shapePoints[i0];
-//		const Vector3& p1 = shapePoints[i1];
-//
-//		bool intersect = LineLineIntersect( Line(p0, p1),
-//			Line(testPoint, testPoint + Vector3(1000,1000,0)) );
-//
-//		if (intersect) intersectionCount++;
-//	}
-//
-//	if (intersectionCount % 2 == 0) return false;
-//
-//	return true;
-//}
-
-//void PhysicsSystem::UpdateCollisionSphere(const PhysicsNode& pn, CollisionSphere& cs){
-//	cs.m_pos = pn.GetPosition();
-//}
-
-//void PhysicsSystem::UpdateCollisionPlane(const PhysicsNode& pn, Plane& p){
-//
-//}
-//
-//void PhysicsSystem::UpdateCollisionAABB(const PhysicsNode& pn, CollisionAABB& aabb){
-//
-//}
-
-//Consider replacing the final 3 parameters with collision data?
-//void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
-//								const Vector3& hitPoint, const Vector3& normal,
-//								float penetration)
-//{
-//	//If the object weighs more than 1000kg then set it immovable
-//	float invMass0 = (pn0.m_invMass < 0.001f) ? 0.0f : pn0.m_invMass;
-//	float invMass1 = (pn1.m_invMass < 0.001f) ? 0.0f : pn1.m_invMass;
-//
-//	//If the object is fixed in place do the same
-//	invMass0 = (pn0.fixed)? 0.0f : invMass0;
-//	invMass1 = (pn1.fixed)? 0.0f : invMass1;
-//
-//	//TODO: Since these are const, why not make them references?
-//	const Matrix4 worldInvInertia0 = pn0.m_invInertia;
-//	const Matrix4 worldInvInertia1 = pn1.m_invInertia;
-//
-//	//Both immovable, dont continue
-//	if ( (invMass0+invMass1) == 0.0 ) return;
-//
-//	//Calculate the vector of the point of contact to the center of the shape.
-//	// (The contact normal for each shape?)
-//	Vector3 r0 = hitPoint - pn0.m_position;
-//	Vector3 r1 = hitPoint - pn1.m_position;
-//
-//	Vector3 v0 = pn0.m_linearVelocity + Vector3::Cross(pn0.m_angularVelocity, r0);
-//	Vector3 v1 = pn1.m_linearVelocity + Vector3::Cross(pn1.m_angularVelocity, r1);
-//
-//	//Relative velocity
-//	Vector3 dv = v0 - v1;
-//
-//	float relativeMoment = -Vector3::Dot(dv, normal);
-//	
-//	//If the objects are moving away from each other then there isnt a need to apply an impulse!
-//	if (relativeMoment < -0.01f) return;
-//
-//	//Normal Impulse
-//	{ //TODO: Extra scope?
-//		float e = 0.0f;
-//
-//		float normDiv = Vector3::Dot(normal, normal)
-//			* ( (invMass0 + invMass1)
-//			+ Vector3::Dot(normal,
-//			worldInvInertia0 * Vector3::Cross( Vector3::Cross( r0, normal), r0) 
-//			+ Vector3::Cross( worldInvInertia1 * Vector3::Cross(r1, normal),r1) ) );
-//
-//		float jn = -1 * (1+e) * Vector3::Dot(dv, normal) /normDiv;
-//
-//		jn = jn + (penetration * 1.5f);
-//
-//		pn0.m_linearVelocity += (normal * invMass0) * jn;
-//		pn0.m_angularVelocity += worldInvInertia0 * Vector3::Cross(r0, normal * jn);
-//
-//		pn1.m_linearVelocity -= (normal * invMass1) * jn;
-//		pn1.m_angularVelocity -= worldInvInertia1 * Vector3::Cross(r1, normal * jn);
-//	}
-//
-//	//TANGENT IMPULSE IS THIS NECESSARY?
-//	{
-//		Vector3 tangent = Vector3(0,0,0);
-//		tangent = dv - (normal * Vector3::Dot(dv, normal));
-//		tangent.Normalise();
-//
-//		float tangDiv = invMass0 + invMass1
-//			+ Vector3::Dot( tangent,
-//			Vector3::Cross(pn0.m_invInertia * (Vector3::Cross(r0, tangent) ), r0)
-//			+ Vector3::Cross(pn1.m_invInertia * (Vector3::Cross(r1, tangent) ), r1) );
-//
-//		float jt = -1 * Vector3::Dot(dv, tangent) / tangDiv;
-//
-//		//TODO: Clamping here?
-//
-//		//Apply contact impulse
-//		pn0.m_linearVelocity += tangent * jt * invMass0;
-//		pn0.m_angularVelocity += worldInvInertia0 * Vector3::Cross(r0, tangent * jt);
-//
-//		pn1.m_linearVelocity -= tangent * jt * invMass1;
-//		pn1.m_angularVelocity -= worldInvInertia1 * Vector3::Cross(r1, tangent * jt);
-//
-//	}
-//}
 
 void PhysicsSystem::AddCollisionImpulse( PhysicsNode& pn0, PhysicsNode& pn1,
 										const CollisionData& cd)

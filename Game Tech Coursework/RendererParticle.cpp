@@ -44,14 +44,14 @@ bool Renderer::InitParticles(){
 	//Create these as sceneNodes so that they can be culled when not in view
 	rainNode = new ParticleEmitterNode();
 	rainNode->SetParticleEmitter(rain);
-	//rainNode->SetShader(particleShader);
+	rainNode->SetShader(particleShader);
 //	rainNode->SetPosition(Vector3(0,0,0));
 	rainNode->SetBoundingRadius(
 		sqrt(pow((HEIGHTMAP_X * RAW_WIDTH * 0.5f),2) + pow((HEIGHTMAP_Z * RAW_HEIGHT * 0.5f),2)));
 
 	snowNode = new ParticleEmitterNode();
 	snowNode->SetParticleEmitter(snow);
-//	snowNode->SetShader(particleShader);
+	snowNode->SetShader(particleShader);
 	//snowNode->SetPosition(Vector3(0,0,0));
 	snowNode->SetBoundingRadius(
 		sqrt(pow((HEIGHTMAP_X * RAW_WIDTH * 0.5f),2) + pow((HEIGHTMAP_Z * RAW_HEIGHT * 0.5f),2)));

@@ -5,7 +5,7 @@ bool Renderer::InitDebug(){
 	basicFont = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
-	sphere = new OBJMesh(MESHDIR"Sphere.obj");
+	//sphere = new OBJMesh(MESHDIR"Sphere.obj");
 	box = new OBJMesh(MESHDIR"centeredcube.obj");
 	debugQuad = Mesh::GenerateQuad();
 
@@ -21,12 +21,12 @@ bool Renderer::InitDebug(){
 	objectsShadowed = 0;
 	drawBound = 0;
 
-	lineMode = true;
+	lineMode = false;
 	drawWorld = true;
 	physicsDrawing = false;
 	octTree = true;
-	broadPhase = true;
-	narrowPhase = true;
+	broadPhase = false;
+	narrowPhase = false;
 	drawConstraints = false;
 
 	return true;
@@ -111,6 +111,7 @@ void Renderer::DrawDebugOverlay(){
 
 	buff = std::ostringstream();
 	buff << "PUPS: " << PhysicsSystem::GetPhysicsSystem().GetUpdateRate();
+	buff << "Physics Objects: " << PhysicsSystem::GetPhysicsSystem().GetNumberOfObjects();
 	buff << " Collisions: " << PhysicsSystem::GetPhysicsSystem().GetCollisionCount();
 	DrawString(buff.str(), Vector3(0, 4*FONT_SIZE, 0.5f), FONT_SIZE);
 
@@ -121,6 +122,8 @@ void Renderer::DrawDebugOverlay(){
 	if (narrowPhase) buff << "Narrow phase, " << std::endl;
 	if (drawConstraints) buff << "Constraints." << std::endl;
 	DrawString(buff.str(), Vector3(0, 5*FONT_SIZE, 0.5f), FONT_SIZE);
+
+	DrawString(extraOverlayText, Vector3(0, 6*FONT_SIZE, 0.5f), FONT_SIZE);
 
 	glUseProgram(0);
 }

@@ -88,6 +88,11 @@ public:
 	Vector3		GetAngularVelocity()	{ return m_angularVelocity;}
 
 	bool		AtRest() const			{ return m_rest; };
+	void		Sleep()					{ m_rest = true; };
+	void		Wake()					{ m_rest = false; };
+
+	int			GetNoCollisions()		{ return noOfCollisions; }
+	void		ResetCollisionCounter() { noOfCollisions = 0;	}
 
 	bool		GetFixed() const		{ return fixed; }
 	void		SetFixed(bool fix)		{ fixed = fix; if (fixed){ m_linearVelocity = Vector3(0,0,0); m_angularVelocity = Vector3(0,0,0); } };
@@ -122,6 +127,8 @@ public:
 protected:
 	bool fixed;
 	bool m_rest;
+
+	int noOfCollisions;
 	
 	PhysicsNode* lastCollided;
 

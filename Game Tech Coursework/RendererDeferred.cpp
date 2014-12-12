@@ -51,11 +51,9 @@ bool Renderer::InitDeferredRendering(){
 
 		ParticleEmitterNode* fire = new ParticleEmitterNode();
 		fire->SetParticleEmitter(fireEmitter);
-//		fire->SetPosition(lightPositions[i]);
+		fire->SetTransform(Matrix4::Translation(lightPositions[i]));
 		fire->SetBoundingRadius(100);
-//		fire->SetShader(particleShader);
-		/*fire->SetUpdateShaderFunction([this]{UpdateParticleShaderMatricesPO(); });*/
-//		fire->SetScaleWithParent(false);
+		fire->SetShader(particleShader);
 		
 		root->AddChild(fire);
 	}

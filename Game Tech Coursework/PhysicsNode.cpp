@@ -9,6 +9,8 @@ PhysicsNode::PhysicsNode(void)	{
 	m_narrowPhase = NULL;
 	m_broadPhase = NULL;
 	lastCollided = NULL;
+	m_scale = Vector3(1,1,1);
+	noOfCollisions = 0;
 }
 
 PhysicsNode::PhysicsNode(const Quaternion& orientation, const Vector3& position) {
@@ -20,6 +22,8 @@ PhysicsNode::PhysicsNode(const Quaternion& orientation, const Vector3& position)
 	m_narrowPhase = NULL;
 	m_broadPhase = NULL;
 	lastCollided = NULL;
+	m_scale = Vector3(1,1,1);
+	noOfCollisions = 0;
 }
 
 PhysicsNode::~PhysicsNode(void)	{
@@ -63,7 +67,10 @@ void	PhysicsNode::Update(float msec){
 			abs(m_linearVelocity.z) < REST_TOLERANCE &&
 			abs(m_force.x) < REST_TOLERANCE &&
 			abs(m_force.y) < REST_TOLERANCE &&
-			abs(m_force.z) < REST_TOLERANCE)
+			abs(m_force.z) < REST_TOLERANCE &&
+			abs(m_constantAccel.x) < REST_TOLERANCE &&
+			abs(m_constantAccel.y) < REST_TOLERANCE &&
+			abs(m_constantAccel.z) < REST_TOLERANCE)
 			m_rest = true;
 
 	}
@@ -72,7 +79,7 @@ void	PhysicsNode::Update(float msec){
 		target->SetTransform(BuildTransform());
 		target->SetModelScale(m_scale);
 		if (m_rest) target->SetColour(Vector4(1,0,0,1));	//DEBUGGING STUFF
-		else target->SetColour(Vector4(1,1,1,1));
+		/*else target->SetColour(Vector4(1,1,1,1));*/
 	}
 }
 
@@ -135,12 +142,6 @@ Matrix4		PhysicsNode::BuildTransform() {
 void PhysicsNode::SetInvSphereInertiaMatrix(float mass, float radius){
 	float inv_inertia = 1 / ((2.0f * mass * (radius * radius)) * 0.2f);
 
-	/*m_invInertia = Matrix4();
-	m_invInertia[0] = inv_inertia;
-	m_invInertia[5] = inv_inertia;
-	m_invInertia[10] = inv_inertia;
-	m_invInertia[15] = 1.0f;*/
-
 	m_invInertia = Matrix3();
 	m_invInertia[0] = inv_inertia;
 	m_invInertia[4] = inv_inertia;
@@ -153,12 +154,6 @@ void PhysicsNode::SetInvCuboidInertiaMatrix(float mass, float height, float widt
 	float inv_inertiaX = 1 / (0.83333333f * mass * ((height * height) + (width * width)));
 	float inv_inertiaY = 1 / (0.83333333f * mass * ((length * length) + (width * width)));
 	float inv_inertiaZ = 1 / (0.83333333f * mass * ((height * height) + (length * length)));
-
-	//Matrix4 m_invInertia = Matrix4();
-	//m_invInertia[0] = inv_inertiaX;
-	//m_invInertia[5] = inv_inertiaY;
-	//m_invInertia[10] = inv_inertiaZ;
-	//m_invInertia[15] = 1.0f; //TODO: What to be done about this?
 
 	m_invInertia = Matrix3();
 	m_invInertia[0] = inv_inertiaX;

@@ -61,6 +61,9 @@ Cloth::Cloth(int width, int height, const Vector3& pos, const Vector3& scale, fl
 
 	cloth = new SceneNode(gridMesh);
 	cloth->SetBoundingRadius(scale.Length() * 2.0f);
+	cloth->SetShader(Renderer::GetRenderer().phong);
+	///*cloth->SetShader(Renderer::GetRenderer().sceneNoBumpShader);
+	//cloth->SetShaderUpdateFunc( []{ Renderer::GetRenderer().UpdateCombineSceneShaderMatricesPO(); });*/
 }
 
 
@@ -89,7 +92,6 @@ void Cloth::ConnectToSystems(){
 		ps.AddConstraint(*itr);
 	}
 
-	/*Renderer::GetRenderer().AddNode(new SceneNode(gridMesh));*/
 	Renderer::GetRenderer().AddNode(cloth);
 }
 

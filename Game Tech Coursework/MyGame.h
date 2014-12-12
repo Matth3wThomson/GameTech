@@ -39,8 +39,13 @@ _-_-_-_-_-_-_-""  ""
 #include "../nclgl/Camera.h"
 #include "../nclgl/CubeRobot.h"
 #include "TreeEntity.h"
+#include "RespawnableEntity.h"
 #include "GridMesh.h"
 #include "Cloth.h"
+
+#define BALLS_X 10.0f
+#define BALLS_Z 10.0f
+#define WORLD_SIZE 3500.0f
 
 class MyGame : public GameClass	{
 public:
@@ -56,9 +61,9 @@ protected:
 
 	GameEntity* BuildSphereEntity(float radius);
 
-	GameEntity* BuildQuadEntity(float size, const Vector3& qt, float angle);
+	RespawnableEntity* BuildRespawnableSphere(float radius, const Vector3& position, float respawnTime);
 
-	GameEntity* BuildHeightmapEntity();
+	GameEntity* BuildQuadEntity(float size, const Vector3& qt, float angle);
 
 	float projectileSize;
 	float projectileSpeed;
@@ -67,10 +72,6 @@ protected:
 	GameEntity* Tree;
 
 	Mesh* cylinder;
-
-	//Heightmap entity
-	Mesh* heightMap;
-	Shader* heightMapShader;
 
 	Mesh* cube;
 	Mesh* centCube;

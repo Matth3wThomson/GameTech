@@ -71,6 +71,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Cloth.cpp" />
+    <ClCompile Include="DestructibleSphere.cpp" />
     <ClCompile Include="GameClass.cpp" />
     <ClCompile Include="GameEntity.cpp" />
     <ClCompile Include="GridMesh.cpp" />
@@ -81,6 +82,7 @@
     <ClCompile Include="PhysicsNode.cpp" />
     <ClCompile Include="PhysicsSystem.cpp" />
     <ClCompile Include="RendererDeferred.cpp" />
+    <ClCompile Include="RespawnableEntity.cpp" />
     <ClCompile Include="Spring.cpp" />
     <ClCompile Include="TreeEntity.cpp" />
     <ClCompile Include="TreeNode.cpp" />
@@ -95,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cloth.h" />
+    <ClInclude Include="DestructibleSphere.h" />
     <ClInclude Include="GameClass.h" />
     <ClInclude Include="GameEntity.h" />
     <ClInclude Include="GridMesh.h" />
@@ -105,6 +108,7 @@
     <ClInclude Include="ParticleEmitterNode.h" />
     <ClInclude Include="PhysicsNode.h" />
     <ClInclude Include="PhysicsSystem.h" />
+    <ClInclude Include="RespawnableEntity.h" />
     <ClInclude Include="Spring.h" />
     <ClInclude Include="TreeEntity.h" />
     <ClInclude Include="TreeNode.h" />

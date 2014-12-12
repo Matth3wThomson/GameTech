@@ -5,8 +5,6 @@ uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 uniform mat4 textureMatrix;
 
-//uniform mat4 mvp;
-
 uniform mat4 shadowVPMatrix;
 
 in vec3 position;

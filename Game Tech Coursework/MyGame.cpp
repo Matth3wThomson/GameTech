@@ -11,8 +11,6 @@ You can completely change all of this if you want, it's your game!
 */
 MyGame::MyGame(){
 
-	heightMapShader = NULL;
-
 	gameCamera = new Camera(-30.0f,0.0f,Vector3(0,450,850));
 
 	Renderer::GetRenderer().SetCamera(gameCamera);
@@ -45,7 +43,8 @@ MyGame::MyGame(){
 	Matrix3 floorMat = Matrix3();
 	floorMat.ToZero();
 
-	GameEntity* floor = BuildQuadEntity(4000.0f, Vector3(1,0,0), 90.0f);
+	/*GameEntity* floor = BuildQuadEntity(4000.0f, Vector3(1,0,0), 90.0f);*/
+	GameEntity* floor = new GameEntity(NULL, new PhysicsNode());
 	floor->GetPhysicsNode().SetPosition(Vector3(0,0.0f, 0));
 	floor->GetPhysicsNode().SetFixed(true);
 	floor->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,1,0), 0.0f));
@@ -53,13 +52,17 @@ MyGame::MyGame(){
 	floor->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
 	floor->GetPhysicsNode().SetInverseInertiaMat(floorMat);
 
+	/*floor->GetRenderNode().SetShader(Renderer::GetRenderer().sceneShader);
+	floor->GetRenderNode().SetShaderUpdateFunc([]{ Renderer::GetRenderer().UpdateCombineSceneShaderMatricesPO(); } );*/
+
 	floor->ConnectToSystems();
 	allEntities.push_back(floor);
 
-	GameEntity* roof = BuildQuadEntity(1000.0f, Vector3(1,0,0), 270.0f);
-	roof->GetPhysicsNode().SetPosition(Vector3(0, 4000.0f, 0));
+	GameEntity* roof = new GameEntity(NULL, new PhysicsNode());
+	/*GameEntity* roof = BuildQuadEntity(4000.0f, Vector3(1,0,0), 270.0f);*/
+	roof->GetPhysicsNode().SetPosition(Vector3(0, 8000.0f, 0));
 	roof->GetPhysicsNode().SetFixed(true);
-	roof->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,-1,0), -4000.0f));
+	roof->GetPhysicsNode().SetNarrowPhaseVolume(new Plane(Vector3(0,-1,0), -8000.0f));
 
 	roof->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
 	roof->GetPhysicsNode().SetInverseInertiaMat(floorMat);
@@ -67,7 +70,8 @@ MyGame::MyGame(){
 	roof->ConnectToSystems();
 	allEntities.push_back(roof);
 
-	GameEntity* wallBack = BuildQuadEntity(4000.0f, Vector3(1,0,0), 0.0f);
+	/*GameEntity* wallBack = BuildQuadEntity(4000.0f, Vector3(1,0,0), 0.0f);*/
+	GameEntity* wallBack = new GameEntity(NULL, new PhysicsNode());
 	wallBack->GetPhysicsNode().SetPosition(Vector3(0,0,4000.0f));
 	wallBack->GetPhysicsNode().SetFixed(true);
 	wallBack->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
@@ -79,7 +83,8 @@ MyGame::MyGame(){
 	wallBack->ConnectToSystems();
 	allEntities.push_back(wallBack);
 
-	GameEntity* wallFront = BuildQuadEntity(4000.0f, Vector3(1,0,0), 180.0f);
+	/*GameEntity* wallFront = BuildQuadEntity(4000.0f, Vector3(1,0,0), 180.0f);*/
+	GameEntity* wallFront = new GameEntity(NULL, new PhysicsNode());
 	wallFront->GetPhysicsNode().SetPosition(Vector3(0,0,-4000.0f));
 	wallFront->GetPhysicsNode().SetFixed(true);
 	wallFront->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
@@ -90,7 +95,8 @@ MyGame::MyGame(){
 	wallFront->ConnectToSystems();
 	allEntities.push_back(wallFront);
 
-	GameEntity* wallLeft = BuildQuadEntity(4000.0f, Vector3(0,1,0), 270.0f);
+	/*GameEntity* wallLeft = BuildQuadEntity(4000.0f, Vector3(0,1,0), 270.0f);*/
+	GameEntity* wallLeft = new GameEntity(NULL, new PhysicsNode());
 	wallLeft->GetPhysicsNode().SetPosition(Vector3(-4000.0f,0,0));
 	wallLeft->GetPhysicsNode().SetFixed(true);
 	wallLeft->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
@@ -101,7 +107,8 @@ MyGame::MyGame(){
 	wallLeft->ConnectToSystems();
 	allEntities.push_back(wallLeft);
 
-	GameEntity* wallRight = BuildQuadEntity(4000.0f, Vector3(0,1,0), 90.0f);
+	/*GameEntity* wallRight = BuildQuadEntity(4000.0f, Vector3(0,1,0), 90.0f);*/
+	GameEntity* wallRight = new GameEntity(NULL, new PhysicsNode());
 	wallRight->GetPhysicsNode().SetPosition(Vector3(4000,0,0));
 	wallRight->GetPhysicsNode().SetFixed(true);
 	wallRight->GetPhysicsNode().SetScale(Vector3(4000,4000,4000));
@@ -112,73 +119,67 @@ MyGame::MyGame(){
 	wallRight->ConnectToSystems();
 	allEntities.push_back(wallRight);
 
-	//GameEntity* sphere1 = BuildSphereEntity(projectileSize);
-	//sphere1->GetPhysicsNode().SetPosition(Vector3(-500,1000,0));
-	//sphere1->GetPhysicsNode().SetFixed(true);
-	///*if (Window::GetKeyboard()->KeyDown(KEYBOARD_C))*/
-	//
-	////sphere1->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
-	////sphere1->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
-	//sphere1->GetPhysicsNode().SetMass(1.0f);
-	////sphere1->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
-	//sphere1->GetPhysicsNode().SetInvSphereInertiaMatrix(1, projectileSize);
-	//sphere1->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
-	//sphere1->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
-
-	//sphere1->ConnectToSystems();
-
-	//allEntities.push_back(sphere1);
-
-	//GameEntity* sphere2 = BuildSphereEntity(projectileSize);
-	//sphere2->GetPhysicsNode().SetPosition(Vector3(-500,500,0));
-	//
-	////sphere2->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
-	//sphere2->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
-	//sphere2->GetPhysicsNode().SetMass(1.0f);
-	////sphere2->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
-	//sphere2->GetPhysicsNode().SetInvSphereInertiaMatrix(1, projectileSize);
-	//sphere2->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
-	//sphere2->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
-
-	//sphere2->ConnectToSystems();
-
-	//allEntities.push_back(sphere2);
-
-	//GameEntity* sphere3 = BuildSphereEntity(projectileSize);
-	//sphere3->GetPhysicsNode().SetPosition(Vector3(-500,0,0));
-	//
-	////sphere3->GetPhysicsNode().ApplyForce(Vector3(0,-0.1f,0)); //Add some gravity
-	//sphere3->GetPhysicsNode().SetConstantAccel(Vector3(0, -0.01f, 0));
-	//sphere3->GetPhysicsNode().SetMass(1.0f);
-	////sphere3->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()));
-	//sphere3->GetPhysicsNode().SetInvSphereInertiaMatrix(1, projectileSize);
-	//sphere3->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
-	//sphere3->GetPhysicsNode().SetScale(Vector3(projectileSize, projectileSize, projectileSize));
-
-	//sphere3->ConnectToSystems();
-
-	//Spring* s = new Spring(&sphere1->GetPhysicsNode(), Vector3(0,0,0),
-	//	&sphere2->GetPhysicsNode(), Vector3(0,0,0));
-
-	//Spring* s2 = new Spring(&sphere2->GetPhysicsNode(), Vector3(0,0,0),
-	//	&sphere3->GetPhysicsNode(), Vector3(0,0,0));
-
-	//PhysicsSystem::GetPhysicsSystem().AddConstraint(s);
-	//PhysicsSystem::GetPhysicsSystem().AddConstraint(s2);
-
 	Cloth * c = new Cloth(5, 8, Vector3(1900,1500,0), Vector3(600,500,1000), 120.0f, TEXTUREDIR"Barren Reds.jpg");
 	c->ConnectToSystems();
 	allEntities.push_back(c);
 
 	TreeEntity* te = new TreeEntity(750.0f);
 	te->GetPhysicsNode().SetPosition(Vector3(700, 35, 800));
+
+	te->GetRenderNode().SetShader(Renderer::GetRenderer().sceneShader);
+	te->GetRenderNode().SetShaderUpdateFunc([]{ Renderer::GetRenderer().UpdateCombineSceneShaderMatricesPO(); } );
+
 	te->ConnectToSystems();
 	allEntities.push_back(te);
 
-	GameEntity* hm = BuildHeightmapEntity();
-	hm->ConnectToSystems();
-	allEntities.push_back(hm);
+	for (int i=0; i<BALLS_X; ++i){
+		for (int j=0; j<BALLS_Z; ++j){
+			RespawnableEntity* ball = BuildRespawnableSphere(100.0f, 
+				Vector3(((i/BALLS_X) - 0.5f)
+				* WORLD_SIZE, WORLD_SIZE,
+				((j/BALLS_Z) - 0.5f) * WORLD_SIZE), 1000);
+			PhysicsNode& pn = ball->GetPhysicsNode();
 
+			pn.SetConstantAccel(Vector3(0, -0.01f, 0));
+			pn.SetPosition(Vector3( ((i/BALLS_X) - 0.5f)
+				* WORLD_SIZE, WORLD_SIZE,
+				((j/BALLS_Z) - 0.5f) * WORLD_SIZE));
+			pn.SetBroadPhaseVolume(new CollisionSphere(pn.GetPosition(), 100.0f));
+			pn.SetInvSphereInertiaMatrix(100, 100.0f);
+			pn.SetMass(100.0f);
+			pn.SetScale(Vector3(100, 100, 100));
+			pn.Sleep();
+
+			ball->GetRenderNode().SetShader(Renderer::GetRenderer().phong);
+			ball->GetRenderNode().SetColour(Vector4(RAND(), RAND(), RAND(), RAND()));
+
+			ball->ConnectToSystems();
+			allEntities.push_back(ball);
+		}
+	}
+
+	/*for (int i=0; i<BALLS_X; ++i){
+		for (int j=0; j<BALLS_Z; ++j){
+			GameEntity* ball = BuildSphereEntity(100.0f);
+			PhysicsNode& pn = ball->GetPhysicsNode();
+
+			pn.SetConstantAccel(Vector3(0, -0.01f, 0));
+			pn.SetPosition(Vector3( ((i/BALLS_X) - 0.5f)
+				* WORLD_SIZE, WORLD_SIZE,
+				((j/BALLS_Z) - 0.5f) * WORLD_SIZE));
+			pn.SetBroadPhaseVolume(new CollisionSphere(pn.GetPosition(), 100.0f));
+			pn.SetInvSphereInertiaMatrix(100, 100.0f);
+			pn.SetMass(100.0f);
+			pn.SetScale(Vector3(100, 100, 100));
+			pn.Sleep();
+
+			ball->GetRenderNode().SetShader(Renderer::GetRenderer().phong);
+			ball->GetRenderNode().SetColour(Vector4(RAND(), RAND(), RAND(), RAND()));
+
+			ball->ConnectToSystems();
+			allEntities.push_back(ball);
+		}
+	}*/
 }
 
 MyGame::~MyGame(void)	{
@@ -208,13 +209,13 @@ void MyGame::UpdateGame(float msec) {
 		projectileSpeed++;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_N))
-		projectileSpeed--;
+		projectileSpeed = max(0, projectileSpeed-1);
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_K))
-		projectileSize++;
+		projectileSize+=10.0f;
 
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_J))
-		projectileSize--;
+		projectileSize = max(0, projectileSize-10.0f);
 	
 	//Spawn a new object.
 	if (Window::GetMouse()->ButtonTriggered(MOUSE_LEFT)){
@@ -235,6 +236,10 @@ void MyGame::UpdateGame(float msec) {
 		ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()).Normalise());
 		ge->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, projectileSize, projectileSize, projectileSize);
 		
+		ge->GetRenderNode().SetColour(Vector4(RAND(), RAND(), RAND(), 1.0f));
+
+		ge->GetRenderNode().SetShader(Renderer::GetRenderer().phong);
+
 		ge->ConnectToSystems();
 
 		allEntities.push_back(ge);
@@ -255,13 +260,16 @@ void MyGame::UpdateGame(float msec) {
 
 		ge->GetPhysicsNode().SetNarrowPhaseVolume(new CollisionSphere(Vector3(0,0,0), projectileSize));
 
+		ge->GetRenderNode().SetShader(Renderer::GetRenderer().phong);
+		ge->GetRenderNode().SetColour(Vector4(RAND(), RAND(), RAND(), 1.0f));
+		//ge->GetRenderNode().SetShaderUpdateFunc([]{ Renderer::GetRenderer().UpdateCombineSceneShaderMatricesPO(); });
+
 		ge->ConnectToSystems();
 
 		allEntities.push_back(ge);
 	}
 
 	if (Window::GetMouse()->ButtonTriggered(MOUSE_MIDDLE)){
-
 
 		GameEntity* ge = new GameEntity(new SceneNode(cylinder), new PhysicsNode());
 		ge->GetPhysicsNode().SetPosition(gameCamera->GetPosition() + gameCamera->GetDirectionVector() * 100.0f);
@@ -279,60 +287,34 @@ void MyGame::UpdateGame(float msec) {
 		ge->GetPhysicsNode().SetOrientation(Quaternion(RAND(), RAND(), RAND(), RAND()).Normalise());
 		ge->GetPhysicsNode().SetInvCuboidInertiaMatrix(100, projectileSize, projectileSize, projectileSize);
 		
+		ge->GetRenderNode().SetShader(Renderer::GetRenderer().phong);
+		ge->GetRenderNode().SetColour(Vector4(RAND(), RAND(), RAND(), 1.0f));
+
 		ge->ConnectToSystems();
 
 		allEntities.push_back(ge);
 	}
 
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_G)){
+		PhysicsSystem::GetPhysicsSystem().WakeAllNodes();
+	}
+
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_C)){
+		msec *= 0.1f;
+	}
+
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_V)){
+		msec *= 10.0f;
+	}
+
+	std::ostringstream buff = std::ostringstream();
+	buff << "Projectile size(J/K): " << projectileSize << " Projectile speed(N/M): " << projectileSpeed;
+
+	Renderer::GetRenderer().SetOverlayText(buff.str());
+
 	for(vector<GameEntity*>::iterator i = allEntities.begin(); i != allEntities.end(); ++i) {
 		(*i)->Update(msec);
 	}
-
-	/*
-	Here's how we can use OGLRenderer's inbuilt debug-drawing functions! 
-	I meant to talk about these in the graphics module - Oops!
-
-	We can draw squares, lines, crosses and circles, of varying size and
-	colour - in either perspective or orthographic mode.
-
-	Orthographic debug drawing uses a 'virtual canvas' of 720 * 480 - 
-	that is 0,0 is the top left, and 720,480 is the bottom right. A function
-	inside OGLRenderer is provided to convert clip space coordinates into
-	this canvas space coordinates. How you determine clip space is up to you -
-	maybe your renderer has getters for the view and projection matrix?
-
-	Or maybe your Camera class could be extended to contain a projection matrix?
-	Then your game would be able to determine clip space coordinates for its
-	active Camera without having to involve the Renderer at all?
-
-	Perspective debug drawing relies on the view and projection matrices inside
-	the renderer being correct at the point where 'SwapBuffers' is called. As
-	long as these are valid, your perspective drawing will appear in the world.
-
-	This gets a bit more tricky with advanced rendering techniques like deferred
-	rendering, as there's no guarantee of the state of the depth buffer, or that
-	the perspective matrix isn't orthographic. Therefore, you might want to draw
-	your debug lines before the inbuilt position before SwapBuffers - there are
-	two OGLRenderer functions DrawDebugPerspective and DrawDebugOrtho that can
-	be called at the appropriate place in the pipeline. Both take in a viewProj
-	matrix as an optional parameter.
-
-	Debug rendering uses its own debug shader, and so should be unaffected by
-	and shader changes made 'outside' of debug drawing
-
-	*/
-	//Lets draw a box around the cube robot!
-	//Renderer::GetRenderer().DrawDebugBox(DEBUGDRAW_PERSPECTIVE, Vector3(0,51,0), Vector3(100,100,100), Vector3(1,0,0));
-
-	////We'll assume he's aiming at something...so let's draw a line from the cube robot to the target
-	////The 1 on the y axis is simply to prevent z-fighting!
-	//Renderer::GetRenderer().DrawDebugLine(DEBUGDRAW_PERSPECTIVE, Vector3(0,1,0),Vector3(200,1,200), Vector3(0,0,1), Vector3(1,0,0));
-
-	////Maybe he's looking for treasure? X marks the spot!
-	//Renderer::GetRenderer().DrawDebugCross(DEBUGDRAW_PERSPECTIVE, Vector3(200,1,200),Vector3(50,50,50), Vector3(0,0,0));
-
-	////CubeRobot is looking at his treasure map upside down!, the treasure's really here...
-	//Renderer::GetRenderer().DrawDebugCircle(DEBUGDRAW_PERSPECTIVE, Vector3(-200,1,-200),50.0f, Vector3(0,1,0));
 }
 
 /*
@@ -375,6 +357,16 @@ GameEntity* MyGame::BuildSphereEntity(float radius) {
 	return g;
 }
 
+RespawnableEntity* MyGame::BuildRespawnableSphere(float radius, const Vector3& position, float respawnTime){
+	SceneNode* s = new SceneNode(sphere);
+
+	s->SetModelScale(Vector3(radius, radius, radius));
+	s->SetBoundingRadius(radius);
+
+	RespawnableEntity* sphere = new RespawnableEntity(s, new PhysicsNode(), position, respawnTime, 150);
+	return sphere;
+}
+
 /*
 Makes a flat quad, initially oriented such that we can use it as a simple
 floor. 
@@ -394,39 +386,4 @@ GameEntity* MyGame::BuildQuadEntity(float size, const Vector3& orientation, floa
 	GameEntity*g = new GameEntity(s, p);
 	//g->ConnectToSystems();
 	return g;
-}
-
-GameEntity* MyGame::BuildHeightmapEntity(){
-	heightMap = new HeightMap(TEXTUREDIR"terrain.raw");
-
-	heightMap->SetTexture(SOIL_load_OGL_texture(
-		TEXTUREDIR"Barren reds.jpg", SOIL_LOAD_AUTO,
-		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-
-	heightMap->SetBumpMap(SOIL_load_OGL_texture(
-		TEXTUREDIR"Barren redsDOT3.jpg", SOIL_LOAD_AUTO, 
-		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-
-	glBindTexture(GL_TEXTURE_2D, heightMap->GetTexture());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	if (!heightMapShader){
-		heightMapShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
-			SHADERDIR"heightMapShadowSceneFrag.glsl");
-
-		if (!heightMapShader->LinkProgram())
-			return false;
-	}
-
-	GameEntity* ge = new GameEntity(new SceneNode(heightMap), NULL);
-	ge->GetRenderNode().SetBoundingRadius( 
-		sqrt( pow(RAW_WIDTH * HEIGHTMAP_X * 0.5f, 3)
-		+ pow(RAW_HEIGHT * HEIGHTMAP_Z * 0.5f, 2)));
-
-	ge->GetRenderNode().SetShader(heightMapShader);
-	ge->GetRenderNode().SetShaderUpdateFunc( []{ Renderer::GetRenderer().UpdateHeightMapShaderPO(); });
-
-	return ge;
 }

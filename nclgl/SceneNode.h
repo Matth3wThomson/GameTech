@@ -42,6 +42,9 @@ public:
 
 	void			SetShaderUpdateFunc(std::function<void()> shaderUpdater){ updateShaderFunction = shaderUpdater; };
 
+	Matrix4			GetTextureMatrix(){ return textureMatrix; };
+	void			SetTextureMatrix(const Matrix4& texMat){ textureMatrix = texMat; };
+
 	Vector4			GetColour()		const			{return colour;}
 	void			SetColour(const Vector4 &c)		{colour = c;}
 
@@ -88,6 +91,6 @@ protected:
 
 	//TODO: Come back to this function!
 	//Extra matricies... teehee
-	//Matrix4 textureMatrix;
+	Matrix4 textureMatrix;
 };
 

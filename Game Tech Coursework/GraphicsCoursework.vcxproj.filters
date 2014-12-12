@@ -97,6 +97,12 @@
     <ClCompile Include="TreeEntity.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
+    <ClCompile Include="RespawnableEntity.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="DestructibleSphere.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GrowingNode.h">
@@ -142,6 +148,12 @@
       <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="TreeEntity.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="RespawnableEntity.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="DestructibleSphere.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
   </ItemGroup>

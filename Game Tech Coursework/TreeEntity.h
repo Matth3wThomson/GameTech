@@ -2,6 +2,7 @@
 
 #include "GameEntity.h"
 #include "GrowingNode.h"
+#include "Renderer.h"
 
 //#define MAX_TREE_HEIGHT 750.0f //The size of a tree
 #define TOLERANCE 0.01f	//Tolerance value for comparing floats

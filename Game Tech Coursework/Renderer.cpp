@@ -107,7 +107,6 @@ void Renderer::UpdateScene(float msec){
 
 	camera->UpdateCamera(msec);
 
-
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P))
 		pause = !pause;
 
@@ -132,8 +131,6 @@ void Renderer::UpdateScene(float msec){
 		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_NUMPAD0)){
 			timeOfDay = 0;
 		}
-
-		timeOfDay = 0.5f * PI;
 
 		//One day is 2 PI (I bet you can't guess why ;) )
 		timeOfDay = std::fmod(timeOfDay, 2 * PI);
@@ -207,11 +204,12 @@ void Renderer::DrawCombinedScene(){
 	if (lineMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	if (drawWorld){
 		for (auto itr = nodeList.begin(); itr != nodeList.end(); ++itr){
-			SetCurrentShader(phong);
+			//SetCurrentShader(phong);
+			SetCurrentShader(sceneShader);
 			//SetCurrentShader(passThrough);
 
 			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			(*itr)->Draw(*this);
+			(*itr)->Draw(*this, true);
 
 			if (debug){ 
 				if (drawBound) DrawBounds(*itr);
@@ -259,9 +257,13 @@ void Renderer::DrawCombinedScene(){
 
 //Updates all relevant shaders per frame with uploads that
 //arent specific to an object
+
+//TODO: Have an array or vector of per frame shader updates to call?
 void Renderer::UpdateShadersPerFrame(){
 	UpdateGenericShadersPF();
 	UpdateCombineSceneShaderMatricesPF();
+	UpdateHeightMapShaderPF();
+	UpdateWaterShaderMatricesPF();
 }
 
 //Draws a supplied string to the screen

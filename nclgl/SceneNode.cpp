@@ -9,6 +9,10 @@ SceneNode::SceneNode(Mesh*mesh, Vector4 colour)	{
 	distanceFromCamera	= 0.0f;
 	
 	modelScale			= Vector3(1,1,1);
+
+	shader = NULL;
+	updateShaderFunction = []{};
+	textureMatrix.ToIdentity();
 }
 
 SceneNode::~SceneNode(void)	{
@@ -69,6 +73,7 @@ void SceneNode::Draw(OGLRenderer & r, const bool useShader) {
 				r.SetCurrentShader(shader);
 
 		r.modelMatrix = worldTransform * Matrix4::Scale(modelScale);
+		r.textureMatrix = textureMatrix;
 		r.UpdateShaderMatrices();
 
 		glUniform3fv(glGetUniformLocation(r.currentShader->GetProgram(),
@@ -77,7 +82,9 @@ void SceneNode::Draw(OGLRenderer & r, const bool useShader) {
 		glUniform1i(glGetUniformLocation(r.currentShader->GetProgram(),
 			"useTex"), (int) mesh->GetTexture());
 
-		if (useShader) updateShaderFunction();
+		if (useShader)
+			if (shader)
+				updateShaderFunction();
 			
 		mesh->Draw();
 	};

@@ -56,11 +56,18 @@ public:
 
 	static Renderer& GetRenderer(){ return *instance; }
 
+	void SetOverlayText(const std::string& text){ extraOverlayText = text; };
+
+
 	//Per object shader functions moved so game entities can assign shader
 	//functions to their objects without having to be part of the renderer class!
 	void UpdateHeightMapShaderPO();
 	void UpdateWaterShaderMatricesPO();
 	void UpdateCombineSceneShaderMatricesPO();
+
+	Shader* sceneShader;
+	Shader* sceneNoBumpShader;
+	Shader* phong;
 
 protected:
 
@@ -77,7 +84,7 @@ protected:
 	//Generic Shaders
 	Shader* passThrough;
 
-	Shader* phong;
+	/*Shader* phong;*/
 
 	void UpdateGenericShadersPF();
 
@@ -94,6 +101,7 @@ protected:
 	//Lighting
 	Light* light;
 	SceneNode* lightSource;
+	Shader* sunShader;
 
 	//Heightmap multitexturing
 	void UpdateHeightMapShaderPF();
@@ -247,6 +255,8 @@ protected:
 	bool drawBound;
 	bool lineMode;
 
+	std::string extraOverlayText;
+
 	//PHYSICS DEBUGGING!
 	bool physicsDrawing;
 	bool octTree;
@@ -281,7 +291,6 @@ protected:
 	void DrawShadowScene();
 	void DrawCombinedScene();
 
-	Shader* sceneShader;
 	Shader* shadowShader;
 
 	GLuint shadowTex;

@@ -232,9 +232,8 @@ void TreeEntity::AddRandomBranch(){
 
 	Quaternion& parentOrientation = this->GetPhysicsNode().GetOrientation();
 
-	parentOrientation.ToMatrix();
-
-	branchPos = parentOrientation.ToMatrix() * (branchPos + Vector3(0,growthAmount * maxTreeHeight,0));
+	//branchPos = parentOrientation.ToMatrix() * (branchPos + Vector3(0,growthAmount * maxTreeHeight,0));
+	branchPos = branchPos + parentOrientation.ToMatrix() * Vector3(0, growthAmount * maxTreeHeight, 0);
 
 	//branchPos.y += growthAmount * maxTreeHeight;
 
@@ -285,6 +284,7 @@ void TreeEntity::AddRandomLeaf(){
 	//leaf->SetPosition(leaf->GetPosition() + (axisOfGrowth * (1-leaf->GetPosition().y)));
 
 	leaf->SetBoundingRadius(25);
+	leaf->SetShader(Renderer::GetRenderer().phong);
 
 	//leaf->SetScaleWithParent(false);
 
