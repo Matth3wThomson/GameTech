@@ -95,7 +95,6 @@ Renderer::~Renderer(void)
 	DeleteSceneObjects();
 	DeleteShadowBuffers();
 
-	delete camera;
 	delete light;
 	delete phong;
 	delete passThrough;

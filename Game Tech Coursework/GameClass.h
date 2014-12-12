@@ -35,7 +35,7 @@ class GameClass	{
 
 public:
 	GameClass();
-	~GameClass(void);
+	virtual ~GameClass(void);
 
 	void UpdatePhysics(float msec);
 	void UpdateGraphics(float msec);

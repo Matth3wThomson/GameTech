@@ -17,7 +17,7 @@
 //Investigate why this isnt scaled accoring to a given scale...
 #define MAX_TREE_HEIGHT 750.0f //The size of a tree
 #define TOLERANCE 0.01f	//Tolerance value for comparing floats
-#define MAX_DEPTH 2	//The recursion limit
+#define MAX_DEPTH 1	//The recursion limit
 #define MAX_LEAVES 12	//The number of leaves on the final branches
 #define ONE_OVER_FRUIT 5 //The 1/x chance that a fruit is grown
 #define LEAF_GROW_TIME 10000 //The time it takes for a leaf to get to full size

@@ -52,7 +52,7 @@ _-_-_-_-_-_-_-""  ""
 class MyGame : public GameClass	{
 public:
 	MyGame();
-	~MyGame(void);
+	virtual ~MyGame(void);
 
 	virtual void UpdateGame(float msec);
 

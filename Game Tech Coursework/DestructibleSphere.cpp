@@ -5,6 +5,7 @@ Mesh* DestructibleSphere::sphereMesh = NULL;
 DestructibleSphere::DestructibleSphere(int cols, Mesh* sphere, float radius, const Vector3& position,
 									   int parts)
 {
+
 	m_collisionsToDie = cols;
 
 	if (!sphereMesh)
@@ -35,6 +36,7 @@ DestructibleSphere::DestructibleSphere(int cols, Mesh* sphere, float radius, con
 
 DestructibleSphere::~DestructibleSphere(void)
 {
+	
 }
 
 GameEntity* DestructibleSphere::CreateSphereComponent(int totalParts){

@@ -66,7 +66,6 @@ public:
 	void UpdateCombineSceneShaderMatricesPO();
 
 	Shader* sceneShader;
-	Shader* sceneNoBumpShader;
 	Shader* phong;
 
 protected:

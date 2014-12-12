@@ -5,10 +5,6 @@
 #include "Renderer.h"
 #include <thread>
 
-//TODO: REMOVE THIS
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
 
 bool quit = false;
 
@@ -16,6 +12,8 @@ int Quit(bool pause = false, const string &reason = "") {
 	PhysicsSystem::Destroy();
 	Window::Destroy();
 	Renderer::Destroy();
+	
+	
 
 	if(pause) {
 		std::cout << reason << std::endl;
@@ -37,11 +35,8 @@ void UpdatePhysicsEngine(MyGame* game){
 
 
 int main() {
-	// Enable memory leak detection
-	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-	_CrtSetReportMode( _CRT_ERROR, _CRTDBG_MODE_DEBUG );
 	{
-		if(!Window::Initialise("Game Technologies", 1280,720,false)) {
+		if(!Window::Initialise("Game Technologies", 1600,900,false)) {
 			return Quit(true, "Window failed to initialise!");
 		}
 
@@ -71,11 +66,9 @@ int main() {
 		physThread.join();
 
 		delete game;
+		Quit();
 
 	}
-
-	// Any point in your code you can dump all the memory allocations
-	_CrtDumpMemoryLeaks(); // dump memory leaks to the output window
 
 	return 0;
 

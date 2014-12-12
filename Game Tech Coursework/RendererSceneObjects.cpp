@@ -95,7 +95,11 @@ bool Renderer::InitSceneObjects(){
 };
 
 void Renderer::DeleteSceneObjects(){
-	
+	delete heightMapShader;
+	delete heightMap;
+	delete sphere;
+	delete sunShader;
+	delete root;
 }
 
 //Updates the scene objects that need updating, and calls update on the root node

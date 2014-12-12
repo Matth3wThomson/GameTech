@@ -17,6 +17,11 @@ GameEntity::~GameEntity(void)	{
 
 	delete renderNode;
 	delete physicsNode;
+
+	while (!children.empty()){
+		delete children.back();
+		children.pop_back();
+	}
 }
 
 void	GameEntity::Update(float msec) {

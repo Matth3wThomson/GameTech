@@ -7,12 +7,9 @@ bool Renderer::InitShadowBuffers(){
 	sceneShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
 		SHADERDIR"shadowSceneBumpFrag.glsl");
 
-	sceneNoBumpShader = new Shader(SHADERDIR"shadowSceneVert.glsl",
-		SHADERDIR"shadowSceneFrag.glsl");
-
 	shadowShader = new Shader(SHADERDIR"shadowVert.glsl", SHADERDIR"shadowFrag.glsl");
 
-	if (!sceneShader->LinkProgram() || !sceneNoBumpShader->LinkProgram() || !shadowShader->LinkProgram())
+	if (!sceneShader->LinkProgram() || !shadowShader->LinkProgram())
 		return false;
 
 	//Update the shaders uniforms that will not be changed throughout the program.

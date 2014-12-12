@@ -17,6 +17,7 @@ OctTree::OctTree(float halfSize, int threshold, int maxDepth, const Vector3& wor
 
 OctTree::~OctTree(void)
 {
+	CollapseNode(root);
 }
 
 //PUBLIC FUNCTIONS

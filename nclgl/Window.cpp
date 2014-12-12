@@ -277,9 +277,11 @@ LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
 		}break;
 		case(WM_MOUSELEAVE):{
-			window->mouseLeftWindow = true;
-			mouse->Sleep();
-			keyboard->Sleep();
+			if (window){
+				window->mouseLeftWindow = true;
+				mouse->Sleep();
+				keyboard->Sleep();
+			}
 		}break;
 		case(WM_SIZE): {
 			window->size.x = (float)LOWORD(lParam);
